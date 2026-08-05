@@ -70,5 +70,5 @@
 
 ## Fase 14: Entrega
 - [x] Revisar todas as funcionalidades
-- [ ] Salvar checkpoint final
-- [ ] Entregar ao usuário
+- [x] Salvar checkpoint final
+- [x] Entregar ao usuário
