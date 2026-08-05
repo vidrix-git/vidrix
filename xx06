@@ -1,0 +1,15 @@
+--> statement-breakpoint
+CREATE TABLE `quote_items` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`quoteId` int NOT NULL,
+	`productId` int NOT NULL,
+	`description` text,
+	`width` decimal(10,2) NOT NULL DEFAULT '0.00',
+	`height` decimal(10,2) NOT NULL DEFAULT '0.00',
+	`quantity` int NOT NULL DEFAULT 1,
+	`areaM2` decimal(10,4) NOT NULL DEFAULT '0.0000',
+	`unitPrice` decimal(12,2) NOT NULL DEFAULT '0.00',
+	`totalValue` decimal(12,2) NOT NULL DEFAULT '0.00',
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	CONSTRAINT `quote_items_id` PRIMARY KEY(`id`)
+);

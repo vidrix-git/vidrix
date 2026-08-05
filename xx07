@@ -1,0 +1,15 @@
+--> statement-breakpoint
+CREATE TABLE `quotes` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`number` varchar(50) NOT NULL,
+	`clientId` int NOT NULL,
+	`status` enum('draft','sent','approved','rejected','converted') NOT NULL DEFAULT 'draft',
+	`totalValue` decimal(14,2) NOT NULL DEFAULT '0.00',
+	`validUntil` varchar(10),
+	`notes` text,
+	`createdBy` int,
+	`convertedOrderId` int,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `quotes_id` PRIMARY KEY(`id`)
+);

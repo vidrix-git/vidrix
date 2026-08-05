@@ -1,0 +1,12 @@
+--> statement-breakpoint
+CREATE TABLE `supplier_prices` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`supplierId` int NOT NULL,
+	`productId` int NOT NULL,
+	`unitPrice` decimal(12,2) NOT NULL DEFAULT '0.00',
+	`leadTimeDays` int DEFAULT 0,
+	`notes` text,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `supplier_prices_id` PRIMARY KEY(`id`)
+);

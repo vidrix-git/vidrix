@@ -21,15 +21,34 @@ import {
 } from "@/components/ui/sidebar";
 import { startLogin } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users } from "lucide-react";
+import {
+  LayoutDashboard,
+  LogOut,
+  PanelLeft,
+  Users,
+  Package,
+  Truck,
+  FileText,
+  ShoppingCart,
+  ClipboardList,
+  BarChart3,
+  ArrowUpDown,
+} from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
-import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
+import { DashboardLayoutSkeleton } from "./DashboardLayoutSkeleton";
 import { Button } from "./ui/button";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Page 1", path: "/" },
-  { icon: Users, label: "Page 2", path: "/some-path" },
+  { icon: LayoutDashboard, label: "Dashboard", path: "/" },
+  { icon: Users, label: "Clientes", path: "/clients" },
+  { icon: Package, label: "Produtos", path: "/products" },
+  { icon: Truck, label: "Fornecedores", path: "/suppliers" },
+  { icon: FileText, label: "Orçamentos", path: "/quotes" },
+  { icon: ShoppingCart, label: "Pedidos de Venda", path: "/orders" },
+  { icon: ClipboardList, label: "Pedidos de Compra", path: "/purchase-orders" },
+  { icon: ArrowUpDown, label: "Mov. Estoque", path: "/stock" },
+  { icon: BarChart3, label: "Relatórios", path: "/reports" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
@@ -53,19 +72,20 @@ export default function DashboardLayout({
   }, [sidebarWidth]);
 
   if (loading) {
-    return <DashboardLayoutSkeleton />
+    return <DashboardLayoutSkeleton />;
   }
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         <div className="flex flex-col items-center gap-8 p-8 max-w-md w-full">
-          <div className="flex flex-col items-center gap-6">
-            <h1 className="text-2xl font-semibold tracking-tight text-center">
-              Sign in to continue
-            </h1>
-            <p className="text-sm text-muted-foreground text-center max-w-sm">
-              Access to this dashboard requires authentication. Continue to launch the login flow.
+          <div className="text-center space-y-3">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-4">
+              <LayoutDashboard className="w-8 h-8 text-primary" />
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight">Vidrix ERP</h1>
+            <p className="text-sm text-muted-foreground max-w-sm">
+              Sistema de gestão comercial para vidraçaria. Faça login para acessar o painel.
             </p>
           </div>
           <Button
@@ -73,7 +93,7 @@ export default function DashboardLayout({
             size="lg"
             className="w-full shadow-lg hover:shadow-xl transition-all"
           >
-            Sign in
+            Entrar
           </Button>
         </div>
       </div>
@@ -110,7 +130,7 @@ function DashboardLayoutContent({
   const isCollapsed = state === "collapsed";
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
-  const activeMenuItem = menuItems.find(item => item.path === location);
+  const activeMenuItem = menuItems.find((item) => item.path === location);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -122,25 +142,19 @@ function DashboardLayoutContent({
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing) return;
-
       const sidebarLeft = sidebarRef.current?.getBoundingClientRect().left ?? 0;
       const newWidth = e.clientX - sidebarLeft;
       if (newWidth >= MIN_WIDTH && newWidth <= MAX_WIDTH) {
         setSidebarWidth(newWidth);
       }
     };
-
-    const handleMouseUp = () => {
-      setIsResizing(false);
-    };
-
+    const handleMouseUp = () => setIsResizing(false);
     if (isResizing) {
       document.addEventListener("mousemove", handleMouseMove);
       document.addEventListener("mouseup", handleMouseUp);
       document.body.style.cursor = "col-resize";
       document.body.style.userSelect = "none";
     }
-
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
@@ -168,8 +182,8 @@ function DashboardLayoutContent({
               </button>
               {!isCollapsed ? (
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="font-semibold tracking-tight truncate">
-                    Navigation
+                  <span className="font-bold text-primary tracking-tight truncate">
+                    Vidrix ERP
                   </span>
                 </div>
               ) : null}
@@ -178,7 +192,7 @@ function DashboardLayoutContent({
 
           <SidebarContent className="gap-0">
             <SidebarMenu className="px-2 py-1">
-              {menuItems.map(item => {
+              {menuItems.map((item) => {
                 const isActive = location === item.path;
                 return (
                   <SidebarMenuItem key={item.path}>
@@ -213,7 +227,7 @@ function DashboardLayoutContent({
                       {user?.name || "-"}
                     </p>
                     <p className="text-xs text-muted-foreground truncate mt-1.5">
-                      {user?.email || "-"}
+                      {user?.role === "admin" ? "Administrador" : "Vendedor"}
                     </p>
                   </div>
                 </button>
@@ -224,7 +238,7 @@ function DashboardLayoutContent({
                   className="cursor-pointer text-destructive focus:text-destructive"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
-                  <span>Sign out</span>
+                  <span>Sair</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -247,8 +261,8 @@ function DashboardLayoutContent({
               <SidebarTrigger className="h-9 w-9 rounded-lg bg-background" />
               <div className="flex items-center gap-3">
                 <div className="flex flex-col gap-1">
-                  <span className="tracking-tight text-foreground">
-                    {activeMenuItem?.label ?? "Menu"}
+                  <span className="tracking-tight text-foreground font-medium">
+                    {activeMenuItem?.label ?? "Vidrix ERP"}
                   </span>
                 </div>
               </div>
