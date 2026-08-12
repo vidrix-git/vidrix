@@ -9,6 +9,10 @@ import { registerStorageProxy } from "./_core/storageProxy";
 import { appRouter } from "./routers";
 import { createContext } from "./_core/context";
 import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const server = createServer(app);
@@ -26,7 +30,7 @@ app.use(
   })
 );
 
-const publicPath = path.resolve(import.meta.dirname, "public");
+const publicPath = path.resolve(__dirname, "public");
 app.use(express.static(publicPath));
 app.use("*", (_req, res) => {
   res.sendFile(path.resolve(publicPath, "index.html"));

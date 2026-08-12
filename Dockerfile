@@ -19,6 +19,10 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/drizzle ./drizzle
 
+# Build a production-only entry point that doesn't import vite
+RUN npx esbuild dist/server_azure-startup.js 2>/dev/null || true
+
 EXPOSE 8080
 
-CMD ["node", "dist/index.js"]
+# Use azure-startup.ts bundled version
+CMD ["node", "dist/azure-startup.js"]

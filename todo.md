@@ -46,7 +46,7 @@
 - [x] Build sem erros
 
 ## Autenticação Local (sem Manus)
-- [x] Remover dependência do Manus OAuth
+- [x] Remover dependência do Manus OAuth (OAuth routes removidas, vite-plugin removido, analytics removido, JWT local testado com admin/admin123)
 - [x] Implementar login local com username/senha + JWT
 - [x] Criar tabela de usuários locais (admin/password no DB)
 - [x] Tela de login local (sem referência Manus)
