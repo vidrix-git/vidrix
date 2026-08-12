@@ -40,7 +40,7 @@
 - [x] .dockerignore configurado
 - [ ] Push para GitHub (remote github)
 - [ ] Configurar Publish Profile secret no GitHub
-- [ ] Deploy no Azure App Service
+- [x] Deploy no Azure App Service
 
 ## Qualidade
 - [x] Build sem erros
@@ -51,4 +51,11 @@
 - [x] Criar tabela de usuários locais (admin/password no DB)
 - [x] Tela de login local (sem referência Manus)
 - [x] Remover debug-collector e analytics do index.html
-- [ ] Redeploy no Azure
+- [x] Redeploy no Azure
+- [x] Aplicar de forma segura a coluna de senha na base de dados Azure existente e validar o login publicado
+- [x] Corrigir o fallback do administrador sem senha e tornar a migração da coluna password idempotente
+- [x] Cobrir a autenticação local com testes de regressão e validar o login em produção
+- [x] Inicializar o esquema completo do ERP na base de dados MySQL Azure e criar o administrador padrão
+- [x] Confirmar e documentar a base de dados Azure de produção correta e a inexistência de dados legados a reconciliar
+- [x] Validar novamente o login publicado após registar a reconciliação da base de dados Azure
+- [x] Executar uma nova validação HTTP do login publicado após o registo final de reconciliação

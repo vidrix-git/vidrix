@@ -3,7 +3,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
-import { localLogin, localRegister, ensureDefaultAdmin } from "./local-auth";
+import { localLogin, localRegister } from "./local-auth";
 import { getDb } from "./db";
 import { users } from "../drizzle/schema";
 import { clientsRouter } from "./routers/clients";
@@ -15,9 +15,6 @@ import { purchaseOrdersRouter } from "./routers/purchaseOrders";
 import { stockMovementsRouter } from "./routers/stockMovements";
 import { dashboardRouter } from "./routers/dashboard";
 import { reportsRouter } from "./routers/reports";
-
-// Ensure default admin exists on startup
-ensureDefaultAdmin().catch(console.error);
 
 export const appRouter = router({
   system: systemRouter,

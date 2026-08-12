@@ -8,6 +8,8 @@ import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerStorageProxy } from "./_core/storageProxy";
 import { appRouter } from "./routers";
 import { createContext } from "./_core/context";
+import { ensureDatabaseSchema } from "./db";
+import { ensureDefaultAdmin } from "./local-auth";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -38,6 +40,18 @@ app.use("*", (_req, res) => {
 
 // Azure sets PORT env var. If not set, default to 80.
 const port = parseInt(process.env.PORT || "80");
-server.listen(port, () => {
-  console.log(`Vidrix ERP running on port ${port}`);
-});
+
+async function startAzureServer() {
+  try {
+    await ensureDatabaseSchema();
+    await ensureDefaultAdmin();
+  } catch (error) {
+    console.error("[Database] Startup initialization failed:", error);
+  }
+
+  server.listen(port, () => {
+    console.log(`Vidrix ERP running on port ${port}`);
+  });
+}
+
+startAzureServer().catch(console.error);

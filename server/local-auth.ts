@@ -32,6 +32,75 @@ function verifyPassword(password: string, stored: string): boolean {
   return crypto.timingSafeEqual(Buffer.from(hash), Buffer.from(verifyHash));
 }
 
+/**
+ * Compares the bootstrap password only while an inherited administrator record
+ * has not yet been migrated to a PBKDF2 hash in the database.
+ */
+export function matchesBootstrapAdminPassword(password: string, defaultPassword: string): boolean {
+  return password === defaultPassword;
+}
+
+type DatabaseErrorShape = {
+  code?: unknown;
+  message?: unknown;
+  sqlMessage?: unknown;
+  cause?: unknown;
+};
+
+/**
+ * Drizzle may wrap a MySQL error more than once. Inspect the error chain so a
+ * previously-created password column is treated as an idempotent migration.
+ */
+export function isDuplicatePasswordColumnError(error: unknown): boolean {
+  const inspected = new Set<unknown>();
+
+  const inspect = (current: unknown): boolean => {
+    if (typeof current === "string") {
+      return /duplicate column name\s+['`]?password|duplicate column name/i.test(current);
+    }
+
+    if (!current || typeof current !== "object" || inspected.has(current)) {
+      return false;
+    }
+
+    inspected.add(current);
+    const candidate = current as DatabaseErrorShape;
+    return (
+      candidate.code === "ER_DUP_FIELDNAME" ||
+      inspect(candidate.message) ||
+      inspect(candidate.sqlMessage) ||
+      inspect(candidate.cause)
+    );
+  };
+
+  return inspect(error);
+}
+
+let passwordColumnReady: Promise<void> | null = null;
+
+/**
+ * Supports existing databases created before local authentication was added.
+ * The operation is idempotent: a duplicate-column error means the schema is
+ * already correct, while any other database error remains visible to callers.
+ */
+function ensurePasswordColumn(db: any): Promise<void> {
+  if (!passwordColumnReady) {
+    passwordColumnReady = (async () => {
+      try {
+        await db.execute(sql.raw("ALTER TABLE `users` ADD COLUMN `password` varchar(255) NULL"));
+        console.log("[Auth] Password column added to users table");
+      } catch (error) {
+        if (!isDuplicatePasswordColumnError(error)) {
+          passwordColumnReady = null;
+          throw error;
+        }
+      }
+    })();
+  }
+
+  return passwordColumnReady;
+}
+
 // Create JWT token
 async function createToken(userId: number, name: string, role: string): Promise<string> {
   const secretKey = getSecretKey();
@@ -74,6 +143,7 @@ export async function localLogin(
 ): Promise<{ user: User; token: string } | null> {
   const db = await getDb();
   if (!db) return null;
+  await ensurePasswordColumn(db);
 
   // Try to find user by email or name
   const results = await db
@@ -103,7 +173,7 @@ export async function localLogin(
     // For admin user without password (created via Manus), check default admin password
     if (user.role === "admin" && !storedHash) {
       const defaultPassword = process.env.ADMIN_PASSWORD || "admin123";
-      if (verifyPassword(password, hashPassword(defaultPassword))) {
+      if (matchesBootstrapAdminPassword(password, defaultPassword)) {
         // Hash the default password for future use
         await db
           .update(users)
@@ -127,6 +197,7 @@ export async function localRegister(
 ): Promise<{ user: User; token: string } | null> {
   const db = await getDb();
   if (!db) return null;
+  await ensurePasswordColumn(db);
 
   const hashedPassword = hashPassword(password);
   const openId = `local:${email || name}`;
@@ -165,6 +236,7 @@ export async function localRegister(
 export async function ensureDefaultAdmin(): Promise<void> {
   const db = await getDb();
   if (!db) return;
+  await ensurePasswordColumn(db);
 
   const existing = await db
     .select()
