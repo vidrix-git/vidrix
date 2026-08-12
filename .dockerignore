@@ -1,0 +1,12 @@
+node_modules
+dist
+.git
+.github
+.manus-logs
+*.log
+*.mdb
+*.zip
+README.md
+todo.md
+PLANO_VIDRIX.md
+site.zip
