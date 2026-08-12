@@ -46,9 +46,9 @@
 - [x] Build sem erros
 
 ## Autenticação Local (sem Manus)
-- [ ] Remover dependência do Manus OAuth
-- [ ] Implementar login local com username/senha + JWT
-- [ ] Criar tabela de usuários locais (admin/password no DB)
-- [ ] Tela de login local (sem referência Manus)
-- [ ] Remover debug-collector e analytics do index.html
+- [x] Remover dependência do Manus OAuth
+- [x] Implementar login local com username/senha + JWT
+- [x] Criar tabela de usuários locais (admin/password no DB)
+- [x] Tela de login local (sem referência Manus)
+- [x] Remover debug-collector e analytics do index.html
 - [ ] Redeploy no Azure
