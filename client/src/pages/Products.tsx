@@ -1,217 +1,288 @@
-import { trpc } from "@/lib/trpc";
-import { useAuth } from "@/_core/hooks/useAuth";
-import DashboardLayout from "@/components/DashboardLayout";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Plus, Search, Trash2, Edit2, AlertTriangle } from "lucide-react";
 import { useState } from "react";
+import { trpc } from "@/lib/trpc";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
+import { Plus, Pencil, Trash2, Search, AlertTriangle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
-function ProductForm({ product, onSuccess }: { product?: any; onSuccess: () => void }) {
+type ProductForm = {
+  name: string;
+  type?: string | null;
+  thickness?: string | null;
+  color?: string | null;
+  unitPrice: string;
+  costPrice?: string | null;
+  stockQuantity: number;
+  minStockQuantity: number;
+};
+
+export default function Products() {
   const utils = trpc.useUtils();
+  const [search, setSearch] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editId, setEditId] = useState<number | null>(null);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [form, setForm] = useState<ProductForm>({
+    name: "", type: "", thickness: "", color: "",
+    unitPrice: "0", costPrice: "0", stockQuantity: 0, minStockQuantity: 10,
+  });
+
+  const { data: products, isLoading } = trpc.products.list.useQuery();
   const createMutation = trpc.products.create.useMutation({
-    onSuccess: () => { utils.products.list.invalidate(); toast.success("Produto cadastrado!"); onSuccess(); },
-    onError: (err) => toast.error(err.message),
+    onSuccess: () => {
+      utils.products.list.invalidate();
+      setDialogOpen(false);
+      toast.success("Produto cadastrado com sucesso");
+    },
+    onError: (e) => toast.error(e.message),
   });
   const updateMutation = trpc.products.update.useMutation({
-    onSuccess: () => { utils.products.list.invalidate(); toast.success("Produto atualizado!"); onSuccess(); },
-    onError: (err) => toast.error(err.message),
+    onSuccess: () => {
+      utils.products.list.invalidate();
+      setDialogOpen(false);
+      setEditId(null);
+      toast.success("Produto atualizado com sucesso");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+  const deleteMutation = trpc.products.delete.useMutation({
+    onSuccess: () => {
+      utils.products.list.invalidate();
+      setDeleteId(null);
+      toast.success("Produto excluído com sucesso");
+    },
+    onError: (e) => toast.error(e.message),
   });
 
-  const [name, setName] = useState(product?.name || "");
-  const [category, setCategory] = useState(product?.category || "");
-  const [description, setDescription] = useState(product?.description || "");
-  const [unitPrice, setUnitPrice] = useState(product?.unitPrice || "0.00");
-  const [unit, setUnit] = useState(product?.unit || "un");
-  const [stockQuantity, setStockQuantity] = useState(product?.stockQuantity || "0");
-  const [minStock, setMinStock] = useState(product?.minStock || "0");
-  const [active, setActive] = useState(product?.active !== false);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) { toast.error("Nome é obrigatório"); return; }
-    const data = { name, category, description, unitPrice, unit, stockQuantity, minStock, active };
-    if (product) {
-      updateMutation.mutate({ id: product.id, ...data });
+  const handleSubmit = () => {
+    if (!form.name.trim()) {
+      toast.error("Nome é obrigatório");
+      return;
+    }
+    if (editId) {
+      updateMutation.mutate({ id: editId, ...form } as any);
     } else {
-      createMutation.mutate(data);
+      createMutation.mutate(form as any);
     }
   };
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="md:col-span-2">
-          <Label>Nome *</Label>
-          <Input value={name} onChange={(e) => setName(e.target.value)} required />
-        </div>
-        <div>
-          <Label>Categoria</Label>
-          <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Vidro">Vidro</SelectItem>
-              <SelectItem value="Persiana">Persiana</SelectItem>
-              <SelectItem value="Espelho">Espelho</SelectItem>
-              <SelectItem value="Box">Box para Banheiro</SelectItem>
-              <SelectItem value="Moldura">Moldura</SelectItem>
-              <SelectItem value="Ferragem">Ferragem</SelectItem>
-              <SelectItem value="Outro">Outro</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label>Unidade</Label>
-          <Select value={unit} onValueChange={setUnit}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="un">Unidade</SelectItem>
-              <SelectItem value="m2">m²</SelectItem>
-              <SelectItem value="ml">Metro Linear</SelectItem>
-              <SelectItem value="kg">Quilograma</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label>Preço Unitário (R$)</Label>
-          <Input type="text" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} />
-        </div>
-        <div>
-          <Label>Estoque Atual</Label>
-          <Input type="text" value={stockQuantity} onChange={(e) => setStockQuantity(e.target.value)} />
-        </div>
-        <div>
-          <Label>Estoque Mínimo</Label>
-          <Input type="text" value={minStock} onChange={(e) => setMinStock(e.target.value)} />
-        </div>
-        <div className="flex items-center gap-2 pt-6">
-          <Switch checked={active} onCheckedChange={setActive} />
-          <Label>Ativo</Label>
-        </div>
-        <div className="md:col-span-2">
-          <Label>Descrição</Label>
-          <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
-        </div>
-      </div>
-      <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-        {createMutation.isPending || updateMutation.isPending ? "Salvando..." : "Salvar"}
-      </Button>
-    </form>
-  );
-}
+  const openEdit = (product: any) => {
+    setEditId(product.id);
+    setForm({
+      name: product.name || "",
+      type: product.type || "",
+      thickness: product.thickness || "",
+      color: product.color || "",
+      unitPrice: String(product.unitPrice),
+      costPrice: String(product.costPrice || "0"),
+      stockQuantity: product.stockQuantity || 0,
+      minStockQuantity: product.minStockQuantity || 10,
+    });
+    setDialogOpen(true);
+  };
 
-export default function Products() {
-  const [search, setSearch] = useState("");
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<any>(null);
-  const utils = trpc.useUtils();
-  const { user } = useAuth();
+  const filtered = products?.filter((p: any) =>
+    p.name?.toLowerCase().includes(search.toLowerCase())
+  ) || [];
 
-  const deleteMutation = trpc.products.delete.useMutation({
-    onSuccess: () => { utils.products.list.invalidate(); toast.success("Produto removido!"); },
-    onError: (err) => toast.error(err.message),
-  });
-
-  const { data, isLoading } = trpc.products.list.useQuery({ search: search || undefined });
+  const getStockBadge = (p: any) => {
+    if (p.stockQuantity === 0) return <Badge variant="destructive">Esgotado</Badge>;
+    if (p.stockQuantity <= p.minStockQuantity) return <Badge className="bg-amber-100 text-amber-800 border-amber-300">Crítico</Badge>;
+    return <Badge variant="secondary" className="bg-green-100 text-green-800">Normal</Badge>;
+  };
 
   return (
-    <DashboardLayout>
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Produtos</h1>
-            <p className="text-sm text-muted-foreground">Cadastro de produtos com controle de estoque</p>
-          </div>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => { setEditingProduct(null); }}>
-                <Plus className="mr-2 h-4 w-4" /> Novo Produto
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>{editingProduct ? "Editar Produto" : "Novo Produto"}</DialogTitle>
-              </DialogHeader>
-              <ProductForm product={editingProduct} onSuccess={() => setDialogOpen(false)} />
-            </DialogContent>
-          </Dialog>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Produtos</h1>
+          <p className="text-sm text-muted-foreground">Gerencie seus produtos e vidros</p>
         </div>
-
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="relative flex-1 max-w-sm">
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Buscar produto..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+        <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) setEditId(null); }}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Produto
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>{editId ? "Editar Produto" : "Novo Produto"}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Nome *</label>
+                <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Ex: Vidro incolor 4mm" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Tipo</label>
+                  <Select value={form.type || "none"} onValueChange={(v) => setForm({ ...form, type: v === "none" ? null : v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Selecione</SelectItem>
+                      <SelectItem value="vidro_incolor">Vidro Incolor</SelectItem>
+                      <SelectItem value="vidro_fumace">Vidro Fumacê</SelectItem>
+                      <SelectItem value="vidro_verde">Vidro Verde</SelectItem>
+                      <SelectItem value="vidro_espelhado">Vidro Espelhado</SelectItem>
+                      <SelectItem value="vidro_temperado">Vidro Temperado</SelectItem>
+                      <SelectItem value="vidro_laminado">Vidro Laminado</SelectItem>
+                      <SelectItem value="acrilico">Acrílico</SelectItem>
+                      <SelectItem value="outro">Outro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Espessura (mm)</label>
+                  <Input value={form.thickness || ""} onChange={(e) => setForm({ ...form, thickness: e.target.value })} placeholder="4" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Cor</label>
+                <Input value={form.color || ""} onChange={(e) => setForm({ ...form, color: e.target.value })} placeholder="Incolor" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Preço Unitário (R$/m²) *</label>
+                  <Input type="number" step="0.01" value={form.unitPrice} onChange={(e) => setForm({ ...form, unitPrice: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Preço de Custo (R$)</label>
+                  <Input type="number" step="0.01" value={form.costPrice || "0"} onChange={(e) => setForm({ ...form, costPrice: e.target.value })} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Estoque Atual</label>
+                  <Input type="number" value={String(form.stockQuantity)} onChange={(e) => setForm({ ...form, stockQuantity: parseInt(e.target.value) || 0 })} />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Estoque Mínimo</label>
+                  <Input type="number" value={String(form.minStockQuantity)} onChange={(e) => setForm({ ...form, minStockQuantity: parseInt(e.target.value) || 0 })} />
+                </div>
               </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="text-center py-8 text-muted-foreground">Carregando...</div>
-            ) : !data || data.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">Nenhum produto encontrado</div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Categoria</TableHead>
-                    <TableHead>Preço Unit.</TableHead>
-                    <TableHead>Unidade</TableHead>
-                    <TableHead>Estoque</TableHead>
-                    <TableHead>Mín.</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data.map((product: any) => {
-                    const isCritical = parseFloat(product.stockQuantity) <= parseFloat(product.minStock);
-                    return (
-                      <TableRow key={product.id}>
-                        <TableCell className="font-medium">{product.name}</TableCell>
-                        <TableCell>{product.category || "-"}</TableCell>
-                        <TableCell>R$ {parseFloat(product.unitPrice).toFixed(2)}</TableCell>
-                        <TableCell>{product.unit}</TableCell>
-                        <TableCell className={isCritical ? "text-red-600 font-semibold" : ""}>
-                          {isCritical && <AlertTriangle className="inline h-3 w-3 mr-1 text-red-500" />}
-                          {product.stockQuantity}
-                        </TableCell>
-                        <TableCell>{product.minStock}</TableCell>
-                        <TableCell>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${product.active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
-                            {product.active ? "Ativo" : "Inativo"}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-1">
-                            <Button variant="ghost" size="icon" onClick={() => { setEditingProduct(product); setDialogOpen(true); }}>
-                              <Edit2 className="h-4 w-4" />
-                            </Button>
-                            {user?.role === "admin" && (
-                              <Button variant="ghost" size="icon" onClick={() => deleteMutation.mutate({ id: product.id })}>
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
+              <Button onClick={handleSubmit} disabled={createMutation.isPending || updateMutation.isPending}>
+                {createMutation.isPending || updateMutation.isPending ? "Salvando..." : "Salvar"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
-    </DashboardLayout>
+
+      <div className="relative max-w-sm">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input placeholder="Buscar produto..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+      </div>
+
+      <Card>
+        <CardContent className="p-0">
+          {isLoading ? (
+            <div className="p-8 text-center text-muted-foreground">Carregando...</div>
+          ) : filtered.length === 0 ? (
+            <div className="p-8 text-center text-muted-foreground">
+              {search ? "Nenhum produto encontrado" : "Nenhum produto cadastrado"}
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Espessura</TableHead>
+                  <TableHead>Preço/m²</TableHead>
+                  <TableHead>Estoque</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="w-[100px]">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((product: any) => (
+                  <TableRow key={product.id}>
+                    <TableCell className="font-medium">{product.name}</TableCell>
+                    <TableCell>{product.type || "-"}</TableCell>
+                    <TableCell>{product.thickness || "-"}</TableCell>
+                    <TableCell>R$ {parseFloat(String(product.unitPrice)).toFixed(2)}</TableCell>
+                    <TableCell>{product.stockQuantity} un</TableCell>
+                    <TableCell>{getStockBadge(product)}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => openEdit(product)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteId(product.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteId && deleteMutation.mutate({ id: deleteId })}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 }

@@ -1,198 +1,241 @@
-import { trpc } from "@/lib/trpc";
-import { useAuth } from "@/_core/hooks/useAuth";
-import DashboardLayout from "@/components/DashboardLayout";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Textarea } from "@/components/ui/textarea";
-import { Plus, Search, Trash2, Edit2, X } from "lucide-react";
 import { useState } from "react";
+import { trpc } from "@/lib/trpc";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { Plus, Pencil, Trash2, Search } from "lucide-react";
 
-function ClientForm({ client, onSuccess }: { client?: any; onSuccess: () => void }) {
+type ClientForm = {
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  city?: string | null;
+};
+
+export default function Clients() {
   const utils = trpc.useUtils();
+  const [search, setSearch] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editId, setEditId] = useState<number | null>(null);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [form, setForm] = useState<ClientForm>({ name: "", email: "", phone: "", address: "", city: "" });
+
+  const { data: clients, isLoading } = trpc.clients.list.useQuery();
   const createMutation = trpc.clients.create.useMutation({
     onSuccess: () => {
       utils.clients.list.invalidate();
-      toast.success("Cliente cadastrado com sucesso!");
-      onSuccess();
+      setDialogOpen(false);
+      setForm({ name: "", email: "", phone: "", address: "", city: "" });
+      toast.success("Cliente cadastrado com sucesso");
     },
-    onError: (err) => toast.error(err.message),
+    onError: (e) => toast.error(e.message),
   });
   const updateMutation = trpc.clients.update.useMutation({
     onSuccess: () => {
       utils.clients.list.invalidate();
-      toast.success("Cliente atualizado com sucesso!");
-      onSuccess();
+      setDialogOpen(false);
+      setEditId(null);
+      setForm({ name: "", email: "", phone: "", address: "", city: "" });
+      toast.success("Cliente atualizado com sucesso");
     },
-    onError: (err) => toast.error(err.message),
+    onError: (e) => toast.error(e.message),
   });
-
-  const [name, setName] = useState(client?.name || "");
-  const [cpfCnpj, setCpfCnpj] = useState(client?.cpfCnpj || "");
-  const [phone, setPhone] = useState(client?.phone || "");
-  const [email, setEmail] = useState(client?.email || "");
-  const [address, setAddress] = useState(client?.address || "");
-  const [city, setCity] = useState(client?.city || "");
-  const [state, setState] = useState(client?.state || "");
-  const [notes, setNotes] = useState(client?.notes || "");
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) { toast.error("Nome é obrigatório"); return; }
-    const data = { name, cpfCnpj, phone, email, address, city, state, notes };
-    if (client) {
-      updateMutation.mutate({ id: client.id, ...data });
-    } else {
-      createMutation.mutate(data);
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Label>Nome *</Label>
-          <Input value={name} onChange={(e) => setName(e.target.value)} required />
-        </div>
-        <div>
-          <Label>CPF/CNPJ</Label>
-          <Input value={cpfCnpj} onChange={(e) => setCpfCnpj(e.target.value)} />
-        </div>
-        <div>
-          <Label>Telefone</Label>
-          <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
-        </div>
-        <div>
-          <Label>E-mail</Label>
-          <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        </div>
-        <div className="md:col-span-2">
-          <Label>Endereço</Label>
-          <Input value={address} onChange={(e) => setAddress(e.target.value)} />
-        </div>
-        <div>
-          <Label>Cidade</Label>
-          <Input value={city} onChange={(e) => setCity(e.target.value)} />
-        </div>
-        <div>
-          <Label>UF</Label>
-          <Input value={state} onChange={(e) => setState(e.target.value)} maxLength={2} />
-        </div>
-        <div className="md:col-span-2">
-          <Label>Observações</Label>
-          <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
-        </div>
-      </div>
-      <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-        {createMutation.isPending || updateMutation.isPending ? "Salvando..." : "Salvar"}
-      </Button>
-    </form>
-  );
-}
-
-export default function Clients() {
-  const [search, setSearch] = useState("");
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingClient, setEditingClient] = useState<any>(null);
-  const utils = trpc.useUtils();
-  const { user } = useAuth();
-
   const deleteMutation = trpc.clients.delete.useMutation({
     onSuccess: () => {
       utils.clients.list.invalidate();
-      toast.success("Cliente removido!");
+      setDeleteId(null);
+      toast.success("Cliente excluído com sucesso");
     },
-    onError: (err) => toast.error(err.message),
+    onError: (e) => toast.error(e.message),
   });
 
-  const { data, isLoading } = trpc.clients.list.useQuery({ search: search || undefined });
+  const handleSubmit = () => {
+    if (!form.name.trim()) {
+      toast.error("Nome é obrigatório");
+      return;
+    }
+    if (editId) {
+      updateMutation.mutate({ id: editId, ...form });
+    } else {
+      createMutation.mutate(form as any);
+    }
+  };
+
+  const openEdit = (client: any) => {
+    setEditId(client.id);
+    setForm({
+      name: client.name || "",
+      email: client.email || "",
+      phone: client.phone || "",
+      address: client.address || "",
+      city: client.city || "",
+    });
+    setDialogOpen(true);
+  };
+
+  const filtered = clients?.filter((c: any) =>
+    c.name?.toLowerCase().includes(search.toLowerCase()) ||
+    c.email?.toLowerCase().includes(search.toLowerCase())
+  ) || [];
 
   return (
-    <DashboardLayout>
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Clientes</h1>
-            <p className="text-sm text-muted-foreground">Gerencie a base de clientes da vidraçaria</p>
-          </div>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => { setEditingClient(null); }}>
-                <Plus className="mr-2 h-4 w-4" /> Novo Cliente
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>{editingClient ? "Editar Cliente" : "Novo Cliente"}</DialogTitle>
-              </DialogHeader>
-              <ClientForm client={editingClient} onSuccess={() => setDialogOpen(false)} />
-            </DialogContent>
-          </Dialog>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Clientes</h1>
+          <p className="text-sm text-muted-foreground">Gerencie seus clientes</p>
         </div>
-
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="relative flex-1 max-w-sm">
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar por nome ou CPF/CNPJ..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-9"
-                />
+        <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) { setEditId(null); setForm({ name: "", email: "", phone: "", address: "", city: "" }); } }}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Cliente
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{editId ? "Editar Cliente" : "Novo Cliente"}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Nome *</label>
+                <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Nome do cliente" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Email</label>
+                <Input value={form.email || ""} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="email@exemplo.com" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Telefone</label>
+                <Input value={form.phone || ""} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="(00) 00000-0000" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Endereço</label>
+                <Input value={form.address || ""} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Rua, número" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Cidade</label>
+                <Input value={form.city || ""} onChange={(e) => setForm({ ...form, city: e.target.value })} placeholder="Cidade" />
               </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="text-center py-8 text-muted-foreground">Carregando...</div>
-            ) : !data || data.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">Nenhum cliente encontrado</div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>CPF/CNPJ</TableHead>
-                    <TableHead>Telefone</TableHead>
-                    <TableHead>E-mail</TableHead>
-                    <TableHead>Cidade</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data.map((client: any) => (
-                    <TableRow key={client.id}>
-                      <TableCell className="font-medium">{client.name}</TableCell>
-                      <TableCell>{client.cpfCnpj || "-"}</TableCell>
-                      <TableCell>{client.phone || "-"}</TableCell>
-                      <TableCell>{client.email || "-"}</TableCell>
-                      <TableCell>{client.city || "-"}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => { setEditingClient(client); setDialogOpen(true); }}>
-                            <Edit2 className="h-4 w-4" />
-                          </Button>
-                          {user?.role === "admin" && (
-                            <Button variant="ghost" size="icon" onClick={() => deleteMutation.mutate({ id: client.id })}>
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
+              <Button onClick={handleSubmit} disabled={createMutation.isPending || updateMutation.isPending}>
+                {createMutation.isPending || updateMutation.isPending ? "Salvando..." : "Salvar"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
-    </DashboardLayout>
+
+      {/* Search */}
+      <div className="relative max-w-sm">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Buscar por nome ou email..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+
+      {/* Table */}
+      <Card>
+        <CardContent className="p-0">
+          {isLoading ? (
+            <div className="p-8 text-center text-muted-foreground">Carregando...</div>
+          ) : filtered.length === 0 ? (
+            <div className="p-8 text-center text-muted-foreground">
+              {search ? "Nenhum cliente encontrado" : "Nenhum cliente cadastrado"}
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Telefone</TableHead>
+                  <TableHead>Cidade</TableHead>
+                  <TableHead className="w-[100px]">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((client: any) => (
+                  <TableRow key={client.id}>
+                    <TableCell className="font-medium">{client.name}</TableCell>
+                    <TableCell>{client.email || "-"}</TableCell>
+                    <TableCell>{client.phone || "-"}</TableCell>
+                    <TableCell>{client.city || "-"}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => openEdit(client)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteId(client.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Delete Dialog */}
+      <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este cliente? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteId && deleteMutation.mutate({ id: deleteId })}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 }

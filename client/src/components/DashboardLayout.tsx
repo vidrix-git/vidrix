@@ -19,40 +19,39 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { startLogin } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
 import {
   LayoutDashboard,
   LogOut,
   PanelLeft,
-  Users,
-  Package,
-  Truck,
   FileText,
   ShoppingCart,
-  ClipboardList,
+  Truck,
+  Warehouse,
   BarChart3,
-  ArrowUpDown,
+  Users,
+  Package,
+  Building2,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
-import { DashboardLayoutSkeleton } from "./DashboardLayoutSkeleton";
+import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
-  { icon: Users, label: "Clientes", path: "/clients" },
-  { icon: Package, label: "Produtos", path: "/products" },
-  { icon: Truck, label: "Fornecedores", path: "/suppliers" },
   { icon: FileText, label: "Orçamentos", path: "/quotes" },
   { icon: ShoppingCart, label: "Pedidos de Venda", path: "/orders" },
-  { icon: ClipboardList, label: "Pedidos de Compra", path: "/purchase-orders" },
-  { icon: ArrowUpDown, label: "Mov. Estoque", path: "/stock" },
+  { icon: Truck, label: "Pedidos de Compra", path: "/purchases" },
+  { icon: Warehouse, label: "Estoque", path: "/stock" },
   { icon: BarChart3, label: "Relatórios", path: "/reports" },
+  { icon: Users, label: "Clientes", path: "/clients" },
+  { icon: Package, label: "Produtos", path: "/products" },
+  { icon: Building2, label: "Fornecedores", path: "/suppliers" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
-const DEFAULT_WIDTH = 280;
+const DEFAULT_WIDTH = 260;
 const MIN_WIDTH = 200;
 const MAX_WIDTH = 480;
 
@@ -77,19 +76,21 @@ export default function DashboardLayout({
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="flex flex-col items-center gap-8 p-8 max-w-md w-full">
-          <div className="text-center space-y-3">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-4">
-              <LayoutDashboard className="w-8 h-8 text-primary" />
+          <div className="flex flex-col items-center gap-6">
+            <div className="h-16 w-16 rounded-xl bg-primary/10 flex items-center justify-center">
+              <LayoutDashboard className="h-8 w-8 text-primary" />
             </div>
-            <h1 className="text-2xl font-bold tracking-tight">Vidrix ERP</h1>
-            <p className="text-sm text-muted-foreground max-w-sm">
-              Sistema de gestão comercial para vidraçaria. Faça login para acessar o painel.
+            <h1 className="text-2xl font-bold tracking-tight text-center text-foreground">
+              Vidrix ERP
+            </h1>
+            <p className="text-sm text-muted-foreground text-center max-w-sm">
+              Sistema de gestão para vidraçaria. Faça login para acessar o painel.
             </p>
           </div>
           <Button
-            onClick={() => startLogin()}
+            onClick={() => (window.location.href = "/login")}
             size="lg"
             className="w-full shadow-lg hover:shadow-xl transition-all"
           >
@@ -130,7 +131,7 @@ function DashboardLayoutContent({
   const isCollapsed = state === "collapsed";
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
-  const activeMenuItem = menuItems.find((item) => item.path === location);
+  const activeMenuItem = menuItems.find(item => item.path === location);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -148,7 +149,9 @@ function DashboardLayoutContent({
         setSidebarWidth(newWidth);
       }
     };
-    const handleMouseUp = () => setIsResizing(false);
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
     if (isResizing) {
       document.addEventListener("mousemove", handleMouseMove);
       document.addEventListener("mouseup", handleMouseUp);
@@ -182,9 +185,17 @@ function DashboardLayoutContent({
               </button>
               {!isCollapsed ? (
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="font-bold text-primary tracking-tight truncate">
-                    Vidrix ERP
-                  </span>
+                  <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+                    <LayoutDashboard className="h-4 w-4 text-primary-foreground" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="font-bold tracking-tight truncate text-sm">
+                      Vidrix ERP
+                    </span>
+                    <span className="text-[10px] text-muted-foreground truncate">
+                      Gestão de Vidraçaria
+                    </span>
+                  </div>
                 </div>
               ) : null}
             </div>
@@ -192,7 +203,7 @@ function DashboardLayoutContent({
 
           <SidebarContent className="gap-0">
             <SidebarMenu className="px-2 py-1">
-              {menuItems.map((item) => {
+              {menuItems.map(item => {
                 const isActive = location === item.path;
                 return (
                   <SidebarMenuItem key={item.path}>
@@ -227,7 +238,7 @@ function DashboardLayoutContent({
                       {user?.name || "-"}
                     </p>
                     <p className="text-xs text-muted-foreground truncate mt-1.5">
-                      {user?.role === "admin" ? "Administrador" : "Vendedor"}
+                      {user?.email || "-"}
                     </p>
                   </div>
                 </button>
@@ -261,15 +272,15 @@ function DashboardLayoutContent({
               <SidebarTrigger className="h-9 w-9 rounded-lg bg-background" />
               <div className="flex items-center gap-3">
                 <div className="flex flex-col gap-1">
-                  <span className="tracking-tight text-foreground font-medium">
-                    {activeMenuItem?.label ?? "Vidrix ERP"}
+                  <span className="tracking-tight text-foreground">
+                    {activeMenuItem?.label ?? "Menu"}
                   </span>
                 </div>
               </div>
             </div>
           </div>
         )}
-        <main className="flex-1 p-4">{children}</main>
+        <main className="flex-1 p-6">{children}</main>
       </SidebarInset>
     </>
   );

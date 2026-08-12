@@ -1,0 +1,230 @@
+import { z } from "zod";
+
+// ============================================================
+// CLIENTS
+// ============================================================
+export const createClientSchema = z.object({
+  name: z.string().min(1, "Nome é obrigatório"),
+  type: z.enum(["PF", "PJ"]),
+  cpfCnpj: z.string().min(1, "CPF/CNPJ é obrigatório"),
+  address: z.string().optional().nullable(),
+  phone: z.string().optional().nullable(),
+  email: z.string().email("Email inválido").optional().nullable(),
+});
+
+export const updateClientSchema = z.object({
+  id: z.number().int().positive("ID do cliente deve ser positivo"),
+  name: z.string().min(1, "Nome é obrigatório").optional(),
+  type: z.enum(["PF", "PJ"]).optional(),
+  cpfCnpj: z.string().min(1, "CPF/CNPJ é obrigatório").optional(),
+  address: z.string().optional().nullable(),
+  phone: z.string().optional().nullable(),
+  email: z.string().email("Email inválido").optional().nullable(),
+});
+
+// ============================================================
+// PRODUCTS
+// ============================================================
+export const createProductSchema = z.object({
+  name: z.string().min(1, "Nome é obrigatório"),
+  type: z.string().optional().nullable(),
+  thickness: z.string().min(1, "Espessura é obrigatória"),
+  color: z.string().optional().nullable(),
+  width: z.string().min(1, "Largura é obrigatória"),
+  height: z.string().min(1, "Altura é obrigatória"),
+  unitPrice: z.string().min(1, "Preço unitário é obrigatório"),
+  stockQuantity: z.string().min(1, "Quantidade em estoque é obrigatória"),
+  minStockQuantity: z.string().min(1, "Quantidade mínima é obrigatória"),
+});
+
+export const updateProductSchema = z.object({
+  id: z.number().int().positive("ID do produto deve ser positivo"),
+  name: z.string().min(1, "Nome é obrigatório").optional(),
+  type: z.string().optional().nullable(),
+  thickness: z.string().optional(),
+  color: z.string().optional().nullable(),
+  width: z.string().optional(),
+  height: z.string().optional(),
+  unitPrice: z.string().optional(),
+  stockQuantity: z.string().optional(),
+  minStockQuantity: z.string().optional(),
+});
+
+// ============================================================
+// SUPPLIERS
+// ============================================================
+export const createSupplierSchema = z.object({
+  name: z.string().min(1, "Nome é obrigatório"),
+  cnpj: z.string().min(1, "CNPJ é obrigatório"),
+  address: z.string().optional().nullable(),
+  phone: z.string().optional().nullable(),
+  email: z.string().email("Email inválido").optional().nullable(),
+  paymentTerms: z.enum(["a_vista", "15_dias", "30_dias"]).default("a_vista"),
+  notes: z.string().optional().nullable(),
+});
+
+export const updateSupplierSchema = z.object({
+  id: z.number().int().positive("ID do fornecedor deve ser positivo"),
+  name: z.string().min(1, "Nome é obrigatório").optional(),
+  cnpj: z.string().min(1, "CNPJ é obrigatório").optional(),
+  address: z.string().optional().nullable(),
+  phone: z.string().optional().nullable(),
+  email: z.string().email("Email inválido").optional().nullable(),
+  paymentTerms: z.enum(["a_vista", "15_dias", "30_dias"]).optional(),
+  notes: z.string().optional().nullable(),
+});
+
+// ============================================================
+// QUOTES (Orçamentos)
+// ============================================================
+export const createQuoteSchema = z.object({
+  clientId: z.number().int().positive("ID do cliente é obrigatório"),
+  status: z.enum(["rascunho", "aprovado", "rejeitado", "convertido"]).default("rascunho"),
+  validUntil: z.string().optional().nullable(),
+  totalAmount: z.string().default("0"),
+  discount: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
+});
+
+export const updateQuoteSchema = z.object({
+  id: z.number().int().positive("ID do orçamento é obrigatório"),
+  clientId: z.number().int().positive().optional(),
+  status: z.enum(["rascunho", "aprovado", "rejeitado", "convertido"]).optional(),
+  validUntil: z.string().optional().nullable(),
+  totalAmount: z.string().optional(),
+  discount: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
+});
+
+// ============================================================
+// QUOTE ITEMS
+// ============================================================
+export const createQuoteItemSchema = z.object({
+  quoteId: z.number().int().positive("ID do orçamento é obrigatório"),
+  productId: z.number().int().positive("ID do produto é obrigatório"),
+  width: z.string().min(1, "Largura é obrigatória"),
+  height: z.string().min(1, "Altura é obrigatória"),
+  quantity: z.string().min(1, "Quantidade é obrigatória"),
+  unitPrice: z.string().min(1, "Preço unitário é obrigatório"),
+  notes: z.string().optional().nullable(),
+});
+
+export const updateQuoteItemSchema = z.object({
+  id: z.number().int().positive("ID do item é obrigatório"),
+  width: z.string().optional(),
+  height: z.string().optional(),
+  quantity: z.string().optional(),
+  unitPrice: z.string().optional(),
+  notes: z.string().optional().nullable(),
+});
+
+// ============================================================
+// ORDERS (Pedidos de Venda)
+// ============================================================
+export const createOrderSchema = z.object({
+  clientId: z.number().int().positive("ID do cliente é obrigatório"),
+  quoteId: z.number().int().positive().optional().nullable(),
+  status: z.enum(["aprovado", "em_producao", "pronto", "entregue", "cancelado"]).default("aprovado"),
+  totalAmount: z.string().default("0"),
+  notes: z.string().optional().nullable(),
+});
+
+export const updateOrderSchema = z.object({
+  id: z.number().int().positive("ID do pedido é obrigatório"),
+  clientId: z.number().int().positive().optional(),
+  status: z.enum(["aprovado", "em_producao", "pronto", "entregue", "cancelado"]).optional(),
+  totalAmount: z.string().optional(),
+  notes: z.string().optional().nullable(),
+});
+
+// ============================================================
+// ORDER ITEMS
+// ============================================================
+export const createOrderItemSchema = z.object({
+  orderId: z.number().int().positive("ID do pedido é obrigatório"),
+  productId: z.number().int().positive("ID do produto é obrigatório"),
+  width: z.string().min(1, "Largura é obrigatória"),
+  height: z.string().min(1, "Altura é obrigatória"),
+  quantity: z.string().min(1, "Quantidade é obrigatória"),
+  unitPrice: z.string().min(1, "Preço unitário é obrigatório"),
+  notes: z.string().optional().nullable(),
+});
+
+export const updateOrderItemSchema = z.object({
+  id: z.number().int().positive("ID do item é obrigatório"),
+  width: z.string().optional(),
+  height: z.string().optional(),
+  quantity: z.string().optional(),
+  unitPrice: z.string().optional(),
+  notes: z.string().optional().nullable(),
+});
+
+// ============================================================
+// PURCHASE ORDERS
+// ============================================================
+export const createPurchaseOrderSchema = z.object({
+  supplierId: z.number().int().positive("ID do fornecedor é obrigatório"),
+  status: z.enum(["pendente", "confirmado", "recebido", "cancelado"]).default("pendente"),
+  totalAmount: z.string().default("0"),
+  expectedDeliveryDate: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
+});
+
+export const updatePurchaseOrderSchema = z.object({
+  id: z.number().int().positive("ID do pedido de compra é obrigatório"),
+  supplierId: z.number().int().positive().optional(),
+  status: z.enum(["pendente", "confirmado", "recebido", "cancelado"]).optional(),
+  totalAmount: z.string().optional(),
+  expectedDeliveryDate: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
+});
+
+// ============================================================
+// PURCHASE ORDER ITEMS
+// ============================================================
+export const createPurchaseOrderItemSchema = z.object({
+  purchaseOrderId: z.number().int().positive("ID do pedido de compra é obrigatório"),
+  productId: z.number().int().positive("ID do produto é obrigatório"),
+  quantity: z.string().min(1, "Quantidade é obrigatória"),
+  unitCost: z.string().min(1, "Custo unitário é obrigatório"),
+  notes: z.string().optional().nullable(),
+});
+
+export const updatePurchaseOrderItemSchema = z.object({
+  id: z.number().int().positive("ID do item é obrigatório"),
+  quantity: z.string().optional(),
+  unitCost: z.string().optional(),
+  notes: z.string().optional().nullable(),
+});
+
+// ============================================================
+// STOCK MOVEMENTS
+// ============================================================
+export const createStockMovementSchema = z.object({
+  productId: z.number().int().positive("ID do produto é obrigatório"),
+  type: z.enum(["entrada", "saida"]),
+  quantity: z.number().int().positive("Quantidade é obrigatória"),
+  referenceType: z.string().optional().nullable(),
+  referenceId: z.number().int().optional().nullable(),
+  notes: z.string().optional().nullable(),
+});
+
+export type CreateClientInput = z.infer<typeof createClientSchema>;
+export type UpdateClientInput = z.infer<typeof updateClientSchema>;
+export type CreateProductInput = z.infer<typeof createProductSchema>;
+export type UpdateProductInput = z.infer<typeof updateProductSchema>;
+export type CreateSupplierInput = z.infer<typeof createSupplierSchema>;
+export type UpdateSupplierInput = z.infer<typeof updateSupplierSchema>;
+export type CreateQuoteInput = z.infer<typeof createQuoteSchema>;
+export type UpdateQuoteInput = z.infer<typeof updateQuoteSchema>;
+export type CreateQuoteItemInput = z.infer<typeof createQuoteItemSchema>;
+export type UpdateQuoteItemInput = z.infer<typeof updateQuoteItemSchema>;
+export type CreateOrderInput = z.infer<typeof createOrderSchema>;
+export type UpdateOrderInput = z.infer<typeof updateOrderSchema>;
+export type CreateOrderItemInput = z.infer<typeof createOrderItemSchema>;
+export type UpdateOrderItemInput = z.infer<typeof updateOrderItemSchema>;
+export type CreatePurchaseOrderInput = z.infer<typeof createPurchaseOrderSchema>;
+export type UpdatePurchaseOrderInput = z.infer<typeof updatePurchaseOrderSchema>;
+export type CreatePurchaseOrderItemInput = z.infer<typeof createPurchaseOrderItemSchema>;
+export type UpdatePurchaseOrderItemInput = z.infer<typeof updatePurchaseOrderItemSchema>;
+export type CreateStockMovementInput = z.infer<typeof createStockMovementSchema>;

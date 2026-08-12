@@ -1,185 +1,255 @@
-import { trpc } from "@/lib/trpc";
-import { useAuth } from "@/_core/hooks/useAuth";
-import DashboardLayout from "@/components/DashboardLayout";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, ArrowRight } from "lucide-react";
 import { useState } from "react";
+import { trpc } from "@/lib/trpc";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
+import { Plus, Trash2, ArrowRight } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const orderStatuses = [
-  { key: "approved", label: "Aprovado", color: "bg-blue-100 text-blue-700 border-blue-200" },
-  { key: "production", label: "Produção", color: "bg-amber-100 text-amber-700 border-amber-200" },
-  { key: "ready", label: "Pronto", color: "bg-cyan-100 text-cyan-700 border-cyan-200" },
-  { key: "delivered", label: "Entregue", color: "bg-green-100 text-green-700 border-green-200" },
-  { key: "cancelled", label: "Cancelado", color: "bg-red-100 text-red-700 border-red-200" },
-];
-
-function OrderForm({ onSuccess }: { onSuccess: () => void }) {
-  const utils = trpc.useUtils();
-  const { data: clients } = trpc.clients.list.useQuery({});
-  const { data: approvedQuotes } = trpc.quotes.list.useQuery({ status: "approved" });
-
-  const createMutation = trpc.orders.create.useMutation({
-    onSuccess: () => { utils.orders.list.invalidate(); utils.quotes.list.invalidate(); toast.success("Pedido criado!"); onSuccess(); },
-    onError: (err) => toast.error(err.message),
-  });
-
-  const [clientId, setClientId] = useState("");
-  const [quoteId, setQuoteId] = useState("");
-  const [notes, setNotes] = useState("");
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!clientId) { toast.error("Selecione um cliente"); return; }
-    createMutation.mutate({ clientId: parseInt(clientId), quoteId: quoteId ? parseInt(quoteId) : undefined, notes });
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 gap-4">
-        <div>
-          <Label>Cliente *</Label>
-          <Select value={clientId} onValueChange={setClientId}>
-            <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-            <SelectContent>
-              {clients?.map((c: any) => (
-                <SelectItem key={c.id} value={c.id.toString()}>{c.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label>Orçamento (opcional)</Label>
-          <Select value={quoteId} onValueChange={setQuoteId}>
-            <SelectTrigger><SelectValue placeholder="Selecione um orçamento..." /></SelectTrigger>
-            <SelectContent>
-              {approvedQuotes?.map((q: any) => (
-                <SelectItem key={q.id} value={q.id.toString()}>{q.number} - R$ {parseFloat(q.totalValue).toFixed(2)}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label>Observações</Label>
-          <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
-        </div>
-      </div>
-      <Button type="submit" disabled={createMutation.isPending}>
-        {createMutation.isPending ? "Criando..." : "Criar Pedido"}
-      </Button>
-    </form>
-  );
-}
+const kanbanColumns = ["aprovado", "em_producao", "pronto", "entregue", "cancelado"];
+const statusLabels: Record<string, string> = {
+  "aprovado": "Aprovado",
+  "em_producao": "Em Produção",
+  "pronto": "Pronto",
+  "entregue": "Entregue",
+  "cancelado": "Cancelado",
+};
+const statusColors: Record<string, string> = {
+  "aprovado": "bg-green-100 text-green-800 border-green-200",
+  "em_producao": "bg-blue-100 text-blue-800 border-blue-200",
+  "pronto": "bg-amber-100 text-amber-800 border-amber-200",
+  "entregue": "bg-gray-100 text-gray-800 border-gray-200",
+  "cancelado": "bg-red-100 text-red-800 border-red-200",
+};
 
 export default function Orders() {
-  const [dialogOpen, setDialogOpen] = useState(false);
   const utils = trpc.useUtils();
-  const { user } = useAuth();
+  const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [dragOrder, setDragOrder] = useState<number | null>(null);
 
-  const changeStatusMutation = trpc.orders.changeStatus.useMutation({
-    onSuccess: () => { utils.orders.list.invalidate(); toast.success("Status atualizado!"); },
-    onError: (err) => toast.error(err.message),
+  const { data: orders, isLoading } = trpc.orders.list.useQuery();
+  const { data: clients } = trpc.clients.list.useQuery();
+
+  const updateStatusMutation = trpc.orders.updateStatus.useMutation({
+    onSuccess: () => {
+      utils.orders.list.invalidate();
+      utils.dashboard.stats.invalidate();
+      toast.success("Status atualizado");
+    },
+    onError: (e) => toast.error(e.message),
   });
 
   const deleteMutation = trpc.orders.delete.useMutation({
-    onSuccess: () => { utils.orders.list.invalidate(); toast.success("Pedido removido!"); },
-    onError: (err) => toast.error(err.message),
+    onSuccess: () => {
+      utils.orders.list.invalidate();
+      setDeleteId(null);
+      toast.success("Pedido excluído");
+    },
+    onError: (e) => toast.error(e.message),
   });
 
-  const { data, isLoading } = trpc.orders.list.useQuery({});
-
-  const getNextStatus = (current: string) => {
-    const idx = orderStatuses.findIndex((s) => s.key === current);
-    if (idx >= 0 && idx < orderStatuses.length - 1) {
-      // Skip cancelled for next status
-      const nextIdx = idx + 1;
-      if (orderStatuses[nextIdx]?.key === "cancelled") return undefined;
-      return orderStatuses[nextIdx]?.key;
-    }
-    return undefined;
+  const handleDragStart = (e: React.DragEvent, orderId: number) => {
+    setDragOrder(orderId);
+    e.dataTransfer.effectAllowed = "move";
   };
 
-  return (
-    <DashboardLayout>
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Pedidos de Venda</h1>
-            <p className="text-sm text-muted-foreground">Kanban de acompanhamento de pedidos</p>
-          </div>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => setDialogOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" /> Novo Pedido
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-lg">
-              <DialogHeader><DialogTitle>Novo Pedido de Venda</DialogTitle></DialogHeader>
-              <OrderForm onSuccess={() => setDialogOpen(false)} />
-            </DialogContent>
-          </Dialog>
-        </div>
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
 
-        {isLoading ? (
-          <div className="text-center py-12 text-muted-foreground">Carregando...</div>
-        ) : !data || data.length === 0 ? (
-          <Card><CardContent><p className="text-center py-12 text-muted-foreground">Nenhum pedido encontrado</p></CardContent></Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {orderStatuses.map((status) => {
-              const ordersInStatus = data?.filter((o: any) => o.status === status.key) || [];
-              return (
-                <div key={status.key} className="space-y-3">
-                  <div className="flex items-center justify-between px-1">
-                    <h3 className="text-sm font-semibold">{status.label}</h3>
-                    <Badge variant="outline" className="text-xs">{ordersInStatus.length}</Badge>
-                  </div>
-                  <div className="space-y-2">
-                    {ordersInStatus.map((order: any) => (
-                      <Card key={order.id} className="p-3 hover:shadow-md transition-shadow cursor-pointer">
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="font-mono text-xs text-muted-foreground">{order.number}</span>
-                            {user?.role === "admin" && order.status !== "delivered" && order.status !== "cancelled" && (
-                              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => deleteMutation.mutate({ id: order.id })}>
-                                <Trash2 className="h-3 w-3 text-destructive" />
-                              </Button>
-                            )}
-                          </div>
-                          <div className="font-medium text-sm">{order.clientName || "Cliente"}</div>
-                          <div className="text-sm font-semibold text-primary">R$ {parseFloat(order.totalValue).toFixed(2)}</div>
-                          <div className="text-xs text-muted-foreground">{new Date(order.createdAt).toLocaleDateString('pt-BR')}</div>
-                          {getNextStatus(order.status) && user?.role === "admin" && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="w-full h-7 text-xs"
-                              onClick={() => changeStatusMutation.mutate({ id: order.id, status: getNextStatus(order.status) as any })}
-                            >
-                              <ArrowRight className="mr-1 h-3 w-3" />
-                              {orderStatuses.find((s) => s.key === getNextStatus(order.status))?.label}
-                            </Button>
-                          )}
-                          {order.status === "delivered" && (
-                            <Badge className={status.color + " w-full text-center"}>{status.label}</Badge>
-                          )}
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+  const handleDrop = (e: React.DragEvent, status: string) => {
+    e.preventDefault();
+    if (dragOrder) {
+      updateStatusMutation.mutate({ id: dragOrder, status: status as any });
+    }
+    setDragOrder(null);
+  };
+
+  const formatCurrency = (value: string | number) =>
+    `R$ ${parseFloat(String(value)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Pedidos de Venda</h1>
+          <p className="text-sm text-muted-foreground">Gerencie pedidos e acompanhe o fluxo</p>
+        </div>
+        <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as any)}>
+          <TabsList>
+            <TabsTrigger value="list">Lista</TabsTrigger>
+            <TabsTrigger value="kanban">Kanban</TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
-    </DashboardLayout>
+
+      {viewMode === "list" ? (
+        <Card>
+          <CardContent className="p-0">
+            {isLoading ? (
+              <div className="p-8 text-center text-muted-foreground">Carregando...</div>
+            ) : !orders || orders.length === 0 ? (
+              <div className="p-8 text-center text-muted-foreground">Nenhum pedido cadastrado</div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>#</TableHead>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Total</TableHead>
+                    <TableHead>Data</TableHead>
+                    <TableHead className="w-[120px]">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {orders.map((order: any) => {
+                    const client = clients?.find((c: any) => c.id === order.clientId);
+                    return (
+                      <TableRow key={order.id}>
+                        <TableCell className="font-medium">#{order.id}</TableCell>
+                        <TableCell>{client?.name || "-"}</TableCell>
+                        <TableCell>
+                          <Select
+                            value={order.status}
+                            onValueChange={(v) => updateStatusMutation.mutate({ id: order.id, status: v as any })}
+                          >
+                            <SelectTrigger className="w-[140px]">
+                              <Badge className={statusColors[order.status] || ""}>{statusLabels[order.status]}</Badge>
+                            </SelectTrigger>
+                            <SelectContent>
+                              {kanbanColumns.map(s => (
+                                <SelectItem key={s} value={s}>{statusLabels[s]}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell>{formatCurrency(order.totalAmount)}</TableCell>
+                        <TableCell>{new Date(order.createdAt).toLocaleDateString("pt-BR")}</TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteId(order.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
+        /* Kanban View */
+        <div className="grid grid-cols-5 gap-4">
+          {kanbanColumns.map(status => {
+            const statusOrders = orders?.filter((o: any) => o.status === status) || [];
+            return (
+              <div
+                key={status}
+                className="min-h-[400px] rounded-lg bg-secondary/30 p-3 border"
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDrop(e, status)}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-sm text-foreground">{statusLabels[status]}</h3>
+                  <Badge variant="secondary">{statusOrders.length}</Badge>
+                </div>
+                <div className="space-y-2">
+                  {statusOrders.map((order: any) => {
+                    const client = clients?.find((c: any) => c.id === order.clientId);
+                    return (
+                      <div
+                        key={order.id}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, order.id)}
+                        className="bg-card p-3 rounded-lg border shadow-sm cursor-grab hover:shadow-md transition-shadow active:cursor-grabbing"
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-medium text-sm">#{order.id}</span>
+                          <Badge className={statusColors[order.status]} variant="outline">{statusLabels[order.status]}</Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{client?.name || "Cliente"}</p>
+                        <p className="text-sm font-semibold mt-1">{formatCurrency(order.totalAmount)}</p>
+                        <p className="text-[10px] text-muted-foreground mt-1">
+                          {new Date(order.createdAt).toLocaleDateString("pt-BR")}
+                        </p>
+                      </div>
+                    );
+                  })}
+                  {statusOrders.length === 0 && (
+                    <div className="h-20 flex items-center justify-center border-2 border-dashed border-muted rounded-lg">
+                      <span className="text-xs text-muted-foreground">Arraste aqui</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este pedido? Se o pedido estava ativo, o estoque será restaurado.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteId && deleteMutation.mutate({ id: deleteId })}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 }

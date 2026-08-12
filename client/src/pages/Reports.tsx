@@ -1,232 +1,240 @@
-import { trpc } from "@/lib/trpc";
-import DashboardLayout from "@/components/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Download, FileSpreadsheet, TrendingUp, Package, DollarSign } from "lucide-react";
 import { useState } from "react";
+import { trpc } from "@/lib/trpc";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { toast } from "sonner";
+import { Download, FileSpreadsheet, TrendingUp, Users, Package } from "lucide-react";
 
-function downloadCSV(data: any[], filename: string) {
+function exportToCSV(data: any[], filename: string) {
   if (!data || data.length === 0) {
     toast.error("Nenhum dado para exportar");
     return;
   }
-  const keys = Object.keys(data[0]);
-  const header = keys.join(";");
-  const rows = data.map((row: any) => keys.map((k) => `"${row[k]}"`).join(";"));
-  const csv = [header, ...rows].join("\n");
-  const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
+  const headers = Object.keys(data[0]);
+  const csvContent = [
+    headers.join(";"),
+    ...data.map(row => headers.map(h => {
+      const val = row[h];
+      if (typeof val === "string" && val.includes(";")) return `"${val}"`;
+      return String(val ?? "");
+    }).join(";"))
+  ].join("\n");
+
+  const blob = new Blob(["\ufeff" + csvContent], { type: "text/csv;charset=utf-8;" });
   const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
+  link.href = URL.createObjectURL(blob);
+  link.download = `${filename}_${new Date().toISOString().slice(0, 10)}.csv`;
   link.click();
-  URL.revokeObjectURL(url);
-  toast.success(`Arquivo ${filename} exportado!`);
+  URL.revokeObjectURL(link.href);
+  toast.success(`Relatório exportado: ${filename}.csv`);
 }
 
 export default function Reports() {
-  const [startDate, setStartDate] = useState(() => {
-    const d = new Date();
-    d.setMonth(d.getMonth() - 1);
-    return d.toISOString().split("T")[0];
-  });
-  const [endDate, setEndDate] = useState(() => new Date().toISOString().split("T")[0]);
-
-  const { data: revenueData, isLoading: revenueLoading } = trpc.reports.revenue.useQuery({ startDate, endDate });
-  const { data: criticalStock, isLoading: stockLoading } = trpc.reports.criticalStock.useQuery();
-  const { data: products, isLoading: productsLoading } = trpc.products.list.useQuery({ limit: 200 });
-
-  const totalRevenue = revenueData?.reduce((sum: number, r: any) => sum + parseFloat(r.total), 0) || 0;
+  const [period, setPeriod] = useState("30d");
+  const { data: revenueReport } = trpc.reports.revenue.useQuery();
+  const { data: commissionReport } = trpc.reports.commissions.useQuery();
+  const { data: stockReport } = trpc.reports.stockAnalysis.useQuery();
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold">Relatórios</h1>
-          <p className="text-sm text-muted-foreground">Exporte dados do sistema em formato CSV</p>
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Relatórios</h1>
+        <p className="text-sm text-muted-foreground">Análises e exportações de dados</p>
+      </div>
+
+      <Tabs defaultValue="revenue">
+        <TabsList>
+          <TabsTrigger value="revenue">
+            <TrendingUp className="h-4 w-4 mr-2" />
+            Faturamento
+          </TabsTrigger>
+          <TabsTrigger value="commissions">
+            <Users className="h-4 w-4 mr-2" />
+            Comissões
+          </TabsTrigger>
+          <TabsTrigger value="stock">
+            <Package className="h-4 w-4 mr-2" />
+            Análise de Estoque
+          </TabsTrigger>
+        </TabsList>
 
         {/* Revenue Report */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <DollarSign className="h-5 w-5" /> Faturamento
-              </CardTitle>
+        <TabsContent value="revenue" className="space-y-4 mt-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-sm">Faturamento por Período</CardTitle>
+                <CardDescription>Resumo de vendas entregues</CardDescription>
+              </div>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => downloadCSV(
-                  revenueData?.map((r: any) => ({
-                    data: r.date,
-                    faturamento: parseFloat(r.total).toFixed(2),
-                    pedidos: r.count,
-                  })) || [],
-                  `faturamento_${startDate}_${endDate}.csv`
-                )}
-                disabled={!revenueData || revenueData.length === 0}
+                onClick={() => revenueReport && exportToCSV(revenueReport as any[], "faturamento")}
               >
-                <Download className="mr-2 h-4 w-4" /> Exportar CSV
+                <Download className="h-4 w-4 mr-2" />
+                Exportar CSV
               </Button>
-            </div>
-            <div className="flex gap-3 items-end mt-3">
-              <div>
-                <Label>Data Inicial</Label>
-                <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-[160px]" />
-              </div>
-              <div>
-                <Label>Data Final</Label>
-                <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-[160px]" />
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="mb-4 p-4 bg-slate-50 rounded-lg">
-              <div className="text-2xl font-bold text-primary">R$ {totalRevenue.toFixed(2)}</div>
-              <p className="text-sm text-muted-foreground">Faturamento total no período ({revenueData?.length || 0} dias com vendas)</p>
-            </div>
-            {revenueLoading ? (
-              <div className="text-center py-4 text-muted-foreground">Carregando...</div>
-            ) : !revenueData || revenueData.length === 0 ? (
-              <p className="text-center py-4 text-muted-foreground">Nenhuma venda no período</p>
-            ) : (
+            </CardHeader>
+            <CardContent className="p-0">
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>#</TableHead>
                     <TableHead>Data</TableHead>
                     <TableHead>Faturamento</TableHead>
-                    <TableHead>Pedidos</TableHead>
+                    <TableHead>Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {revenueData.map((r: any, i: number) => (
-                    <TableRow key={i}>
-                      <TableCell>{r.date ? new Date(r.date).toLocaleDateString('pt-BR') : "-"}</TableCell>
-                      <TableCell className="font-semibold">R$ {parseFloat(r.total).toFixed(2)}</TableCell>
-                      <TableCell>{r.count}</TableCell>
+                  {revenueReport && revenueReport.length > 0 ? (
+                    (revenueReport as any[]).map((order: any) => (
+                      <TableRow key={order.id}>
+                        <TableCell className="font-medium">#{order.id}</TableCell>
+                        <TableCell>{new Date(order.createdAt).toLocaleDateString("pt-BR")}</TableCell>
+                        <TableCell className="font-semibold">
+                          R$ {parseFloat(String(order.totalAmount)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                        </TableCell>
+                        <TableCell>{order.status}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                        Nenhum dado disponível
+                      </TableCell>
                     </TableRow>
-                  ))}
+                  )}
                 </TableBody>
               </Table>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-        {/* Stock Analysis */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Package className="h-5 w-5" /> Análise de Estoque
-              </CardTitle>
+        {/* Commissions Report */}
+        <TabsContent value="commissions" className="space-y-4 mt-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-sm">Comissões por Vendedor</CardTitle>
+                <CardDescription>5% sobre vendas entregues</CardDescription>
+              </div>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => downloadCSV(
-                  (products || []).map((p: any) => ({
-                    nome: p.name,
-                    categoria: p.category || "",
-                    estoque_atual: p.stockQuantity,
-                    estoque_minimo: p.minStock,
-                    status: parseFloat(p.stockQuantity) <= parseFloat(p.minStock) ? "CRÍTICO" : "OK",
-                    preco_unitario: parseFloat(p.unitPrice).toFixed(2),
-                  })),
-                  `estoque_${new Date().toISOString().split("T")[0]}.csv`
-                )}
-                disabled={!products || products.length === 0}
+                onClick={() => commissionReport && exportToCSV(commissionReport as any[], "comissoes")}
               >
-                <Download className="mr-2 h-4 w-4" /> Exportar CSV
+                <Download className="h-4 w-4 mr-2" />
+                Exportar CSV
               </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {stockLoading || productsLoading ? (
-              <div className="text-center py-4 text-muted-foreground">Carregando...</div>
-            ) : !products || products.length === 0 ? (
-              <p className="text-center py-4 text-muted-foreground">Nenhum produto cadastrado</p>
-            ) : (
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Vendedor</TableHead>
+                    <TableHead>Vendas Entregues</TableHead>
+                    <TableHead>Total Vendas</TableHead>
+                    <TableHead>Comissão (5%)</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {commissionReport && commissionReport.length > 0 ? (
+                    commissionReport.map((c: any, i: number) => (
+                      <TableRow key={i}>
+                        <TableCell className="font-medium">{c.userName}</TableCell>
+                        <TableCell>{c.deliveredOrders}</TableCell>
+                        <TableCell>R$ {c.totalSales.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</TableCell>
+                        <TableCell className="font-semibold text-green-700">
+                          R$ {c.commission.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                        Nenhum dado disponível
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Stock Report */}
+        <TabsContent value="stock" className="space-y-4 mt-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-sm">Análise de Estoque</CardTitle>
+                <CardDescription>Produtos com situação de estoque</CardDescription>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => stockReport && exportToCSV(stockReport as any[], "estoque")}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Exportar CSV
+              </Button>
+            </CardHeader>
+            <CardContent className="p-0">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Produto</TableHead>
-                    <TableHead>Categoria</TableHead>
                     <TableHead>Estoque Atual</TableHead>
-                    <TableHead>Estoque Mín.</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Preço Unit.</TableHead>
+                    <TableHead>Estoque Mínimo</TableHead>
+                    <TableHead>Situação</TableHead>
+                    <TableHead>Ação Recomendada</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {products.map((p: any) => {
-                    const isCritical = parseFloat(p.stockQuantity) <= parseFloat(p.minStock);
-                    return (
-                      <TableRow key={p.id}>
-                        <TableCell className="font-medium">{p.name}</TableCell>
-                        <TableCell>{p.category || "-"}</TableCell>
-                        <TableCell>{p.stockQuantity}</TableCell>
-                        <TableCell>{p.minStock}</TableCell>
+                  {stockReport && stockReport.length > 0 ? (
+                    stockReport.map((s: any, i: number) => (
+                      <TableRow key={i}>
+                        <TableCell className="font-medium">{s.productName}</TableCell>
+                        <TableCell>{s.currentStock}</TableCell>
+                        <TableCell>{s.minStock}</TableCell>
                         <TableCell>
-                          <Badge variant={isCritical ? "destructive" : "outline"}>{isCritical ? "Crítico" : "OK"}</Badge>
+                          {s.status === "esgotado" && <span className="text-red-600 font-medium">Esgotado</span>}
+                          {s.status === "critico" && <span className="text-amber-600 font-medium">Crítico</span>}
+                          {s.status === "baixo" && <span className="text-blue-600 font-medium">Baixo</span>}
+                          {s.status === "normal" && <span className="text-green-600 font-medium">Normal</span>}
+                          {s.status === "excedente" && <span className="text-gray-600 font-medium">Excedente</span>}
                         </TableCell>
-                        <TableCell>R$ {parseFloat(p.unitPrice).toFixed(2)}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{s.recommendedAction}</TableCell>
                       </TableRow>
-                    );
-                  })}
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                        Nenhum dado disponível
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Commissions Report */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" /> Comissões (estimativa)
-              </CardTitle>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const ordersByUser = [
-                    { usuario: "Administrador", total_pedidos: revenueData?.length || 0, faturamento: totalRevenue.toFixed(2), comissao_10: (totalRevenue * 0.10).toFixed(2), comissao_5: (totalRevenue * 0.05).toFixed(2) }
-                  ];
-                  downloadCSV(ordersByUser, `comissoes_${startDate}_${endDate}.csv`);
-                }}
-              >
-                <Download className="mr-2 h-4 w-4" /> Exportar CSV
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Usuário</TableHead>
-                  <TableHead>Faturamento</TableHead>
-                  <TableHead>Comissão 5%</TableHead>
-                  <TableHead>Comissão 10%</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow>
-                  <TableCell className="font-medium">Vendedores</TableCell>
-                  <TableCell>R$ {totalRevenue.toFixed(2)}</TableCell>
-                  <TableCell className="text-green-600 font-semibold">R$ {(totalRevenue * 0.05).toFixed(2)}</TableCell>
-                  <TableCell className="text-green-600 font-semibold">R$ {(totalRevenue * 0.10).toFixed(2)}</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-            <p className="text-xs text-muted-foreground mt-2">* Estimativa baseada em taxa de comissão padrão. Ajuste conforme política da empresa.</p>
-          </CardContent>
-        </Card>
-      </div>
-    </DashboardLayout>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }
