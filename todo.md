@@ -42,16 +42,18 @@
 - [x] Substituir a necessidade de Publish Profile secret pela autenticação OIDC Azure
 - [x] Usar a autenticação OIDC Azure já configurada no GitHub para publicação sem perfil de publicação
 - [x] Criar uma identidade Azure de publicação limitada ao Vidrix e confiada apenas ao repositório GitHub autorizado
-- [ ] Atualizar os segredos OIDC do repositório e validar uma execução automatizada bem-sucedida
+- [x] Atualizar os segredos OIDC do repositório e validar uma execução automatizada bem-sucedida
 - [x] Atualizar o fluxo GitHub Actions para publicar o pacote CommonJS autocontido validado no Azure
 - [x] Confirmar a sintaxe e o conteúdo final do fluxo GitHub Actions de empacotamento Azure
 
 ## Administração de acessos
 - [x] Criar uma conta local de superadmin no Vidrix com credenciais temporárias seguras
 - [x] Validar o login e as permissões administrativas da conta de superadmin em produção
-- [ ] Rever e documentar a implementação final do papel superadmin nos componentes de autenticação e autorização
-- [ ] Executar testes de regressão que cubram criação, login e autorização do superadmin
-- [ ] Registar evidência reproduzível de login e acesso administrativo do superadmin em produção
+- [x] Rever e documentar a implementação final do papel superadmin nos componentes de autenticação e autorização
+- [x] Executar testes de regressão que cubram criação, login e autorização do superadmin
+- [x] Registar evidência reproduzível de login e acesso administrativo do superadmin em produção
+- [x] Documentar formalmente o esquema, JWT, autorização e criação restrita do superadmin
+- [x] Adicionar teste de regressão específico para o login local de um superadmin
 - [x] Deploy no Azure App Service
 
 ## Qualidade
