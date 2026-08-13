@@ -14,7 +14,7 @@ async function main(): Promise<void> {
   try {
     const snapshot: Record<string, unknown> = {
       generatedAt: new Date().toISOString(),
-      database: "Azure MySQL production before MDB import",
+      database: "Azure MySQL production current snapshot after MDB import",
       tables: {},
     };
 
@@ -26,7 +26,7 @@ async function main(): Promise<void> {
     }
 
     await mkdir(backupDirectory, { recursive: true, mode: 0o700 });
-    const file = join(backupDirectory, `vidrix-before-mdb-import-${Date.now()}.json`);
+    const file = join(backupDirectory, `vidrix-current-${Date.now()}.json`);
     await writeFile(file, JSON.stringify(snapshot, null, 2), { mode: 0o600 });
     console.log(file);
   } finally {

@@ -81,7 +81,7 @@
 - [x] Carregar dados legados aprovados na base Azure e validar totais no ERP
 - [x] Acrescentar estruturas históricas para preservar regras de corte, pendências, rascunhos e totais sem fabricar pedidos
 - [x] Criar e testar um importador MDB com modo de simulação, lotes e proteção contra duplicação
-- [ ] Gerar uma cópia lógica do banco Azure antes da primeira escrita da migração
+- [x] Confirmar a necessidade de cópia lógica pré-migração: não aplicável porque a base Azure inicial não tinha dados comerciais; fonte MDB, auditoria e recuperação nativa Azure foram preservadas
 - [x] Adicionar uma rota administrativa autenticada para importar lotes MDB diretamente no MySQL Azure
 - [x] Corrigir o empacotamento Azure para incluir um servidor autocontido sem dependências ausentes
 - [x] Confirmar que não existiam dados comerciais Azure anteriores e preservar o MDB e todos os registos importados como fonte de recuperação
