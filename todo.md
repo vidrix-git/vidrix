@@ -39,14 +39,19 @@
 - [x] GitHub Actions workflow com publish profile
 - [x] .dockerignore configurado
 - [x] Push para GitHub (remote github)
-- [ ] Configurar Publish Profile secret no GitHub
-- [ ] Usar a autenticação OIDC Azure já configurada no GitHub para publicação sem perfil de publicação
+- [x] Substituir a necessidade de Publish Profile secret pela autenticação OIDC Azure
+- [x] Usar a autenticação OIDC Azure já configurada no GitHub para publicação sem perfil de publicação
+- [x] Criar uma identidade Azure de publicação limitada ao Vidrix e confiada apenas ao repositório GitHub autorizado
+- [ ] Atualizar os segredos OIDC do repositório e validar uma execução automatizada bem-sucedida
 - [x] Atualizar o fluxo GitHub Actions para publicar o pacote CommonJS autocontido validado no Azure
 - [x] Confirmar a sintaxe e o conteúdo final do fluxo GitHub Actions de empacotamento Azure
 
 ## Administração de acessos
-- [ ] Criar uma conta local de superadmin no Vidrix com credenciais temporárias seguras
-- [ ] Validar o login e as permissões administrativas da conta de superadmin em produção
+- [x] Criar uma conta local de superadmin no Vidrix com credenciais temporárias seguras
+- [x] Validar o login e as permissões administrativas da conta de superadmin em produção
+- [ ] Rever e documentar a implementação final do papel superadmin nos componentes de autenticação e autorização
+- [ ] Executar testes de regressão que cubram criação, login e autorização do superadmin
+- [ ] Registar evidência reproduzível de login e acesso administrativo do superadmin em produção
 - [x] Deploy no Azure App Service
 
 ## Qualidade
