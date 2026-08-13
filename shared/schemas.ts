@@ -1,5 +1,19 @@
 import { z } from "zod";
 
+const parseBrazilianDecimal = (value: string) => {
+  const compact = value.trim().replace(/\s+/g, "");
+  return Number(compact.includes(",") ? compact.replace(/\./g, "").replace(",", ".") : compact);
+};
+
+const positiveDecimalString = (field: string) => z.string().trim().refine(
+  (value) => Number.isFinite(parseBrazilianDecimal(value)) && parseBrazilianDecimal(value) > 0,
+  `${field} deve ser um número positivo`,
+);
+const positiveIntegerString = (field: string) => z.string().trim().refine(
+  (value) => Number.isInteger(Number(value)) && Number(value) > 0,
+  `${field} deve ser um número inteiro positivo`,
+);
+
 // ============================================================
 // CLIENTS
 // ============================================================
@@ -102,19 +116,19 @@ export const updateQuoteSchema = z.object({
 export const createQuoteItemSchema = z.object({
   quoteId: z.number().int().positive("ID do orçamento é obrigatório"),
   productId: z.number().int().positive("ID do produto é obrigatório"),
-  width: z.string().min(1, "Largura é obrigatória"),
-  height: z.string().min(1, "Altura é obrigatória"),
-  quantity: z.string().min(1, "Quantidade é obrigatória"),
-  unitPrice: z.string().min(1, "Preço unitário é obrigatório"),
+  width: positiveDecimalString("Largura em centímetros"),
+  height: positiveDecimalString("Altura em centímetros"),
+  quantity: positiveIntegerString("Quantidade"),
+  unitPrice: positiveDecimalString("Preço por m²"),
   notes: z.string().optional().nullable(),
 });
 
 export const updateQuoteItemSchema = z.object({
   id: z.number().int().positive("ID do item é obrigatório"),
-  width: z.string().optional(),
-  height: z.string().optional(),
-  quantity: z.string().optional(),
-  unitPrice: z.string().optional(),
+  width: positiveDecimalString("Largura em centímetros").optional(),
+  height: positiveDecimalString("Altura em centímetros").optional(),
+  quantity: positiveIntegerString("Quantidade").optional(),
+  unitPrice: positiveDecimalString("Preço por m²").optional(),
   notes: z.string().optional().nullable(),
 });
 
@@ -143,19 +157,19 @@ export const updateOrderSchema = z.object({
 export const createOrderItemSchema = z.object({
   orderId: z.number().int().positive("ID do pedido é obrigatório"),
   productId: z.number().int().positive("ID do produto é obrigatório"),
-  width: z.string().min(1, "Largura é obrigatória"),
-  height: z.string().min(1, "Altura é obrigatória"),
-  quantity: z.string().min(1, "Quantidade é obrigatória"),
-  unitPrice: z.string().min(1, "Preço unitário é obrigatório"),
+  width: positiveDecimalString("Largura em centímetros"),
+  height: positiveDecimalString("Altura em centímetros"),
+  quantity: positiveIntegerString("Quantidade"),
+  unitPrice: positiveDecimalString("Preço por m²"),
   notes: z.string().optional().nullable(),
 });
 
 export const updateOrderItemSchema = z.object({
   id: z.number().int().positive("ID do item é obrigatório"),
-  width: z.string().optional(),
-  height: z.string().optional(),
-  quantity: z.string().optional(),
-  unitPrice: z.string().optional(),
+  width: positiveDecimalString("Largura em centímetros").optional(),
+  height: positiveDecimalString("Altura em centímetros").optional(),
+  quantity: positiveIntegerString("Quantidade").optional(),
+  unitPrice: positiveDecimalString("Preço por m²").optional(),
   notes: z.string().optional().nullable(),
 });
 

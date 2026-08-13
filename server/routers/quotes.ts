@@ -3,7 +3,19 @@ import { protectedProcedure, router } from "../_core/trpc";
 import { createQuoteSchema, updateQuoteSchema, createQuoteItemSchema, updateQuoteItemSchema } from "../../shared/schemas";
 import { getDb } from "../db";
 import { quotes, quoteItems, orders, orderItems, stockMovements, products } from "../../drizzle/schema";
-import { eq } from "drizzle-orm";
+import { and, eq, gte, sql } from "drizzle-orm";
+import { calculateCommercialItem, roundMoney, roundSquareMeters } from "../commercial-rules";
+
+function affectedRows(result: unknown): number {
+  const header = Array.isArray(result) ? result[0] : result as any;
+  return Number((header as any)?.affectedRows || 0);
+}
+
+async function refreshQuoteTotal(tx: any, quoteId: number) {
+  const items = await tx.select().from(quoteItems).where(eq(quoteItems.quoteId, quoteId));
+  const total = items.reduce((sum: number, item: any) => sum + Number(item.subtotal), 0);
+  await tx.update(quotes).set({ totalAmount: roundMoney(total) }).where(eq(quotes.id, quoteId));
+}
 
 export const quotesRouter = router({
   list: protectedProcedure.query(async () => {
@@ -56,6 +68,9 @@ export const quotesRouter = router({
   delete: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async (opts) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
+    const quote = await db.select().from(quotes).where(eq(quotes.id, opts.input.id)).limit(1);
+    if (quote.length === 0) throw new Error("Orçamento não encontrado");
+    if (quote[0].status === "convertido") throw new Error("Orçamento convertido não pode ser excluído");
     await db.delete(quoteItems).where(eq(quoteItems.quoteId, opts.input.id));
     await db.delete(quotes).where(eq(quotes.id, opts.input.id));
     return { success: true };
@@ -65,24 +80,17 @@ export const quotesRouter = router({
     const db = await getDb();
     if (!db) throw new Error("Database not available");
     const { width, height, quantity, unitPrice, ...rest } = opts.input;
-    const w = parseFloat(width);
-    const h = parseFloat(height);
-    const q = parseInt(quantity);
-    const p = parseFloat(unitPrice);
-    const squareMeters = (w * h) / 10000;
-    const subtotal = q * squareMeters * p;
+    const item = calculateCommercialItem({ width, height, quantity, unitPrice });
     const result = await db.insert(quoteItems).values({
       ...rest,
-      width,
-      height,
-      quantity: q,
-      unitPrice,
-      squareMeters: String(squareMeters.toFixed(4)),
-      subtotal: String(subtotal.toFixed(2)),
+      width: String(item.width),
+      height: String(item.height),
+      quantity: item.quantity,
+      unitPrice: String(item.unitPrice),
+      squareMeters: roundSquareMeters(item.squareMeters),
+      subtotal: roundMoney(item.subtotal),
     });
-    const items = await db.select().from(quoteItems).where(eq(quoteItems.quoteId, opts.input.quoteId));
-    const total = items.reduce((sum: number, item: any) => sum + parseFloat(String(item.subtotal)), 0);
-    await db.update(quotes).set({ totalAmount: String(total.toFixed(2)) }).where(eq(quotes.id, opts.input.quoteId));
+    await refreshQuoteTotal(db, opts.input.quoteId);
     return { success: true, insertId: result[0].insertId };
   }),
 
@@ -93,23 +101,21 @@ export const quotesRouter = router({
     const item = await db.select().from(quoteItems).where(eq(quoteItems.id, id)).limit(1);
     if (item.length === 0) throw new Error("Item não encontrado");
     const currentItem = item[0] as any;
-    const w = width ? parseFloat(width) : parseFloat(String(currentItem.width));
-    const h = height ? parseFloat(height) : parseFloat(String(currentItem.height));
-    const q = quantity ? parseInt(quantity) : currentItem.quantity;
-    const p = unitPrice ? parseFloat(unitPrice) : parseFloat(String(currentItem.unitPrice));
-    const squareMeters = (w * h) / 10000;
-    const subtotal = q * squareMeters * p;
+    const calculated = calculateCommercialItem({
+      width: width ?? String(currentItem.width),
+      height: height ?? String(currentItem.height),
+      quantity: quantity ?? String(currentItem.quantity),
+      unitPrice: unitPrice ?? String(currentItem.unitPrice),
+    });
     const data: Record<string, unknown> = { ...rest };
-    if (width) data.width = width;
-    if (height) data.height = height;
-    if (quantity) data.quantity = q;
-    if (unitPrice) data.unitPrice = unitPrice;
-    data.squareMeters = String(squareMeters.toFixed(4));
-    data.subtotal = String(subtotal.toFixed(2));
+    if (width !== undefined) data.width = String(calculated.width);
+    if (height !== undefined) data.height = String(calculated.height);
+    if (quantity !== undefined) data.quantity = calculated.quantity;
+    if (unitPrice !== undefined) data.unitPrice = String(calculated.unitPrice);
+    data.squareMeters = roundSquareMeters(calculated.squareMeters);
+    data.subtotal = roundMoney(calculated.subtotal);
     await db.update(quoteItems).set(data).where(eq(quoteItems.id, id));
-    const items = await db.select().from(quoteItems).where(eq(quoteItems.quoteId, currentItem.quoteId));
-    const total = items.reduce((sum: number, it: any) => sum + parseFloat(String(it.subtotal)), 0);
-    await db.update(quotes).set({ totalAmount: String(total.toFixed(2)) }).where(eq(quotes.id, currentItem.quoteId));
+    await refreshQuoteTotal(db, currentItem.quoteId);
     return { success: true };
   }),
 
@@ -120,53 +126,38 @@ export const quotesRouter = router({
     if (item.length === 0) throw new Error("Item não encontrado");
     const quoteId = (item[0] as any).quoteId;
     await db.delete(quoteItems).where(eq(quoteItems.id, opts.input.id));
-    const items = await db.select().from(quoteItems).where(eq(quoteItems.quoteId, quoteId));
-    const total = items.reduce((sum: number, it: any) => sum + parseFloat(String(it.subtotal)), 0);
-    await db.update(quotes).set({ totalAmount: String(total.toFixed(2)) }).where(eq(quotes.id, quoteId));
+    await refreshQuoteTotal(db, quoteId);
     return { success: true };
   }),
 
   convertToOrder: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async (opts) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
-    const quoteList = await db.select().from(quotes).where(eq(quotes.id, opts.input.id)).limit(1);
-    if (quoteList.length === 0) throw new Error("Orçamento não encontrado");
-    const q = quoteList[0] as any;
-    const orderResult = await db.insert(orders).values({
-      clientId: q.clientId,
-      userId: q.userId,
-      quoteId: q.id,
-      status: "aprovado",
-      totalAmount: q.totalAmount,
-    });
-    const orderId = orderResult[0].insertId;
-    const quoteItemsList = await db.select().from(quoteItems).where(eq(quoteItems.quoteId, q.id));
-    for (const qi of quoteItemsList) {
-      await db.insert(orderItems).values({
-        orderId,
-        productId: qi.productId,
-        width: qi.width,
-        height: qi.height,
-        quantity: qi.quantity,
-        unitPrice: qi.unitPrice,
-        squareMeters: qi.squareMeters,
-        subtotal: qi.subtotal,
-      });
-      const currentProduct = await db.select().from(products).where(eq(products.id, qi.productId)).limit(1);
-      if (currentProduct.length > 0) {
-        const newStock = currentProduct[0].stockQuantity - qi.quantity;
-        await db.update(products).set({ stockQuantity: newStock }).where(eq(products.id, qi.productId));
+    return db.transaction(async (tx) => {
+      await tx.execute(sql`SELECT id FROM quotes WHERE id = ${opts.input.id} FOR UPDATE`);
+      const quoteList = await tx.select().from(quotes).where(eq(quotes.id, opts.input.id)).limit(1);
+      if (quoteList.length === 0) throw new Error("Orçamento não encontrado");
+      const quote = quoteList[0] as any;
+      const existingOrder = await tx.select().from(orders).where(eq(orders.quoteId, quote.id)).limit(1);
+      if (existingOrder.length > 0) return { success: true, orderId: existingOrder[0].id, alreadyConverted: true };
+      if (quote.status !== "aprovado") throw new Error("Apenas orçamentos aprovados podem ser convertidos");
+      const sourceItems = await tx.select().from(quoteItems).where(eq(quoteItems.quoteId, quote.id));
+      if (sourceItems.length === 0) throw new Error("O orçamento não possui itens para conversão");
+      const quantities = new Map<number, number>();
+      for (const item of sourceItems) quantities.set(item.productId, (quantities.get(item.productId) || 0) + item.quantity);
+      for (const [productId, quantity] of Array.from(quantities.entries())) {
+        await tx.execute(sql`SELECT id FROM products WHERE id = ${productId} FOR UPDATE`);
+        const result = await tx.update(products).set({ stockQuantity: sql`${products.stockQuantity} - ${quantity}` }).where(and(eq(products.id, productId), gte(products.stockQuantity, quantity)));
+        if (affectedRows(result) !== 1) throw new Error(`Estoque insuficiente para o produto #${productId}`);
       }
-      await db.insert(stockMovements).values({
-        productId: qi.productId,
-        type: "saida",
-        quantity: qi.quantity,
-        referenceType: "order",
-        referenceId: orderId,
-        notes: `Saída pelo pedido #${orderId}`,
-      });
-    }
-    await db.update(quotes).set({ status: "convertido" }).where(eq(quotes.id, q.id));
-    return { success: true, orderId };
+      const orderResult = await tx.insert(orders).values({ clientId: quote.clientId, userId: quote.userId, quoteId: quote.id, status: "aprovado", totalAmount: quote.totalAmount, stockAllocatedAt: new Date() });
+      const orderId = orderResult[0].insertId;
+      for (const item of sourceItems) {
+        await tx.insert(orderItems).values({ orderId, productId: item.productId, width: item.width, height: item.height, quantity: item.quantity, unitPrice: item.unitPrice, squareMeters: item.squareMeters, subtotal: item.subtotal });
+        await tx.insert(stockMovements).values({ productId: item.productId, type: "saida", quantity: item.quantity, referenceType: "order", referenceId: orderId, notes: `Reserva pelo pedido #${orderId}` });
+      }
+      await tx.update(quotes).set({ status: "convertido" }).where(eq(quotes.id, quote.id));
+      return { success: true, orderId, alreadyConverted: false };
+    });
   }),
 });

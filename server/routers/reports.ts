@@ -3,6 +3,7 @@ import { protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { orders, quotes, users, products, stockMovements, clients, orderItems } from "../../drizzle/schema";
 import { eq, desc, gte, lte, sql } from "drizzle-orm";
+import { toStockMovementReportRow } from "../stock-history";
 
 export const reportsRouter = router({
   revenue: protectedProcedure
@@ -121,14 +122,9 @@ export const reportsRouter = router({
     const movements = await db.select().from(stockMovements).orderBy(desc(stockMovements.createdAt));
     const productList = await db.select().from(products);
 
-    return movements.map((m: any) => ({
-      movementId: m.id,
-      productName: productList.find((p: any) => p.id === m.productId)?.name || `Produto #${m.productId}`,
-      type: m.movementType,
-      quantity: m.quantity,
-      sourceType: m.sourceType || "manual",
-      reference: m.reference || "-",
-      movementDate: m.movementDate ? new Date(m.movementDate).toLocaleDateString("pt-BR") : "-",
-    }));
+    return movements.map((m: any) => toStockMovementReportRow(
+      m,
+      productList.find((p: any) => p.id === m.productId)?.name || `Produto #${m.productId}`,
+    ));
   }),
 });

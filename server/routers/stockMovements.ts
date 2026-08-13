@@ -2,7 +2,7 @@ import { z } from "zod";
 import { protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { stockMovements, products } from "../../drizzle/schema";
-import { eq } from "drizzle-orm";
+import { and, eq, gte, sql } from "drizzle-orm";
 
 export const stockMovementsRouter = router({
   list: protectedProcedure.query(async () => {
@@ -20,27 +20,23 @@ export const stockMovementsRouter = router({
   manualEntry: protectedProcedure.input(z.object({ productId: z.number().int().positive(), type: z.enum(["entrada", "saida"]), quantity: z.number().int().positive(), notes: z.string().optional().nullable() })).mutation(async (opts) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
-    const product = await db.select().from(products).where(eq(products.id, opts.input.productId)).limit(1);
-    if (product.length === 0) throw new Error("Produto não encontrado");
-    const currentProduct = product[0] as any;
+    await db.transaction(async (tx) => {
+      const product = await tx.select().from(products).where(eq(products.id, opts.input.productId)).limit(1);
+      if (product.length === 0) throw new Error("Produto não encontrado");
 
-    if (opts.input.type === "entrada") {
-      const newStock = currentProduct.stockQuantity + opts.input.quantity;
-      await db.update(products).set({ stockQuantity: newStock }).where(eq(products.id, opts.input.productId));
-    } else {
-      if (opts.input.quantity > currentProduct.stockQuantity) {
-        throw new Error("Quantidade em estoque insuficiente");
-      }
-      const newStock = currentProduct.stockQuantity - opts.input.quantity;
-      await db.update(products).set({ stockQuantity: newStock }).where(eq(products.id, opts.input.productId));
-    }
+      const result = opts.input.type === "entrada"
+        ? await tx.update(products).set({ stockQuantity: sql`${products.stockQuantity} + ${opts.input.quantity}` }).where(eq(products.id, opts.input.productId))
+        : await tx.update(products).set({ stockQuantity: sql`${products.stockQuantity} - ${opts.input.quantity}` }).where(and(eq(products.id, opts.input.productId), gte(products.stockQuantity, opts.input.quantity)));
+      const affectedRows = Number((Array.isArray(result) ? result[0] : result as any)?.affectedRows || 0);
+      if (affectedRows !== 1) throw new Error("Quantidade em estoque insuficiente");
 
-    await db.insert(stockMovements).values({
-      productId: opts.input.productId,
-      type: opts.input.type,
-      quantity: opts.input.quantity,
-      referenceType: "manual",
-      notes: opts.input.notes || null,
+      await tx.insert(stockMovements).values({
+        productId: opts.input.productId,
+        type: opts.input.type,
+        quantity: opts.input.quantity,
+        referenceType: "manual",
+        notes: opts.input.notes || null,
+      });
     });
     return { success: true };
   }),

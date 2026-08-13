@@ -105,6 +105,10 @@ export const ERP_SCHEMA_STATEMENTS = [
     \`status\` enum('aprovado','em_producao','pronto','entregue','cancelado') NOT NULL DEFAULT 'aprovado',
     \`totalAmount\` decimal(12,2) NOT NULL DEFAULT '0',
     \`notes\` text,
+    \`stockAllocatedAt\` timestamp NULL,
+    \`cancelledAt\` timestamp NULL,
+    \`cancelledByUserId\` int NULL,
+    \`cancellationReason\` text,
     \`createdAt\` timestamp NOT NULL DEFAULT (now()),
     \`updatedAt\` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY(\`id\`)
@@ -179,6 +183,11 @@ export const ERP_SCHEMA_STATEMENTS = [
     PRIMARY KEY(\`id\`),
     UNIQUE KEY \`cutting_rules_category_cut_unique\` (\`category\`, \`cutValue\`)
   )`,
+  `ALTER TABLE \`orders\` ADD COLUMN \`stockAllocatedAt\` timestamp NULL`,
+  `ALTER TABLE \`orders\` ADD COLUMN \`cancelledAt\` timestamp NULL`,
+  `ALTER TABLE \`orders\` ADD COLUMN \`cancelledByUserId\` int NULL`,
+  `ALTER TABLE \`orders\` ADD COLUMN \`cancellationReason\` text`,
+  `UPDATE \`orders\` SET \`stockAllocatedAt\` = \`createdAt\` WHERE \`quoteId\` IS NOT NULL AND \`stockAllocatedAt\` IS NULL AND \`status\` <> 'cancelado'`,
 ] as const;
 
 // Lazily create the drizzle instance so local tooling can run without a DB.
@@ -202,7 +211,12 @@ export async function ensureDatabaseSchema(): Promise<void> {
 
       try {
         for (const statement of ERP_SCHEMA_STATEMENTS) {
-          await db.execute(statement);
+          try {
+            await db.execute(statement);
+          } catch (error: any) {
+            const errorCode = error?.code || error?.cause?.code;
+            if (errorCode !== "ER_DUP_FIELDNAME") throw error;
+          }
         }
         console.log("[Database] ERP schema is ready");
       } catch (error) {

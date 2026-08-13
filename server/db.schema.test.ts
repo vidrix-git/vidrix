@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ERP_SCHEMA_STATEMENTS } from "./db";
 
 describe("bootstrap do esquema ERP", () => {
-  it("define todas as treze tabelas necessárias e evolui o papel de superadmin", () => {
+  it("define todas as treze tabelas necessárias e evolui papéis e auditoria de pedidos", () => {
     const schemaSql = ERP_SCHEMA_STATEMENTS.join("\n");
 
     expect(schemaSql.match(/CREATE TABLE IF NOT EXISTS/g)).toHaveLength(13);
@@ -12,5 +12,11 @@ describe("bootstrap do esquema ERP", () => {
     expect(schemaSql).toContain("CREATE TABLE IF NOT EXISTS `legacyImportRecords`");
     expect(schemaSql).toContain("CREATE TABLE IF NOT EXISTS `cuttingRules`");
     expect(schemaSql).toContain("MODIFY COLUMN `role` enum('user','admin','superadmin')");
+    expect(schemaSql).toContain("`stockAllocatedAt` timestamp NULL");
+    expect(schemaSql).toContain("`cancelledAt` timestamp NULL");
+    expect(schemaSql).toContain("`cancelledByUserId` int NULL");
+    expect(schemaSql).toContain("`cancellationReason` text");
+    expect(schemaSql).toContain("ADD COLUMN `cancelledAt` timestamp NULL");
+    expect(schemaSql).toContain("SET `stockAllocatedAt` = `createdAt`");
   });
 });

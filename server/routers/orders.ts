@@ -3,7 +3,39 @@ import { protectedProcedure, router } from "../_core/trpc";
 import { createOrderSchema, updateOrderSchema, createOrderItemSchema, updateOrderItemSchema } from "../../shared/schemas";
 import { getDb } from "../db";
 import { orders, orderItems, products, stockMovements } from "../../drizzle/schema";
-import { eq } from "drizzle-orm";
+import { and, eq, gte, sql } from "drizzle-orm";
+import { calculateCommercialItem, roundMoney, roundSquareMeters } from "../commercial-rules";
+import { orderStockReference, resolveOrderStatusTransition } from "../order-lifecycle";
+
+function affectedRows(result: unknown): number {
+  const header = Array.isArray(result) ? result[0] : result as any;
+  return Number((header as any)?.affectedRows || 0);
+}
+
+async function refreshOrderTotal(tx: any, orderId: number) {
+  const items = await tx.select().from(orderItems).where(eq(orderItems.orderId, orderId));
+  const total = items.reduce((sum: number, item: any) => sum + Number(item.subtotal), 0);
+  await tx.update(orders).set({ totalAmount: roundMoney(total) }).where(eq(orders.id, orderId));
+}
+
+async function changeStock(
+  tx: any,
+  productId: number,
+  quantity: number,
+  type: "entrada" | "saida",
+  orderId: number,
+  notes: string,
+  referenceType: string,
+) {
+  await tx.execute(sql`SELECT id FROM products WHERE id = ${productId} FOR UPDATE`);
+  const result = type === "saida"
+    ? await tx.update(products).set({ stockQuantity: sql`${products.stockQuantity} - ${quantity}` }).where(and(eq(products.id, productId), gte(products.stockQuantity, quantity)))
+    : await tx.update(products).set({ stockQuantity: sql`${products.stockQuantity} + ${quantity}` }).where(eq(products.id, productId));
+  if (affectedRows(result) !== 1) throw new Error(`Estoque insuficiente para o produto #${productId}`);
+  await tx.insert(stockMovements).values({
+    productId, type, quantity, referenceType, referenceId: orderId, notes,
+  });
+}
 
 export const ordersRouter = router({
   list: protectedProcedure.query(async () => {
@@ -29,143 +61,119 @@ export const ordersRouter = router({
   create: protectedProcedure.input(createOrderSchema).mutation(async (opts) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
-    const userId = opts.ctx.user?.id ?? 0;
-    const data = opts.input as any;
-    data.userId = userId;
-    const result = await db.insert(orders).values(data);
+    const result = await db.insert(orders).values({ ...opts.input, userId: opts.ctx.user?.id ?? 0 } as any);
     return { success: true, insertId: result[0].insertId };
   }),
 
   update: protectedProcedure.input(updateOrderSchema).mutation(async (opts) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
-    const { id, ...data } = opts.input;
+    const { id, status: _ignoredStatus, ...data } = opts.input;
+    if (_ignoredStatus !== undefined) throw new Error("Use a alteração de status auditável para atualizar o pedido");
     await db.update(orders).set(data as any).where(eq(orders.id, id));
     return { success: true };
   }),
 
-  updateStatus: protectedProcedure.input(z.object({ id: z.number().int().positive(), status: z.enum(["aprovado", "em_producao", "pronto", "entregue", "cancelado"]) })).mutation(async (opts) => {
+  updateStatus: protectedProcedure.input(z.object({
+    id: z.number().int().positive(),
+    status: z.enum(["aprovado", "em_producao", "pronto", "entregue", "cancelado"]),
+    cancellationReason: z.string().trim().max(500).optional(),
+  })).mutation(async (opts) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
-    const order = await db.select().from(orders).where(eq(orders.id, opts.input.id)).limit(1);
-    if (order.length === 0) throw new Error("Pedido não encontrado");
-    const currentOrder = order[0] as any;
-    const previousStatus = currentOrder.status;
-    await db.update(orders).set({ status: opts.input.status }).where(eq(orders.id, opts.input.id));
+    return db.transaction(async (tx) => {
+      await tx.execute(sql`SELECT id FROM orders WHERE id = ${opts.input.id} FOR UPDATE`);
+      const records = await tx.select().from(orders).where(eq(orders.id, opts.input.id)).limit(1);
+      if (records.length === 0) throw new Error("Pedido não encontrado");
+      const order = records[0] as any;
+      const transition = resolveOrderStatusTransition(order.status, opts.input.status, order.stockAllocatedAt);
+      if (transition.unchanged) return { success: true, unchanged: true };
 
-    // If transitioning to 'cancelado', restore stock
-    if (opts.input.status === "cancelado" && previousStatus !== "cancelado") {
-      const items = await db.select().from(orderItems).where(eq(orderItems.orderId, opts.input.id));
-      for (const item of items) {
-        const currentProduct = await db.select().from(products).where(eq(products.id, item.productId)).limit(1);
-        if (currentProduct.length > 0) {
-          const newStock = currentProduct[0].stockQuantity + item.quantity;
-          await db.update(products).set({ stockQuantity: newStock }).where(eq(products.id, item.productId));
+      if (transition.isCancellation) {
+        if (transition.shouldRestock) {
+          const items = await tx.select().from(orderItems).where(eq(orderItems.orderId, order.id));
+          for (const item of items) {
+            await changeStock(tx, item.productId, item.quantity, "entrada", order.id, `Estorno único pelo cancelamento do pedido #${order.id}`, orderStockReference("cancel"));
+          }
         }
-        await db.insert(stockMovements).values({
-          productId: item.productId,
-          type: "entrada",
-          quantity: item.quantity,
-          referenceType: "order_cancel",
-          referenceId: opts.input.id,
-          notes: `Estorno - Cancelamento do pedido #${opts.input.id}`,
-        });
+        await tx.update(orders).set({
+          status: "cancelado",
+          cancelledAt: new Date(),
+          cancelledByUserId: opts.ctx.user?.id ?? null,
+          cancellationReason: opts.input.cancellationReason || "Cancelamento registrado pelo usuário",
+        }).where(eq(orders.id, order.id));
+        return { success: true, cancelled: true };
       }
-    }
 
-    // If transitioning from 'cancelado' to active, deduct stock
-    if (previousStatus === "cancelado" && opts.input.status !== "cancelado") {
-      const items = await db.select().from(orderItems).where(eq(orderItems.orderId, opts.input.id));
-      for (const item of items) {
-        const currentProduct = await db.select().from(products).where(eq(products.id, item.productId)).limit(1);
-        if (currentProduct.length > 0) {
-          const newStock = Math.max(0, currentProduct[0].stockQuantity - item.quantity);
-          await db.update(products).set({ stockQuantity: newStock }).where(eq(products.id, item.productId));
-        }
-        await db.insert(stockMovements).values({
-          productId: item.productId,
-          type: "saida",
-          quantity: item.quantity,
-          referenceType: "order",
-          referenceId: opts.input.id,
-          notes: `Saída pelo pedido #${opts.input.id}`,
-        });
-      }
-    }
-
-    return { success: true };
+      await tx.update(orders).set({ status: opts.input.status }).where(eq(orders.id, order.id));
+      return { success: true, cancelled: false };
+    });
   }),
 
-  delete: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async (opts) => {
-    const db = await getDb();
-    if (!db) throw new Error("Database not available");
-    await db.delete(orderItems).where(eq(orderItems.orderId, opts.input.id));
-    await db.delete(orders).where(eq(orders.id, opts.input.id));
-    return { success: true };
+  delete: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async () => {
+    throw new Error("Pedidos operacionais não podem ser excluídos. Use o cancelamento auditável.");
   }),
 
   addItem: protectedProcedure.input(createOrderItemSchema).mutation(async (opts) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
-    const { width, height, quantity, unitPrice, ...rest } = opts.input;
-    const w = parseFloat(width);
-    const h = parseFloat(height);
-    const q = parseInt(quantity);
-    const p = parseFloat(unitPrice);
-    const squareMeters = (w * h) / 10000;
-    const subtotal = q * squareMeters * p;
-    const result = await db.insert(orderItems).values({
-      ...rest,
-      width,
-      height,
-      quantity: q,
-      unitPrice,
-      squareMeters: String(squareMeters.toFixed(4)),
-      subtotal: String(subtotal.toFixed(2)),
+    const calculated = calculateCommercialItem(opts.input);
+    return db.transaction(async (tx) => {
+      const orderList = await tx.select().from(orders).where(eq(orders.id, opts.input.orderId)).limit(1);
+      if (orderList.length === 0) throw new Error("Pedido não encontrado");
+      if (orderList[0].status === "cancelado") throw new Error("Não é possível adicionar itens a um pedido cancelado");
+      const result = await tx.insert(orderItems).values({
+        orderId: opts.input.orderId, productId: opts.input.productId, width: String(calculated.width), height: String(calculated.height),
+        quantity: calculated.quantity, unitPrice: String(calculated.unitPrice), squareMeters: roundSquareMeters(calculated.squareMeters), subtotal: roundMoney(calculated.subtotal), notes: opts.input.notes,
+      });
+      await changeStock(tx, opts.input.productId, calculated.quantity, "saida", opts.input.orderId, `Reserva pelo pedido #${opts.input.orderId}`, orderStockReference("reserve"));
+      await tx.update(orders).set({ stockAllocatedAt: new Date() }).where(eq(orders.id, opts.input.orderId));
+      await refreshOrderTotal(tx, opts.input.orderId);
+      return { success: true, insertId: result[0].insertId };
     });
-    const items = await db.select().from(orderItems).where(eq(orderItems.orderId, opts.input.orderId));
-    const total = items.reduce((sum: number, item: any) => sum + parseFloat(String(item.subtotal)), 0);
-    await db.update(orders).set({ totalAmount: String(total.toFixed(2)) }).where(eq(orders.id, opts.input.orderId));
-    return { success: true, insertId: result[0].insertId };
   }),
 
   updateItem: protectedProcedure.input(updateOrderItemSchema).mutation(async (opts) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
-    const { id, width, height, quantity, unitPrice, ...rest } = opts.input;
-    const item = await db.select().from(orderItems).where(eq(orderItems.id, id)).limit(1);
-    if (item.length === 0) throw new Error("Item não encontrado");
-    const currentItem = item[0] as any;
-    const w = width ? parseFloat(width) : parseFloat(String(currentItem.width));
-    const h = height ? parseFloat(height) : parseFloat(String(currentItem.height));
-    const q = quantity ? parseInt(quantity) : currentItem.quantity;
-    const p = unitPrice ? parseFloat(unitPrice) : parseFloat(String(currentItem.unitPrice));
-    const squareMeters = (w * h) / 10000;
-    const subtotal = q * squareMeters * p;
-    const data: Record<string, unknown> = { ...rest };
-    if (width) data.width = width;
-    if (height) data.height = height;
-    if (quantity) data.quantity = q;
-    if (unitPrice) data.unitPrice = unitPrice;
-    data.squareMeters = String(squareMeters.toFixed(4));
-    data.subtotal = String(subtotal.toFixed(2));
-    await db.update(orderItems).set(data).where(eq(orderItems.id, id));
-    const items = await db.select().from(orderItems).where(eq(orderItems.orderId, currentItem.orderId));
-    const total = items.reduce((sum: number, it: any) => sum + parseFloat(String(it.subtotal)), 0);
-    await db.update(orders).set({ totalAmount: String(total.toFixed(2)) }).where(eq(orders.id, currentItem.orderId));
-    return { success: true };
+    return db.transaction(async (tx) => {
+      const currentList = await tx.select().from(orderItems).where(eq(orderItems.id, opts.input.id)).limit(1);
+      if (currentList.length === 0) throw new Error("Item não encontrado");
+      const current = currentList[0] as any;
+      const orderList = await tx.select().from(orders).where(eq(orders.id, current.orderId)).limit(1);
+      const order = orderList[0] as any;
+      if (!order || order.status === "cancelado") throw new Error("Item de pedido cancelado não pode ser alterado");
+      const calculated = calculateCommercialItem({
+        width: opts.input.width ?? String(current.width), height: opts.input.height ?? String(current.height),
+        quantity: opts.input.quantity ?? String(current.quantity), unitPrice: opts.input.unitPrice ?? String(current.unitPrice),
+      });
+      const delta = calculated.quantity - current.quantity;
+      if (order.stockAllocatedAt && delta !== 0) {
+        await changeStock(tx, current.productId, Math.abs(delta), delta > 0 ? "saida" : "entrada", order.id, delta > 0 ? `Ajuste de reserva no pedido #${order.id}` : `Estorno de ajuste no pedido #${order.id}`, orderStockReference("adjust"));
+      }
+      await tx.update(orderItems).set({
+        width: String(calculated.width), height: String(calculated.height), quantity: calculated.quantity, unitPrice: String(calculated.unitPrice),
+        squareMeters: roundSquareMeters(calculated.squareMeters), subtotal: roundMoney(calculated.subtotal), notes: opts.input.notes ?? current.notes,
+      }).where(eq(orderItems.id, current.id));
+      await refreshOrderTotal(tx, current.orderId);
+      return { success: true };
+    });
   }),
 
   deleteItem: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async (opts) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
-    const item = await db.select().from(orderItems).where(eq(orderItems.id, opts.input.id)).limit(1);
-    if (item.length === 0) throw new Error("Item não encontrado");
-    const orderId = (item[0] as any).orderId;
-    await db.delete(orderItems).where(eq(orderItems.id, opts.input.id));
-    const items = await db.select().from(orderItems).where(eq(orderItems.orderId, orderId));
-    const total = items.reduce((sum: number, it: any) => sum + parseFloat(String(it.subtotal)), 0);
-    await db.update(orders).set({ totalAmount: String(total.toFixed(2)) }).where(eq(orders.id, orderId));
-    return { success: true };
+    return db.transaction(async (tx) => {
+      const itemList = await tx.select().from(orderItems).where(eq(orderItems.id, opts.input.id)).limit(1);
+      if (itemList.length === 0) throw new Error("Item não encontrado");
+      const item = itemList[0] as any;
+      const orderList = await tx.select().from(orders).where(eq(orders.id, item.orderId)).limit(1);
+      const order = orderList[0] as any;
+      if (!order || order.status === "cancelado") throw new Error("Item de pedido cancelado não pode ser removido");
+      if (order.stockAllocatedAt) await changeStock(tx, item.productId, item.quantity, "entrada", order.id, `Estorno por remoção de item do pedido #${order.id}`, orderStockReference("remove"));
+      await tx.delete(orderItems).where(eq(orderItems.id, item.id));
+      await refreshOrderTotal(tx, item.orderId);
+      return { success: true };
+    });
   }),
 });

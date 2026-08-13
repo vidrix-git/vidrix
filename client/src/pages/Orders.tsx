@@ -41,7 +41,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, Trash2, ArrowRight } from "lucide-react";
+import { Ban } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -65,7 +65,7 @@ export default function Orders() {
   const utils = trpc.useUtils();
   const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [cancelId, setCancelId] = useState<number | null>(null);
   const [dragOrder, setDragOrder] = useState<number | null>(null);
 
   const { data: orders, isLoading } = trpc.orders.list.useQuery();
@@ -75,16 +75,8 @@ export default function Orders() {
     onSuccess: () => {
       utils.orders.list.invalidate();
       utils.dashboard.stats.invalidate();
+      setCancelId(null);
       toast.success("Status atualizado");
-    },
-    onError: (e) => toast.error(e.message),
-  });
-
-  const deleteMutation = trpc.orders.delete.useMutation({
-    onSuccess: () => {
-      utils.orders.list.invalidate();
-      setDeleteId(null);
-      toast.success("Pedido excluído");
     },
     onError: (e) => toast.error(e.message),
   });
@@ -154,13 +146,13 @@ export default function Orders() {
                         <TableCell>
                           <Select
                             value={order.status}
-                            onValueChange={(v) => updateStatusMutation.mutate({ id: order.id, status: v as any })}
+                            onValueChange={(v) => v === "cancelado" ? setCancelId(order.id) : updateStatusMutation.mutate({ id: order.id, status: v as any })}
                           >
                             <SelectTrigger className="w-[140px]">
                               <Badge className={statusColors[order.status] || ""}>{statusLabels[order.status]}</Badge>
                             </SelectTrigger>
                             <SelectContent>
-                              {kanbanColumns.map(s => (
+                              {kanbanColumns.filter(s => order.status !== "cancelado" || s === "cancelado").map(s => (
                                 <SelectItem key={s} value={s}>{statusLabels[s]}</SelectItem>
                               ))}
                             </SelectContent>
@@ -169,9 +161,11 @@ export default function Orders() {
                         <TableCell>{formatCurrency(order.totalAmount)}</TableCell>
                         <TableCell>{new Date(order.createdAt).toLocaleDateString("pt-BR")}</TableCell>
                         <TableCell>
-                          <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteId(order.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {order.status !== "cancelado" && (
+                            <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setCancelId(order.id)} aria-label={`Cancelar pedido ${order.id}`}>
+                              <Ban className="h-4 w-4" />
+                            </Button>
+                          )}
                         </TableCell>
                       </TableRow>
                     );
@@ -203,9 +197,9 @@ export default function Orders() {
                     return (
                       <div
                         key={order.id}
-                        draggable
+                        draggable={order.status !== "cancelado"}
                         onDragStart={(e) => handleDragStart(e, order.id)}
-                        className="bg-card p-3 rounded-lg border shadow-sm cursor-grab hover:shadow-md transition-shadow active:cursor-grabbing"
+                        className={`bg-card p-3 rounded-lg border shadow-sm transition-shadow ${order.status === "cancelado" ? "cursor-not-allowed opacity-75" : "cursor-grab hover:shadow-md active:cursor-grabbing"}`}
                       >
                         <div className="flex items-center justify-between mb-1">
                           <span className="font-medium text-sm">#{order.id}</span>
@@ -231,21 +225,21 @@ export default function Orders() {
         </div>
       )}
 
-      <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
+      <AlertDialog open={cancelId !== null} onOpenChange={(open) => !open && setCancelId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogTitle>Confirmar cancelamento</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir este pedido? Se o pedido estava ativo, o estoque será restaurado.
+              O pedido será preservado para auditoria e, quando houver reserva de estoque, será gerado um único estorno. Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => deleteId && deleteMutation.mutate({ id: deleteId })}
+              onClick={() => cancelId && updateStatusMutation.mutate({ id: cancelId, status: "cancelado" })}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Excluir
+              Cancelar pedido
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

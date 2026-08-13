@@ -32,6 +32,7 @@ const sourceLabels: Record<string, string> = {
   "order": "Pedido de Venda",
   "manual": "Manual",
   "conversion": "Conversão de Orçamento",
+  "order_cancel": "Cancelamento de Pedido",
 };
 
 const sourceIcons: Record<string, string> = {
@@ -39,6 +40,7 @@ const sourceIcons: Record<string, string> = {
   "order": "📦",
   "manual": "✏️",
   "conversion": "🔄",
+  "order_cancel": "↩",
 };
 
 export default function Stock() {
@@ -97,30 +99,30 @@ export default function Stock() {
                 {movements.map((mov: any) => (
                   <TableRow key={mov.id}>
                     <TableCell className="text-sm">
-                      {formatDate(mov.movementDate)}
+                      {formatDate(mov.createdAt)}
                     </TableCell>
                     <TableCell>
-                      <Badge className={typeColors[mov.movementType] || ""}>
-                        {mov.movementType === "entrada" ? (
+                      <Badge className={typeColors[mov.type] || ""}>
+                        {mov.type === "entrada" ? (
                           <ArrowDownCircle className="h-3 w-3 mr-1" />
                         ) : (
                           <ArrowUpCircle className="h-3 w-3 mr-1" />
                         )}
-                        {typeLabels[mov.movementType]}
+                        {typeLabels[mov.type]}
                       </Badge>
                     </TableCell>
                     <TableCell className="font-medium">
                       {getProductName(mov.productId)}
                     </TableCell>
                     <TableCell className="font-semibold">
-                      {mov.movementType === "entrada" ? "+" : "-"}{mov.quantity} un
+                      {mov.type === "entrada" ? "+" : "-"}{mov.quantity} un
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {mov.reference || "-"}
+                      {mov.referenceId ? `#${mov.referenceId}` : "-"}
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className="text-xs">
-                        {sourceIcons[mov.sourceType] || ""} {sourceLabels[mov.sourceType] || mov.sourceType}
+                        {sourceIcons[mov.referenceType || "manual"] || ""} {sourceLabels[mov.referenceType || "manual"] || mov.referenceType || "manual"}
                       </Badge>
                     </TableCell>
                   </TableRow>

@@ -237,8 +237,8 @@ export default function Quotes() {
       const product = products?.find((p: any) => p.id === item.productId);
       return [
         product?.name || "-",
-        item.width + " mm",
-        item.height + " mm",
+        item.width + " cm",
+        item.height + " cm",
         item.quantity,
         parseFloat(String(item.squareMeters)).toFixed(4) + " m²",
         "R$ " + parseFloat(String(item.unitPrice)).toFixed(2),
@@ -346,12 +346,12 @@ export default function Quotes() {
                           </Select>
                         </div>
                         <div className="w-20">
-                          <label className="text-xs text-muted-foreground">Larg. (mm)</label>
-                          <Input value={item.width} onChange={(e) => updateItem(idx, "width", e.target.value)} placeholder="1000" />
+                          <label className="text-xs text-muted-foreground">Larg. (cm)</label>
+                          <Input value={item.width} onChange={(e) => updateItem(idx, "width", e.target.value)} placeholder="100" inputMode="decimal" />
                         </div>
                         <div className="w-20">
-                          <label className="text-xs text-muted-foreground">Alt. (mm)</label>
-                          <Input value={item.height} onChange={(e) => updateItem(idx, "height", e.target.value)} placeholder="500" />
+                          <label className="text-xs text-muted-foreground">Alt. (cm)</label>
+                          <Input value={item.height} onChange={(e) => updateItem(idx, "height", e.target.value)} placeholder="50" inputMode="decimal" />
                         </div>
                         <div className="w-16">
                           <label className="text-xs text-muted-foreground">Qtd</label>
@@ -477,8 +477,8 @@ export default function Quotes() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Produto</TableHead>
-                  <TableHead>Larg. (mm)</TableHead>
-                  <TableHead>Alt. (mm)</TableHead>
+                  <TableHead>Larg. (cm)</TableHead>
+                  <TableHead>Alt. (cm)</TableHead>
                   <TableHead>Qtd</TableHead>
                   <TableHead>m²</TableHead>
                   <TableHead>Preço/m²</TableHead>

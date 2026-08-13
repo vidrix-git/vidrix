@@ -134,6 +134,10 @@ export const orders = mysqlTable("orders", {
   status: mysqlEnum("status", ["aprovado", "em_producao", "pronto", "entregue", "cancelado"]).default("aprovado").notNull(),
   totalAmount: decimal("totalAmount", { precision: 12, scale: 2 }).default("0").notNull(),
   notes: text("notes"),
+  stockAllocatedAt: timestamp("stockAllocatedAt"),
+  cancelledAt: timestamp("cancelledAt"),
+  cancelledByUserId: int("cancelledByUserId"),
+  cancellationReason: text("cancellationReason"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

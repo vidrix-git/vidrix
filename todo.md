@@ -88,3 +88,34 @@
 - [x] Validar no Azure, por consulta administrativa reproduzível, os totais finais de clientes, produtos, regras de corte e registos históricos
 - [x] Registar uma verificação administrativa final que distinga a base Azure inicial dos dados introduzidos pela migração
 - [x] Executar e guardar uma auditoria reproduzível de IDs e datas de criação que evidencie a inexistência de cadastros comerciais Azure anteriores
+
+## Validação operacional com utilizadores reais
+- [ ] Definir os participantes, permissões e o ambiente seguro dos testes de orçamento e pedido
+- [ ] Preparar o roteiro de validação de orçamento, metragem, PDF, conversão em pedido e estoque
+- [ ] Acompanhar a execução controlada dos cenários pelos utilizadores reais
+- [ ] Consolidar evidências, resultados e eventuais correções identificadas durante os testes
+
+## Auditoria de paridade MDB × Vidrix
+- [x] Inventariar consultas, formulários, relatórios, macros e módulos VBA relevantes do MDB
+- [ ] Extrair e classificar fórmulas, eventos e regras de preço, geometria, acessórios, massa, tarugo, estoque e cancelamento
+- [ ] Mapear cada regra legada às telas, dados e procedimentos atuais do Vidrix
+- [x] Classificar a paridade funcional, as lacunas e os riscos de negócio por prioridade
+- [ ] Entregar um relatório completo de paridade e uma sequência de evolução recomendada
+- [x] Anexar um inventário verificável, nominal e completo dos objetos relevantes do MDB
+- [ ] Construir uma matriz de regras e eventos do legado com origem, domínio e classificação funcional
+- [ ] Completar o mapa regra a regra do MDB para as telas, routers e esquema atuais do Vidrix
+
+## Correções críticas antes da validação operacional
+- [x] Formalizar centímetros como unidade comercial de largura e altura no Vidrix
+- [x] Validar valores numéricos positivos e precisos nos itens de orçamento e pedido
+- [x] Tornar a conversão de orçamento em pedido idempotente e transacional
+- [x] Substituir exclusão operacional de pedido por cancelamento auditável com estorno único de estoque
+- [x] Corrigir a consistência de baixa, estorno e consulta de movimentos de estoque
+- [ ] Cobrir os cenários críticos com testes unitários e de integração
+- [ ] Atualizar produção, validar os fluxos corrigidos e preparar o roteiro de testes reais
+- [x] Inspecionar e testar a validação numérica na criação e edição de itens de pedido
+- [ ] Comprovar por código e teste o cancelamento auditável com estorno único de estoque
+- [ ] Comprovar por código e teste a consistência entre baixa, estorno e histórico de movimentos
+- [ ] Adicionar teste de integração de cancelamento com auditoria persistida e sem segundo estorno
+- [ ] Adicionar teste de integração de baixa, ajuste, remoção e cancelamento com saldo final e tipos de movimento
+- [ ] Adicionar teste de integração do relatório/histórico a partir de movimentos reais de pedido
