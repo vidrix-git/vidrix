@@ -91,7 +91,8 @@
 
 ## Validação operacional com utilizadores reais
 - [ ] Definir os participantes, permissões e o ambiente seguro dos testes de orçamento e pedido
-- [ ] Preparar o roteiro de validação de orçamento, metragem, PDF, conversão em pedido e estoque
+- [x] Preparar o roteiro de validação de orçamento, metragem, PDF, conversão em pedido e estoque
+- [x] Confirmar o arquivo final do roteiro operacional salvo no repositório
 - [ ] Acompanhar a execução controlada dos cenários pelos utilizadores reais
 - [ ] Consolidar evidências, resultados e eventuais correções identificadas durante os testes
 
