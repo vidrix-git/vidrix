@@ -43,17 +43,7 @@ import {
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Search, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-
-type ProductForm = {
-  name: string;
-  type?: string | null;
-  thickness?: string | null;
-  color?: string | null;
-  unitPrice: string;
-  costPrice?: string | null;
-  stockQuantity: number;
-  minStockQuantity: number;
-};
+import { toProductMutationInput, type ProductCatalogForm } from "@shared/product-contract";
 
 export default function Products() {
   const utils = trpc.useUtils();
@@ -61,9 +51,9 @@ export default function Products() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [form, setForm] = useState<ProductForm>({
+  const [form, setForm] = useState<ProductCatalogForm>({
     name: "", type: "", thickness: "", color: "",
-    unitPrice: "0", costPrice: "0", stockQuantity: 0, minStockQuantity: 10,
+    unitPrice: "0", stockQuantity: 0, minStockQuantity: 10,
   });
 
   const { data: products, isLoading } = trpc.products.list.useQuery();
@@ -98,10 +88,11 @@ export default function Products() {
       toast.error("Nome é obrigatório");
       return;
     }
+    const input = toProductMutationInput(form);
     if (editId) {
-      updateMutation.mutate({ id: editId, ...form } as any);
+      updateMutation.mutate({ id: editId, ...input });
     } else {
-      createMutation.mutate(form as any);
+      createMutation.mutate(input);
     }
   };
 
@@ -113,9 +104,8 @@ export default function Products() {
       thickness: product.thickness || "",
       color: product.color || "",
       unitPrice: String(product.unitPrice),
-      costPrice: String(product.costPrice || "0"),
-      stockQuantity: product.stockQuantity || 0,
-      minStockQuantity: product.minStockQuantity || 10,
+      stockQuantity: Number(product.stockQuantity ?? 0),
+      minStockQuantity: Number(product.minStockQuantity ?? 0),
     });
     setDialogOpen(true);
   };
@@ -180,15 +170,9 @@ export default function Products() {
                 <label className="text-sm font-medium">Cor</label>
                 <Input value={form.color || ""} onChange={(e) => setForm({ ...form, color: e.target.value })} placeholder="Incolor" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Preço Unitário (R$/m²) *</label>
-                  <Input type="number" step="0.01" value={form.unitPrice} onChange={(e) => setForm({ ...form, unitPrice: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Preço de Custo (R$)</label>
-                  <Input type="number" step="0.01" value={form.costPrice || "0"} onChange={(e) => setForm({ ...form, costPrice: e.target.value })} />
-                </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Preço Unitário (R$/m²) *</label>
+                <Input type="number" step="0.01" value={form.unitPrice} onChange={(e) => setForm({ ...form, unitPrice: e.target.value })} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">

@@ -120,3 +120,7 @@
 - [ ] Adicionar teste de integração de cancelamento com auditoria persistida e sem segundo estorno
 - [ ] Adicionar teste de integração de baixa, ajuste, remoção e cancelamento com saldo final e tipos de movimento
 - [ ] Adicionar teste de integração do relatório/histórico a partir de movimentos reais de pedido
+- [x] Corrigir o cadastro de produto para enviar largura, altura e quantidades no formato esperado pelo contrato da API
+- [x] Cobrir o cadastro de produto com teste de integração de contrato entre interface e router
+- [x] Adicionar teste de integração que submeta o payload gerado pela tela de Produtos ao router de produtos e verifique a aceitação do contrato completo
+- [ ] Revalidar no navegador o cadastro e a edição de produto para confirmar o uso do contrato corrigido
