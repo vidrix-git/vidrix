@@ -1,41 +1,40 @@
 name: Build and Deploy Vidrix ERP to Azure
-
 on:
   push:
     branches:
       - main
-
 env:
   AZURE_WEBAPP_NAME: vidrix-erp-final
   AZURE_RESOURCE_GROUP: vidrix-prod-rg
-
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Setup Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-
+          node-version: "22"
       - name: Install pnpm
         run: corepack enable && corepack prepare pnpm@latest --activate
-
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
       - name: Build
         run: pnpm build
-
+      - name: Package Azure runtime
+        run: |
+          rm -rf azure-package
+          mkdir -p azure-package/public
+          pnpm exec esbuild server/azure-startup.ts --platform=node --bundle --format=cjs --outfile=azure-package/azure-startup.js
+          cp -R dist/public/. azure-package/public/
+          cp package.json azure-package/package.json
+          sed -i 's/"type": "module"/"type": "commonjs"/' azure-package/package.json
       - name: Login to Azure with Publish Profile
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           slot-name: production
           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
-          package: .
-          startup-command: "node dist/azure-startup.js"
+          package: ./azure-package
+          startup-command: "node azure-startup.js"

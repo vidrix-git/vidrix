@@ -40,6 +40,8 @@
 - [x] .dockerignore configurado
 - [ ] Push para GitHub (remote github)
 - [ ] Configurar Publish Profile secret no GitHub
+- [x] Atualizar o fluxo GitHub Actions para publicar o pacote CommonJS autocontido validado no Azure
+- [x] Confirmar a sintaxe e o conteúdo final do fluxo GitHub Actions de empacotamento Azure
 - [x] Deploy no Azure App Service
 
 ## Qualidade
