@@ -2,14 +2,15 @@ import { describe, expect, it } from "vitest";
 import { ERP_SCHEMA_STATEMENTS } from "./db";
 
 describe("bootstrap do esquema ERP", () => {
-  it("define todas as treze tabelas necessárias de forma idempotente", () => {
+  it("define todas as treze tabelas necessárias e evolui o papel de superadmin", () => {
     const schemaSql = ERP_SCHEMA_STATEMENTS.join("\n");
 
-    expect(ERP_SCHEMA_STATEMENTS).toHaveLength(13);
+    expect(schemaSql.match(/CREATE TABLE IF NOT EXISTS/g)).toHaveLength(13);
     expect(schemaSql).toContain("CREATE TABLE IF NOT EXISTS `users`");
     expect(schemaSql).toContain("CREATE TABLE IF NOT EXISTS `quotes`");
     expect(schemaSql).toContain("CREATE TABLE IF NOT EXISTS `stockMovements`");
     expect(schemaSql).toContain("CREATE TABLE IF NOT EXISTS `legacyImportRecords`");
     expect(schemaSql).toContain("CREATE TABLE IF NOT EXISTS `cuttingRules`");
+    expect(schemaSql).toContain("MODIFY COLUMN `role` enum('user','admin','superadmin')");
   });
 });

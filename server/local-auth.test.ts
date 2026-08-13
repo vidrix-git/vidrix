@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   isDuplicatePasswordColumnError,
+  isPrivilegedRole,
   matchesBootstrapAdminPassword,
   verifyPassword,
 } from "./local-auth";
@@ -27,5 +28,11 @@ describe("autenticação local", () => {
     });
 
     expect(isDuplicatePasswordColumnError(mysqlError)).toBe(true);
+  });
+
+  it("trata superadmin e admin como papéis administrativos", () => {
+    expect(isPrivilegedRole("admin")).toBe(true);
+    expect(isPrivilegedRole("superadmin")).toBe(true);
+    expect(isPrivilegedRole("user")).toBe(false);
   });
 });

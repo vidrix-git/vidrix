@@ -38,10 +38,15 @@
 - [x] Dockerfile para Node 22 no Azure
 - [x] GitHub Actions workflow com publish profile
 - [x] .dockerignore configurado
-- [ ] Push para GitHub (remote github)
+- [x] Push para GitHub (remote github)
 - [ ] Configurar Publish Profile secret no GitHub
+- [ ] Usar a autenticação OIDC Azure já configurada no GitHub para publicação sem perfil de publicação
 - [x] Atualizar o fluxo GitHub Actions para publicar o pacote CommonJS autocontido validado no Azure
 - [x] Confirmar a sintaxe e o conteúdo final do fluxo GitHub Actions de empacotamento Azure
+
+## Administração de acessos
+- [ ] Criar uma conta local de superadmin no Vidrix com credenciais temporárias seguras
+- [ ] Validar o login e as permissões administrativas da conta de superadmin em produção
 - [x] Deploy no Azure App Service
 
 ## Qualidade

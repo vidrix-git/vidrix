@@ -60,7 +60,7 @@ export const ERP_SCHEMA_STATEMENTS = [
     \`name\` text,
     \`email\` varchar(320),
     \`loginMethod\` varchar(64),
-    \`role\` enum('user','admin') NOT NULL DEFAULT 'user',
+    \`role\` enum('user','admin','superadmin') NOT NULL DEFAULT 'user',
     \`createdAt\` timestamp NOT NULL DEFAULT (now()),
     \`updatedAt\` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
     \`lastSignedIn\` timestamp NOT NULL DEFAULT (now()),
@@ -68,6 +68,7 @@ export const ERP_SCHEMA_STATEMENTS = [
     PRIMARY KEY(\`id\`),
     UNIQUE KEY \`users_openId_unique\` (\`openId\`)
   )`,
+  `ALTER TABLE \`users\` MODIFY COLUMN \`role\` enum('user','admin','superadmin') NOT NULL DEFAULT 'user'`,
   `CREATE TABLE IF NOT EXISTS \`quotes\` (
     \`id\` int AUTO_INCREMENT NOT NULL,
     \`clientId\` int NOT NULL,

@@ -3,9 +3,13 @@ on:
   push:
     branches:
       - main
+      - release/azure-auth-fix
 env:
   AZURE_WEBAPP_NAME: vidrix-erp-final
   AZURE_RESOURCE_GROUP: vidrix-prod-rg
+permissions:
+  contents: read
+  id-token: write
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -30,11 +34,17 @@ jobs:
           cp -R dist/public/. azure-package/public/
           cp package.json azure-package/package.json
           sed -i 's/"type": "module"/"type": "commonjs"/' azure-package/package.json
-      - name: Login to Azure with Publish Profile
+      - name: Login to Azure with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_BD1C0C26B3C74C89BB4EFD9AE73133EC }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9C28320A2B844FB5BED19BFAE94B5194 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_C58C1234D1CC48A28CD8C2B105445B90 }}
+
+      - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           slot-name: production
-          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
           package: ./azure-package
           startup-command: "node azure-startup.js"

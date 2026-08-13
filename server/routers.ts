@@ -2,7 +2,7 @@ import { z } from "zod";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
+import { adminProcedure, publicProcedure, router } from "./_core/trpc";
 import { localLogin, localRegister } from "./local-auth";
 import { getDb } from "./db";
 import { users } from "../drizzle/schema";
@@ -61,7 +61,8 @@ export const appRouter = router({
         };
       }),
 
-    // Register new user (public - first user becomes admin, rest become users)
+    // Public registration can only create regular users. The first account on an
+    // empty database is promoted to admin so a new installation remains usable.
     register: publicProcedure
       .input(
         z.object({
@@ -69,13 +70,11 @@ export const appRouter = router({
           password: z.string().min(6),
           name: z.string().min(1).optional(),
           email: z.string().email().optional(),
-          role: z.enum(["admin", "user"]).default("user"),
         })
       )
       .mutation(async ({ input }) => {
-        // If no users exist yet, first user is always admin
+        let finalRole: "admin" | "user" = "user";
         const db = await getDb();
-        let finalRole = input.role;
         if (db) {
           const existing = await db.select().from(users).limit(1);
           if (existing.length === 0) {
@@ -94,6 +93,39 @@ export const appRouter = router({
         return {
           success: true,
           token: result.token,
+          user: {
+            id: result.user.id,
+            name: result.user.name,
+            email: result.user.email,
+            role: result.user.role,
+          },
+        };
+      }),
+
+    // Only an existing administrator can create the dedicated superadmin account.
+    createSuperadmin: adminProcedure
+      .input(
+        z.object({
+          username: z.string().min(3).max(64),
+          password: z.string().min(16).max(128),
+          name: z.string().min(1).max(120).default("Superadmin"),
+          email: z.string().email().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const result = await localRegister(
+          input.username,
+          input.email || `${input.username}@vidrix.local`,
+          input.password,
+          "superadmin"
+        );
+
+        if (!result) {
+          throw new Error("Não foi possível criar a conta superadmin. O utilizador ou e-mail pode já existir.");
+        }
+
+        return {
+          success: true,
           user: {
             id: result.user.id,
             name: result.user.name,

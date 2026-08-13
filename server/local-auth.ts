@@ -18,6 +18,13 @@ function getSecretKey() {
 // Token expiration: 7 days
 const TOKEN_EXPIRATION_MS = 7 * 24 * 60 * 60 * 1000;
 
+export type LocalUserRole = "admin" | "superadmin" | "user";
+
+/** Both administrator roles are authorized for protected ERP administration. */
+export function isPrivilegedRole(role: string): role is "admin" | "superadmin" {
+  return role === "admin" || role === "superadmin";
+}
+
 // Password hashing with PBKDF2
 function hashPassword(password: string): string {
   const salt = crypto.randomBytes(16).toString("hex");
@@ -171,7 +178,7 @@ export async function localLogin(
     }
 
     // For admin user without password (created via Manus), check default admin password
-    if (user.role === "admin" && !storedHash) {
+    if (isPrivilegedRole(user.role) && !storedHash) {
       const defaultPassword = process.env.ADMIN_PASSWORD || "admin123";
       if (matchesBootstrapAdminPassword(password, defaultPassword)) {
         // Hash the default password for future use
@@ -193,7 +200,7 @@ export async function localRegister(
   name: string,
   email: string,
   password: string,
-  role: "admin" | "user" = "user"
+  role: LocalUserRole = "user"
 ): Promise<{ user: User; token: string } | null> {
   const db = await getDb();
   if (!db) return null;
@@ -241,7 +248,7 @@ export async function ensureDefaultAdmin(): Promise<void> {
   const existing = await db
     .select()
     .from(users)
-    .where(eq(users.role, "admin"))
+    .where(sql`${users.role} IN ('admin', 'superadmin')`)
     .limit(1);
 
   if (existing.length === 0) {
