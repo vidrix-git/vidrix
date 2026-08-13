@@ -94,7 +94,7 @@
 - [x] Preparar o roteiro de validação de orçamento, metragem, PDF, conversão em pedido e estoque
 - [x] Confirmar o arquivo final do roteiro operacional salvo no repositório
 - [ ] Acompanhar a execução controlada dos cenários pelos utilizadores reais
-- [ ] Consolidar evidências, resultados e eventuais correções identificadas durante os testes
+- [x] Consolidar evidências, resultados e eventuais correções identificadas durante os testes
 
 ## Auditoria de paridade MDB × Vidrix
 - [x] Inventariar consultas, formulários, relatórios, macros e módulos VBA relevantes do MDB
@@ -112,15 +112,17 @@
 - [x] Tornar a conversão de orçamento em pedido idempotente e transacional
 - [x] Substituir exclusão operacional de pedido por cancelamento auditável com estorno único de estoque
 - [x] Corrigir a consistência de baixa, estorno e consulta de movimentos de estoque
-- [ ] Cobrir os cenários críticos com testes unitários e de integração
-- [ ] Atualizar produção, validar os fluxos corrigidos e preparar o roteiro de testes reais
+- [x] Cobrir os cenários críticos com testes unitários e de integração
+- [x] Atualizar produção, validar os fluxos corrigidos e preparar o roteiro de testes reais
 - [x] Inspecionar e testar a validação numérica na criação e edição de itens de pedido
-- [ ] Comprovar por código e teste o cancelamento auditável com estorno único de estoque
-- [ ] Comprovar por código e teste a consistência entre baixa, estorno e histórico de movimentos
-- [ ] Adicionar teste de integração de cancelamento com auditoria persistida e sem segundo estorno
-- [ ] Adicionar teste de integração de baixa, ajuste, remoção e cancelamento com saldo final e tipos de movimento
-- [ ] Adicionar teste de integração do relatório/histórico a partir de movimentos reais de pedido
+- [x] Comprovar por código e teste o cancelamento auditável com estorno único de estoque
+- [x] Comprovar por código e teste a consistência entre baixa, estorno e histórico de movimentos
+- [x] Adicionar teste de integração de cancelamento com auditoria persistida e sem segundo estorno
+- [x] Adicionar teste de integração de baixa, ajuste, remoção e cancelamento com saldo final e tipos de movimento
+- [x] Adicionar teste de integração do relatório/histórico a partir de movimentos reais de pedido
 - [x] Corrigir o cadastro de produto para enviar largura, altura e quantidades no formato esperado pelo contrato da API
 - [x] Cobrir o cadastro de produto com teste de integração de contrato entre interface e router
 - [x] Adicionar teste de integração que submeta o payload gerado pela tela de Produtos ao router de produtos e verifique a aceitação do contrato completo
-- [ ] Revalidar no navegador o cadastro e a edição de produto para confirmar o uso do contrato corrigido
+- [x] Revalidar no navegador o cadastro de produto para confirmar o uso do contrato corrigido
+- [x] Revalidar no navegador a edição de um produto existente, alterando um campo pela UI e confirmando a persistência visual
+- [x] Salvar a evidência final da revalidação visual de cadastro e edição de produto no ambiente publicado
