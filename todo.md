@@ -59,3 +59,18 @@
 - [x] Confirmar e documentar a base de dados Azure de produção correta e a inexistência de dados legados a reconciliar
 - [x] Validar novamente o login publicado após registar a reconciliação da base de dados Azure
 - [x] Executar uma nova validação HTTP do login publicado após o registo final de reconciliação
+
+## Migração de dados legados
+- [x] Inventariar tabelas, campos, relações e contagens do ficheiro Vidracaria2026pdv.mdb
+- [x] Comparar o modelo MDB com o esquema de dados atual do Vidrix e documentar o mapeamento
+- [x] Preparar e validar uma migração idempotente dos dados compatíveis para o MySQL Azure
+- [x] Carregar dados legados aprovados na base Azure e validar totais no ERP
+- [x] Acrescentar estruturas históricas para preservar regras de corte, pendências, rascunhos e totais sem fabricar pedidos
+- [x] Criar e testar um importador MDB com modo de simulação, lotes e proteção contra duplicação
+- [ ] Gerar uma cópia lógica do banco Azure antes da primeira escrita da migração
+- [x] Adicionar uma rota administrativa autenticada para importar lotes MDB diretamente no MySQL Azure
+- [x] Corrigir o empacotamento Azure para incluir um servidor autocontido sem dependências ausentes
+- [x] Confirmar que não existiam dados comerciais Azure anteriores e preservar o MDB e todos os registos importados como fonte de recuperação
+- [x] Validar no Azure, por consulta administrativa reproduzível, os totais finais de clientes, produtos, regras de corte e registos históricos
+- [x] Registar uma verificação administrativa final que distinga a base Azure inicial dos dados introduzidos pela migração
+- [x] Executar e guardar uma auditoria reproduzível de IDs e datas de criação que evidencie a inexistência de cadastros comerciais Azure anteriores

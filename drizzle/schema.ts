@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal, primaryKey } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal, primaryKey, uniqueIndex } from "drizzle-orm/mysql-core";
 import { relations } from "drizzle-orm";
 
 /**
@@ -218,6 +218,40 @@ export const stockMovements = mysqlTable("stockMovements", {
 
 export type StockMovement = typeof stockMovements.$inferSelect;
 export type InsertStockMovement = typeof stockMovements.$inferInsert;
+
+// ============================================================
+// LEGACY MIGRATION ARCHIVE
+// ============================================================
+// Preserve source rows that cannot safely become operational ERP records.
+// The source table/hash pair makes re-imports idempotent.
+export const legacyImportRecords = mysqlTable("legacyImportRecords", {
+  id: int("id").autoincrement().primaryKey(),
+  sourceTable: varchar("sourceTable", { length: 100 }).notNull(),
+  sourceHash: varchar("sourceHash", { length: 64 }).notNull(),
+  recordType: varchar("recordType", { length: 64 }).notNull(),
+  legacyCode: varchar("legacyCode", { length: 100 }),
+  payload: text("payload").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex("legacy_import_source_hash_unique").on(table.sourceTable, table.sourceHash),
+]);
+
+export type LegacyImportRecord = typeof legacyImportRecords.$inferSelect;
+export type InsertLegacyImportRecord = typeof legacyImportRecords.$inferInsert;
+
+// Conversion tables used by the legacy system for cut-to-sale dimensions.
+export const cuttingRules = mysqlTable("cuttingRules", {
+  id: int("id").autoincrement().primaryKey(),
+  category: varchar("category", { length: 32 }).notNull(),
+  cutValue: decimal("cutValue", { precision: 10, scale: 2 }).notNull(),
+  saleValue: decimal("saleValue", { precision: 10, scale: 2 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex("cutting_rules_category_cut_unique").on(table.category, table.cutValue),
+]);
+
+export type CuttingRule = typeof cuttingRules.$inferSelect;
+export type InsertCuttingRule = typeof cuttingRules.$inferInsert;
 
 // ============================================================
 // RELATIONS

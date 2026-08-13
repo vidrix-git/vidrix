@@ -15,6 +15,7 @@ import { purchaseOrdersRouter } from "./routers/purchaseOrders";
 import { stockMovementsRouter } from "./routers/stockMovements";
 import { dashboardRouter } from "./routers/dashboard";
 import { reportsRouter } from "./routers/reports";
+import { legacyMigrationRouter } from "./routers/legacyMigration";
 
 export const appRouter = router({
   system: systemRouter,
@@ -111,6 +112,7 @@ export const appRouter = router({
   stockMovements: stockMovementsRouter,
   dashboard: dashboardRouter,
   reports: reportsRouter,
+  legacyMigration: legacyMigrationRouter,
 });
 
 export type AppRouter = typeof appRouter;

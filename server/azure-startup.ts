@@ -11,10 +11,6 @@ import { createContext } from "./_core/context";
 import { ensureDatabaseSchema } from "./db";
 import { ensureDefaultAdmin } from "./local-auth";
 import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
 const server = createServer(app);
@@ -32,7 +28,7 @@ app.use(
   })
 );
 
-const publicPath = path.resolve(__dirname, "public");
+const publicPath = path.resolve(process.cwd(), "public");
 app.use(express.static(publicPath));
 app.use("*", (_req, res) => {
   res.sendFile(path.resolve(publicPath, "index.html"));
