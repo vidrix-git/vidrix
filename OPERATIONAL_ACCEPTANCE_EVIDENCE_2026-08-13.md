@@ -4,6 +4,14 @@
 
 Esta execução foi realizada no ambiente publicado `https://vidrix-erp-final.azurewebsites.net`, depois da publicação bem-sucedida da revisão `7ca89955` pelo GitHub Actions, execução `31731533643`. A autenticação local de administrador foi aceita em produção. Os cenários de negócio foram exercitados por chamadas autenticadas ao contrato público da aplicação e, depois de restaurada a sessão do Chrome, o cadastro de produto também foi confirmado visualmente pela interface publicada.
 
+| Controle de segurança | Definição adotada |
+|---|---|
+| Participante autorizado | Titular da sessão administrativa local no Chrome, que autorizou a execução e manteve a sessão ativa. |
+| Permissão usada | Administrador autenticado; nenhuma palavra-passe foi exposta ou anotada nas evidências. |
+| Ambiente de teste | Produção, com cliente e produtos criados exclusivamente com o prefixo `TESTE`. |
+| Proteção de dados | Nenhum cliente, produto, orçamento ou pedido comercial existente foi alterado; o pedido de teste foi cancelado, não apagado. |
+| Controle de estoque | Produto de teste começou e terminou com 10 unidades; movimentos foram conferidos no histórico. |
+
 | Elemento | Identificador | Estado final |
 |---|---:|---|
 | Cliente de teste | 55 | Ativo, nomeado com o prefixo `TESTE ACEITACAO`. |

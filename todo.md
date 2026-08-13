@@ -90,21 +90,25 @@
 - [x] Executar e guardar uma auditoria reproduzível de IDs e datas de criação que evidencie a inexistência de cadastros comerciais Azure anteriores
 
 ## Validação operacional com utilizadores reais
-- [ ] Definir os participantes, permissões e o ambiente seguro dos testes de orçamento e pedido
+- [x] Definir os participantes, permissões e o ambiente seguro dos testes de orçamento e pedido
 - [x] Preparar o roteiro de validação de orçamento, metragem, PDF, conversão em pedido e estoque
 - [x] Confirmar o arquivo final do roteiro operacional salvo no repositório
-- [ ] Acompanhar a execução controlada dos cenários pelos utilizadores reais
+- [x] Acompanhar a execução controlada dos cenários pelos utilizadores reais
 - [x] Consolidar evidências, resultados e eventuais correções identificadas durante os testes
 
 ## Auditoria de paridade MDB × Vidrix
 - [x] Inventariar consultas, formulários, relatórios, macros e módulos VBA relevantes do MDB
-- [ ] Extrair e classificar fórmulas, eventos e regras de preço, geometria, acessórios, massa, tarugo, estoque e cancelamento
-- [ ] Mapear cada regra legada às telas, dados e procedimentos atuais do Vidrix
+- [x] Extrair e classificar fórmulas, eventos e regras de preço, geometria, acessórios, massa, tarugo, estoque e cancelamento
+- [x] Mapear cada regra legada às telas, dados e procedimentos atuais do Vidrix
 - [x] Classificar a paridade funcional, as lacunas e os riscos de negócio por prioridade
-- [ ] Entregar um relatório completo de paridade e uma sequência de evolução recomendada
+- [x] Entregar um relatório completo de paridade e uma sequência de evolução recomendada
 - [x] Anexar um inventário verificável, nominal e completo dos objetos relevantes do MDB
-- [ ] Construir uma matriz de regras e eventos do legado com origem, domínio e classificação funcional
-- [ ] Completar o mapa regra a regra do MDB para as telas, routers e esquema atuais do Vidrix
+- [x] Construir uma matriz de regras e eventos do legado com origem, domínio e classificação funcional
+- [x] Completar o mapa regra a regra do MDB para as telas, routers e esquema atuais do Vidrix
+
+## Entrega técnica
+- [x] Elaborar manual de implementação, operação e implantação do Vidrix com mapa comentado dos módulos centrais
+- [x] Gerar pacote ZIP final do projeto e da documentação para entrega
 
 ## Correções críticas antes da validação operacional
 - [x] Formalizar centímetros como unidade comercial de largura e altura no Vidrix
