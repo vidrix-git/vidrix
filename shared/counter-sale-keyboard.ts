@@ -15,6 +15,11 @@ export function shouldOpenCounterPriceDecision(event: CounterPriceKeyEvent) {
   return event.key === "Enter" && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey;
 }
 
+/** Confirma a ação já destacada no diálogo de próximo passo. */
+export function shouldConfirmCounterPriceDecision(event: CounterPriceKeyEvent) {
+  return event.key === "Enter" && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey;
+}
+
 export type CounterPriceDecision = "add" | "finish";
 
 /** Alterna as duas ações do diálogo sem depender da posição visual do botão. */

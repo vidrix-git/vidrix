@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { toClientMutationInput, type ClientMutationForm } from "../../../shared/client-contract";
 import { formatClientDocument, formatPhone } from "../../../shared/client-identifiers";
 import { applyQuickClientCompletion } from "../../../shared/counter-client";
-import { moveCounterPriceDecision, shouldOpenCounterPriceDecision, type CounterPriceDecision } from "../../../shared/counter-sale-keyboard";
+import { moveCounterPriceDecision, shouldConfirmCounterPriceDecision, shouldOpenCounterPriceDecision, type CounterPriceDecision } from "../../../shared/counter-sale-keyboard";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -110,6 +110,13 @@ export default function CounterSale() {
     setShowPriceDecision(true);
   };
   const handlePriceDecisionKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    if (shouldConfirmCounterPriceDecision(event)) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (priceDecision === "add") addItemFromPriceDecision();
+      else focusOutcomeChoice();
+      return;
+    }
     const nextDecision = moveCounterPriceDecision(priceDecision, event.key);
     if (nextDecision === priceDecision) return;
     event.preventDefault();
