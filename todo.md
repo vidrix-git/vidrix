@@ -113,7 +113,11 @@
 ## Correção de cadastro de clientes
 - [x] Corrigir a serialização do formulário de Clientes para não enviar tipo ou documento indefinidos
 - [x] Adicionar teste de contrato do cadastro e edição de clientes com campos opcionais vazios
-- [ ] Publicar e validar visualmente a criação e a edição de cliente no ambiente Azure
+- [x] Publicar e validar visualmente a criação de cliente no ambiente Azure
+- [x] Confirmar a atualização de cidade no cliente após o aviso de sucesso; persistência validada por reconsulta autenticada
+- [x] Cobrir a atualização de cidade de cliente com teste de persistência e reconsulta
+- [x] Revalidar visualmente a edição de cliente no Azure, confirmando na própria tabela o valor atualizado da cidade após o salvamento
+- [x] Investigar eventual estado desatualizado da lista de clientes após uma edição bem-sucedida; a invalidação concluiu normalmente
 
 ## Correções críticas antes da validação operacional
 - [x] Formalizar centímetros como unidade comercial de largura e altura no Vidrix

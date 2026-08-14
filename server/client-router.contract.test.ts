@@ -10,7 +10,9 @@ import { toClientMutationInput } from "../shared/client-contract";
 const insertValues = vi.fn();
 const updateWhere = vi.fn();
 const updateSet = vi.fn();
-const mockDb = { insert: vi.fn(), update: vi.fn() };
+const mockDb = { insert: vi.fn(), update: vi.fn(), select: vi.fn() };
+let persistedClients: Array<{ id: number; name: string; type: "PF" | "PJ"; cpfCnpj: string; city: string | null }>;
+let pendingClientUpdate: Record<string, unknown>;
 
 function createAuthenticatedCaller() {
   const ctx = {
@@ -28,12 +30,23 @@ function createAuthenticatedCaller() {
 describe("integração do contrato de clientes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    persistedClients = [{ id: 82, name: "Cliente de teste", type: "PF", cpfCnpj: "123.456.789-00", city: "Cidade inicial" }];
     vi.mocked(getDb).mockResolvedValue(mockDb as never);
     insertValues.mockResolvedValue([{ insertId: 82 }]);
     mockDb.insert.mockReturnValue({ values: insertValues });
-    updateWhere.mockResolvedValue(undefined);
-    updateSet.mockReturnValue({ where: updateWhere });
+    updateSet.mockImplementation((data) => {
+      pendingClientUpdate = data;
+      return { where: updateWhere };
+    });
+    updateWhere.mockImplementation(async () => {
+      persistedClients = persistedClients.map((client) => client.id === 82 ? { ...client, ...pendingClientUpdate } : client);
+    });
     mockDb.update.mockReturnValue({ set: updateSet });
+    mockDb.select.mockReturnValue({
+      from: () => ({
+        orderBy: async () => persistedClients,
+      }),
+    });
   });
 
   it("envia tipo e CPF/CNPJ obrigatórios, convertendo os demais campos vazios em null", async () => {
@@ -58,5 +71,18 @@ describe("integração do contrato de clientes", () => {
     await expect(createAuthenticatedCaller().clients.update({ id: 82, ...input })).resolves.toEqual({ success: true });
     expect(updateSet).toHaveBeenCalledWith(expect.objectContaining({ type: "PJ", city: "Rio de Janeiro" }));
     expect(updateWhere).toHaveBeenCalledTimes(1);
+  });
+
+  it("persiste a cidade atualizada e a devolve em uma nova consulta", async () => {
+    const caller = createAuthenticatedCaller();
+    const input = toClientMutationInput({
+      name: "Cliente de teste", type: "PF", cpfCnpj: "123.456.789-00",
+      city: "Cidade de Teste Atualizada",
+    });
+
+    await expect(caller.clients.update({ id: 82, ...input })).resolves.toEqual({ success: true });
+    await expect(caller.clients.list()).resolves.toEqual([
+      expect.objectContaining({ id: 82, city: "Cidade de Teste Atualizada" }),
+    ]);
   });
 });
