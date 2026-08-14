@@ -236,6 +236,6 @@
 - [x] Salvar a evidência final da revalidação visual de cadastro e edição de produto no ambiente publicado
 
 ## Ajuste de encerramento por teclado no Balcão
-- [ ] Exibir uma escolha ao pressionar Enter no campo Preço do Balcão: adicionar novo produto ou finalizar atendimento
-- [ ] Ao escolher finalizar, mover o foco para a seção de desfecho Orçamento ou Venda sem usar o mouse
-- [ ] Cobrir o novo fluxo de decisão por teclado com testes de comportamento e validação visual
+- [x] Exibir uma escolha ao pressionar Enter no campo Preço do Balcão: adicionar novo produto ou finalizar atendimento
+- [x] Ao escolher finalizar, mover o foco para a seção de desfecho Orçamento ou Venda sem usar o mouse
+- [x] Cobrir o novo fluxo de decisão por teclado com testes de comportamento e validação visual

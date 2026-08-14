@@ -33,3 +33,13 @@ Foi preparado o produto de teste **TESTE UI - Cadastro de Produto - 2026-08-13**
 | 5 | Consultar o histórico após o cancelamento | Entrada de **+1 un**, referência **#3**, origem **Cancelamento de Pedido**, registrada uma única vez. | Aprovado |
 
 > O cenário deixou apenas registros identificados como **TESTE** e foi executado com autorização prévia do responsável. A venda foi integralmente compensada pelo cancelamento, preservando o saldo inicial do produto de teste e a trilha de auditoria de pedido e movimentos.
+
+## Ajuste de decisão no campo Preço — validação publicada
+
+| Ação por teclado | Resultado observado no Azure | Resultado |
+|---|---|---|
+| `Enter` no campo **Preço/m²** | Abriu um diálogo modal intitulado **Próximo passo do atendimento**, com as ações **Adicionar novo produto** e **Finalizar atendimento**. | Aprovado |
+| Escolher **Finalizar atendimento** | O diálogo foi fechado e o foco visível foi transferido para **Salvar como orçamento**, a primeira opção da seção de desfecho; nenhuma transação foi gravada. | Aprovado |
+| Escolher **Adicionar novo produto** | O diálogo foi fechado, uma nova linha de vidro foi adicionada e o foco visível foi transferido diretamente para o seletor Produto dessa nova linha. | Aprovado |
+
+> A validação foi executada em sessão administrativa autenticada, sem selecionar produto, sem salvar orçamento e sem concluir venda.

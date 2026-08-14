@@ -156,8 +156,9 @@ Após a atualização que inclui o atendimento unificado e a navegação global 
 | Baixa de estoque | O histórico exibiu saída de uma unidade, referência #3 e origem **Venda de Balcão**. | Conforme |
 | Cancelamento auditável | O pedido #3 mudou para **Cancelado**; foi criada uma única entrada de uma unidade, referência #3 e origem **Cancelamento de Pedido**. | Conforme |
 | Clientes, relatórios e histórico | WhatsApp, campos de endereço/CEP, filtro de faturamento e rótulos comerciais de movimentos permaneceram visíveis e operáveis. | Conforme em inspeção visual |
+| Decisão após o preço no Balcão | `Enter` em Preço/m² abriu a escolha entre adicionar produto e finalizar. Adicionar criou a nova linha com foco no produto; finalizar fechou o diálogo e focou Salvar como orçamento, sem gravar transação. | Conforme |
 
-O conjunto de regressão mais recente contém **69 cenários aprovados**, incluindo comportamento DOM de teclado, fluxo unificado de balcão, recebimento idempotente de compra e regras de estoque. A compilação de produção continua aprovada. A única pendência de governança que não pode ser decidida tecnicamente é a segregação de permissões por função: no estado atual, os routers operacionais aceitam qualquer utilizador autenticado. A implementação de restrições para vendas, recebimento de compras, ajustes de estoque e administração depende da matriz de responsabilidades formal da empresa.
+O conjunto de regressão mais recente contém **70 cenários aprovados**, incluindo comportamento DOM de teclado, decisão de próximo passo pelo campo Preço, fluxo unificado de balcão, recebimento idempotente de compra e regras de estoque. A compilação de produção continua aprovada. A única pendência de governança que não pode ser decidida tecnicamente é a segregação de permissões por função: no estado atual, os routers operacionais aceitam qualquer utilizador autenticado. A implementação de restrições para vendas, recebimento de compras, ajustes de estoque e administração depende da matriz de responsabilidades formal da empresa.
 
 ## Referências da evidência de encerramento
 

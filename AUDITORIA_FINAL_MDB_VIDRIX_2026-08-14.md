@@ -3,11 +3,11 @@
 **Data:** 14 de agosto de 2026  
 **Sistema auditado:** Vidrix ERP publicado no Azure  
 **Referência funcional:** `Vidracaria2026pdv.mdb`  
-**Versão auditada:** publicação do commit `e57c27f2`
+**Versão auditada:** publicação do commit `fe87b53`
 
 ## Parecer executivo
 
-O **Vidrix está operacionalmente apto para o fluxo comercial simples de uma vidraçaria**: cadastro de clientes e produtos, atendimento de balcão, orçamento, conversão de orçamento, venda concluída, movimentação de estoque, compras, relatórios básicos e rastreabilidade. A auditoria confirmou **69 testes automatizados aprovados**, compilação de produção bem-sucedida, reconciliação de dados históricos no Azure, inspeção visual autenticada e um cenário de escrita controlado integralmente compensado.[1] [2]
+O **Vidrix está operacionalmente apto para o fluxo comercial simples de uma vidraçaria**: cadastro de clientes e produtos, atendimento de balcão, orçamento, conversão de orçamento, venda concluída, movimentação de estoque, compras, relatórios básicos e rastreabilidade. A auditoria confirmou **70 testes automatizados aprovados**, compilação de produção bem-sucedida, reconciliação de dados históricos no Azure, inspeção visual autenticada e um cenário de escrita controlado integralmente compensado.[1] [2]
 
 O sistema **não é uma reprodução integral do Microsoft Access**. A equivalência alcançada é controlada para vidros e complementos comerciais com preço explícito, medidas em centímetros e estoque de produto. O MDB ainda possui domínios que não foram reproduzidos como regras operacionais: modalidades e vigência de preço, motor de corte, composição de Box/kits, financeiro de pendências e documentos especializados de produção. Esses limites devem ser mantidos explícitos em qualquer decisão de substituição do legado.[3] [4]
 
@@ -27,11 +27,12 @@ O sistema **não é uma reprodução integral do Microsoft Access**. A equivalê
 
 | Evidência | Resultado | Abrangência |
 |---|---|---|
-| Regressão automatizada | 69 testes aprovados | Autenticação, contratos, cálculos, clientes, balcão, estoque, compras, UI e relatórios. |
+| Regressão automatizada | 70 testes aprovados | Autenticação, contratos, cálculos, clientes, balcão, estoque, compras, UI e relatórios, incluindo a decisão de próximo passo pelo campo Preço. |
 | Compilação de produção | Aprovada | Frontend e backend compilados para a implantação Azure. |
 | Reconciliação autenticada de dados | Aprovada | 118.295 registros históricos e 118.144 regras preservados sem duplicação. |
 | Inspeção visual autenticada | Aprovada | Barra lateral, balcão, clientes, estoque e relatórios renderizados no Azure; fluxo de foco por teclado confirmado. |
 | Cenários de escrita em produção | Aprovados | Orçamento #4, venda/pedido #3, saída `counter_sale` e entrada única de cancelamento, todos em dados identificados como TESTE. |
+| Decisão de próximo passo no Balcão | Aprovada | `Enter` em Preço/m² exibe diálogo; adicionar produto cria linha e recebe foco; finalizar transfere foco à opção de orçamento. |
 
 ## Fluxo comercial unificado de balcão
 
@@ -45,6 +46,7 @@ O formulário de balcão foi reorganizado para refletir a regra operacional indi
 | Orçamento | No encerramento, exige cliente escolhido ou criado rapidamente; grava rascunho comercial. | Contrato e integração do atendimento unificado. |
 | Venda | No encerramento, exige cliente; cria pedido entregue, baixa saldo e grava movimento `counter_sale`. | Integração transacional e histórico de estoque. |
 | Cliente rápido | Após o cadastro, o cliente recém-criado é selecionado, a busca é limpa e o encerramento é mantido aberto. | Teste comportamental do callback de sucesso. |
+| Decisão após o preço | `Enter` em Preço/m² pede que o operador adicione outro produto ou encerre o atendimento. | Teste de unidade e inspeção autenticada no Azure, sem transação gravada. |
 
 ## Paridade atualizada com o MDB
 
@@ -71,6 +73,7 @@ O formulário de balcão foi reorganizado para refletir a regra operacional indi
 | Filtro de faturamento não era consumido | Filtro publicado, validação de período e contrato de receita normalizado. | Encerrado. |
 | Origem de movimentos exibia códigos técnicos | Rótulos comerciais adicionados para venda, balcão, compra, ajustes, remoção e cancelamento. | Encerrado. |
 | Navegação lateral plana | Módulos agrupados por Visão geral, Atendimento comercial, Cadastros, Suprimentos e estoque e Gestão. | Encerrado. |
+| Enter no preço avançava para o próximo controle sem confirmar a intenção | Diálogo de escolha com foco para novo produto ou para o desfecho orçamento/venda. | Encerrado. |
 
 ## Pendências e recomendações
 
