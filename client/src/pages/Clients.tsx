@@ -179,7 +179,7 @@ export default function Clients() {
               Novo Cliente
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>{editId ? "Editar Cliente" : "Novo Cliente"}</DialogTitle>
             </DialogHeader>
@@ -258,9 +258,9 @@ export default function Clients() {
                 <Input value={form.city || ""} onChange={(e) => setForm({ ...form, city: e.target.value })} placeholder="Cidade" />
               </div>
             </div>
-            <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={createMutation.isPending || updateMutation.isPending}>Cancelar</Button>
-              <Button onClick={handleSubmit} disabled={createMutation.isPending || updateMutation.isPending || cepMutation.isPending}>
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <Button className="w-full sm:w-auto" variant="outline" onClick={() => setDialogOpen(false)} disabled={createMutation.isPending || updateMutation.isPending}>Cancelar</Button>
+              <Button className="w-full sm:w-auto" onClick={handleSubmit} disabled={createMutation.isPending || updateMutation.isPending || cepMutation.isPending}>
                 {createMutation.isPending || updateMutation.isPending ? "Salvando..." : "Salvar"}
               </Button>
             </div>

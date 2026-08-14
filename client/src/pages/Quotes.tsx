@@ -289,7 +289,7 @@ export default function Quotes() {
               Novo Orçamento
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-2xl">
             <DialogHeader>
               <DialogTitle>Novo Orçamento</DialogTitle>
             </DialogHeader>
@@ -315,9 +315,9 @@ export default function Quotes() {
                   <label className="text-sm font-medium">Observações</label>
                   <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Observações do orçamento" />
                 </div>
-                <div className="flex gap-2 justify-end pt-4">
-                  <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-                  <Button onClick={handleCreateQuote} disabled={createMutation.isPending}>
+                <div className="flex flex-col-reverse gap-2 pt-4 sm:flex-row sm:justify-end">
+                  <Button className="w-full sm:w-auto" variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
+                  <Button className="w-full sm:w-auto" onClick={handleCreateQuote} disabled={createMutation.isPending}>
                     {createMutation.isPending ? "Criando..." : "Criar Orçamento"}
                   </Button>
                 </div>
@@ -333,8 +333,8 @@ export default function Quotes() {
                     const p = parseFloat(item.unitPrice) || 0;
                     const m2 = (w * h / 10000 * q).toFixed(4);
                     return (
-                      <div key={idx} className="flex items-end gap-2 p-3 border rounded-lg bg-secondary/30">
-                        <div className="flex-1">
+                      <div key={idx} className="grid grid-cols-2 gap-3 rounded-lg border bg-secondary/30 p-3 sm:grid-cols-12 sm:items-end">
+                        <div className="col-span-2 min-w-0 sm:col-span-4">
                           <label className="text-xs text-muted-foreground">Produto</label>
                           <Select value={item.productId} onValueChange={(v) => updateItem(idx, "productId", v)}>
                             <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione" /></SelectTrigger>
@@ -345,27 +345,27 @@ export default function Quotes() {
                             </SelectContent>
                           </Select>
                         </div>
-                        <div className="w-20">
+                        <div className="min-w-0 sm:col-span-2">
                           <label className="text-xs text-muted-foreground">Larg. (cm)</label>
                           <Input value={item.width} onChange={(e) => updateItem(idx, "width", e.target.value)} placeholder="100" inputMode="decimal" />
                         </div>
-                        <div className="w-20">
+                        <div className="min-w-0 sm:col-span-2">
                           <label className="text-xs text-muted-foreground">Alt. (cm)</label>
                           <Input value={item.height} onChange={(e) => updateItem(idx, "height", e.target.value)} placeholder="50" inputMode="decimal" />
                         </div>
-                        <div className="w-16">
+                        <div className="min-w-0 sm:col-span-1">
                           <label className="text-xs text-muted-foreground">Qtd</label>
                           <Input value={item.quantity} onChange={(e) => updateItem(idx, "quantity", e.target.value)} placeholder="1" />
                         </div>
-                        <div className="w-24">
+                        <div className="min-w-0 sm:col-span-2">
                           <label className="text-xs text-muted-foreground">Preço/m²</label>
                           <Input value={item.unitPrice} onChange={(e) => updateItem(idx, "unitPrice", e.target.value)} placeholder="R$" />
                         </div>
-                        <div className="text-right min-w-[120px]">
+                        <div className="min-w-0 self-end text-right sm:col-span-1">
                           <p className="text-xs text-muted-foreground">{m2} m²</p>
                           <p className="font-semibold text-sm">R$ {calcSubtotal(item)}</p>
                         </div>
-                        <Button variant="ghost" size="icon" onClick={() => removeItem(idx)}>
+                        <Button className="justify-self-end self-end" variant="ghost" size="icon" onClick={() => removeItem(idx)}>
                           <X className="h-4 w-4" />
                         </Button>
                       </div>
@@ -375,9 +375,9 @@ export default function Quotes() {
                     <Plus className="h-3 w-3 mr-1" /> Adicionar Item
                   </Button>
                 </div>
-                <div className="flex gap-2 justify-end pt-4">
-                  <Button variant="outline" onClick={() => { setDetailId(null); setActiveTab("list"); setItems([]); }}>Voltar</Button>
-                  <Button onClick={handleSubmitItems} disabled={addItemMutation.isPending}>
+                <div className="flex flex-col-reverse gap-2 pt-4 sm:flex-row sm:justify-end">
+                  <Button className="w-full sm:w-auto" variant="outline" onClick={() => { setDetailId(null); setActiveTab("list"); setItems([]); }}>Voltar</Button>
+                  <Button className="w-full sm:w-auto" onClick={handleSubmitItems} disabled={addItemMutation.isPending}>
                     {addItemMutation.isPending ? "Salvando..." : "Salvar Itens"}
                   </Button>
                 </div>

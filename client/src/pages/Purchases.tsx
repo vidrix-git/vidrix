@@ -191,7 +191,7 @@ export default function Purchases() {
               Novo Pedido de Compra
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-2xl">
             <DialogHeader>
               <DialogTitle>Novo Pedido de Compra</DialogTitle>
             </DialogHeader>
@@ -216,8 +216,8 @@ export default function Purchases() {
               <div className="space-y-2 border-t pt-4">
                 <label className="text-sm font-medium">Itens do Pedido</label>
                 {items.map((item, idx) => (
-                  <div key={idx} className="flex items-end gap-2 p-3 border rounded-lg bg-secondary/30">
-                    <div className="flex-1">
+                  <div key={idx} className="grid grid-cols-2 gap-3 rounded-lg border bg-secondary/30 p-3 sm:grid-cols-12 sm:items-end">
+                    <div className="col-span-2 min-w-0 sm:col-span-7">
                       <label className="text-xs text-muted-foreground">Produto</label>
                       <Select value={item.productId} onValueChange={(v) => updateItem(idx, "productId", v)}>
                         <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione" /></SelectTrigger>
@@ -228,15 +228,15 @@ export default function Purchases() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="w-20">
+                    <div className="min-w-0 sm:col-span-2">
                       <label className="text-xs text-muted-foreground">Qtd</label>
                       <Input value={item.quantity} onChange={(e) => updateItem(idx, "quantity", e.target.value)} placeholder="1" />
                     </div>
-                    <div className="w-24">
+                    <div className="min-w-0 sm:col-span-2">
                       <label className="text-xs text-muted-foreground">Custo Un. (R$)</label>
                       <Input value={item.unitCost} onChange={(e) => updateItem(idx, "unitCost", e.target.value)} placeholder="0.00" />
                     </div>
-                    <Button variant="ghost" size="icon" onClick={() => removeItem(idx)}>
+                    <Button className="justify-self-end self-end" variant="ghost" size="icon" onClick={() => removeItem(idx)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -246,9 +246,9 @@ export default function Purchases() {
                 </Button>
               </div>
             </div>
-            <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-              <Button onClick={activePO ? handleSubmitItems : handleCreatePO}>
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <Button className="w-full sm:w-auto" variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
+              <Button className="w-full sm:w-auto" onClick={activePO ? handleSubmitItems : handleCreatePO}>
                 {activePO ? "Salvar Itens" : "Criar Pedido"}
               </Button>
             </div>

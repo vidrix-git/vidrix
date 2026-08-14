@@ -76,7 +76,7 @@ export default function Stock() {
             Histórico de Movimentações
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="overflow-x-auto p-0">
           {isLoading ? (
             <div className="p-8 text-center text-muted-foreground">Carregando...</div>
           ) : !movements || movements.length === 0 ? (
@@ -84,7 +84,7 @@ export default function Stock() {
               Nenhum movimento de estoque registrado
             </div>
           ) : (
-            <Table>
+            <Table className="min-w-[44rem]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Data/Hora</TableHead>

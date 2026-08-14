@@ -104,7 +104,7 @@ export default function Orders() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Pedidos de Venda</h1>
           <p className="text-sm text-muted-foreground">Gerencie pedidos e acompanhe o fluxo</p>
@@ -177,8 +177,9 @@ export default function Orders() {
         </Card>
       ) : (
         /* Kanban View */
-        <div className="grid grid-cols-5 gap-4">
-          {kanbanColumns.map(status => {
+        <div className="overflow-x-auto pb-2">
+          <div className="grid min-w-[58rem] grid-cols-5 gap-4">
+            {kanbanColumns.map(status => {
             const statusOrders = orders?.filter((o: any) => o.status === status) || [];
             return (
               <div
@@ -221,7 +222,8 @@ export default function Orders() {
                 </div>
               </div>
             );
-          })}
+            })}
+          </div>
         </div>
       )}
 

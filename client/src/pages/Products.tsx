@@ -134,7 +134,7 @@ export default function Products() {
               Novo Produto
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-lg">
+          <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>{editId ? "Editar Produto" : "Novo Produto"}</DialogTitle>
             </DialogHeader>
@@ -143,7 +143,7 @@ export default function Products() {
                 <label className="text-sm font-medium">Nome *</label>
                 <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Ex: Vidro incolor 4mm" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Tipo</label>
                   <Select value={form.type || "none"} onValueChange={(v) => setForm({ ...form, type: v === "none" ? null : v })}>
@@ -174,7 +174,7 @@ export default function Products() {
                 <label className="text-sm font-medium">Preço Unitário (R$/m²) *</label>
                 <Input type="number" step="0.01" value={form.unitPrice} onChange={(e) => setForm({ ...form, unitPrice: e.target.value })} />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Estoque Atual</label>
                   <Input type="number" value={String(form.stockQuantity)} onChange={(e) => setForm({ ...form, stockQuantity: parseInt(e.target.value) || 0 })} />
@@ -185,9 +185,9 @@ export default function Products() {
                 </div>
               </div>
             </div>
-            <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-              <Button onClick={handleSubmit} disabled={createMutation.isPending || updateMutation.isPending}>
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <Button className="w-full sm:w-auto" variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
+              <Button className="w-full sm:w-auto" onClick={handleSubmit} disabled={createMutation.isPending || updateMutation.isPending}>
                 {createMutation.isPending || updateMutation.isPending ? "Salvando..." : "Salvar"}
               </Button>
             </div>

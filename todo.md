@@ -130,6 +130,17 @@
 - [ ] Validar na interface o autopreenchimento por CEP e o tratamento de CEP inválido ou indisponível
 - [ ] Registrar evidência explícita dos estados visuais de consulta de CEP e de sucesso ou erro ao salvar cliente
 
+## Responsividade de modais e formulários
+- [x] Corrigir o modal de itens do orçamento para evitar sobreposição e manter os campos legíveis em larguras reduzidas
+- [x] Revisar e ajustar modais de Clientes, Produtos, Fornecedores e Compras que compartilham padrões de formulário
+- [x] Revisar Orders.tsx e Stock.tsx para confirmar o padrão de modal ou formulário e ajustar responsividade onde necessário
+- [ ] Validar visualmente os modais ajustados em desktop e em largura mobile
+- [x] Cobrir os layouts de formulário com uma verificação de regressão adequada
+- [ ] Publicar e validar os ajustes de responsividade no ambiente Azure
+- [x] Registrar verificação de regressão específica para Pedidos após a revisão responsiva
+- [x] Aplicar um contêiner responsivo ao histórico de Estoque para preservar as colunas em larguras reduzidas
+- [x] Adicionar regressão estrutural específica para a responsividade da tabela de Estoque
+
 ## Correções críticas antes da validação operacional
 - [x] Formalizar centímetros como unidade comercial de largura e altura no Vidrix
 - [x] Validar valores numéricos positivos e precisos nos itens de orçamento e pedido
