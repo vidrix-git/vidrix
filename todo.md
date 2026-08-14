@@ -261,3 +261,7 @@
 - [ ] Exibir todos os códigos de produto cadastrados em um combobox antes do seletor Produto
 - [ ] Ao escolher ou digitar código válido e pressionar Enter, preencher o produto correspondente e avançar o foco
 - [ ] Cobrir a consulta por código e a confirmação por Enter com testes e validação publicada
+
+## Preenchimento de códigos legados
+- [ ] Preencher retroativamente os códigos KF e KC dos kits migrados do MDB no catálogo publicado
+- [ ] Atribuir código interno estável aos produtos existentes sem código para que todos apareçam no combobox

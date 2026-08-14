@@ -217,6 +217,26 @@ export const ERP_SCHEMA_STATEMENTS = [
   `ALTER TABLE \`clients\` ADD COLUMN \`whatsApp\` varchar(255)`,
   `ALTER TABLE \`products\` ADD COLUMN \`code\` varchar(64)`,
   `ALTER TABLE \`products\` ADD UNIQUE INDEX \`products_code_unique\` (\`code\`)`,
+  // Os kits do MDB reiniciam o identificador em cada tabela. O prefixo de
+  // origem mantém ambos pesquisáveis sem colisão: KF-1 e KC-1, por exemplo.
+  `UPDATE \`products\` AS \`product\`
+    INNER JOIN \`legacyImportRecords\` AS \`legacy\`
+      ON JSON_UNQUOTE(JSON_EXTRACT(\`legacy\`.\`payload\`, '$.Medida')) = \`product\`.\`name\`
+    SET \`product\`.\`code\` = CONCAT(
+      CASE \`legacy\`.\`sourceTable\`
+        WHEN 'KIt_Fontal' THEN 'KF-'
+        WHEN 'Kit_Canto' THEN 'KC-'
+      END,
+      \`legacy\`.\`legacyCode\`
+    )
+    WHERE \`legacy\`.\`sourceTable\` IN ('KIt_Fontal', 'Kit_Canto')
+      AND \`legacy\`.\`legacyCode\` IS NOT NULL
+      AND (\`product\`.\`code\` IS NULL OR TRIM(\`product\`.\`code\`) = '')`,
+  // Produtos criados fora do importador também precisam integrar o catálogo
+  // pesquisável. O ID gera um código estável sem sobrescrever códigos informados.
+  `UPDATE \`products\`
+    SET \`code\` = CONCAT('PRD-', \`id\`)
+    WHERE \`code\` IS NULL OR TRIM(\`code\`) = ''`,
 ] as const;
 
 // Lazily create the drizzle instance so local tooling can run without a DB.

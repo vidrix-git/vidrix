@@ -3,6 +3,7 @@ import { createProductSchema, updateProductSchema } from "../../shared/schemas";
 import { getDb } from "../db";
 import { products } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
+import { buildInternalProductCode } from "../../shared/catalog-product-code";
 
 export const productsRouter = router({
   list: protectedProcedure.query(async () => {
@@ -23,15 +24,24 @@ export const productsRouter = router({
     const db = await getDb();
     if (!db) throw new Error("Database not available");
     const { width, height, unitPrice, stockQuantity, minStockQuantity, ...rest } = opts.input;
+    const requestedCode = rest.code?.trim() || null;
     const result = await db.insert(products).values({
       ...rest,
+      code: requestedCode,
       width,
       height,
       unitPrice,
       stockQuantity: Number(stockQuantity),
       minStockQuantity: Number(minStockQuantity),
     });
-    return { success: true, insertId: result[0].insertId };
+    const insertId = Number(result[0].insertId);
+    if (!requestedCode) {
+      await db
+        .update(products)
+        .set({ code: buildInternalProductCode(insertId) })
+        .where(eq(products.id, insertId));
+    }
+    return { success: true, insertId };
   }),
 
   update: adminProcedure.input(updateProductSchema).mutation(async (opts) => {
