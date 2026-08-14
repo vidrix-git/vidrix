@@ -36,6 +36,11 @@
 - [x] Cobrir a aplicação do resultado do cadastro rápido no estado final de encerramento do balcão
 - [x] Validar comportamentalmente o callback de sucesso do cadastro rápido com os setters do encerramento
 
+## Navegação lateral por áreas de trabalho
+- [x] Agrupar os módulos da barra lateral em Atendimento Comercial, Cadastros, Suprimentos e Gestão
+- [x] Preservar rotas, destaque do item ativo, responsividade e acessibilidade da navegação reorganizada
+- [x] Cobrir a nova taxonomia da barra lateral com teste de regressão estrutural
+
 ## Backend
 - [x] Corrigir erros de TypeScript em todos os routers
 - [x] Router: clients (list, get, create, update, delete)

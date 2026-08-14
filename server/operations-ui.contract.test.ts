@@ -44,4 +44,18 @@ describe("contratos operacionais da interface", () => {
     expect(reports).toContain('const revenuePeriod = useMemo(() => resolveRevenuePeriod(period), [period])');
     expect(reports).toContain('trpc.reports.revenue.useQuery(revenuePeriod)');
   });
+
+  it("agrupa a barra lateral por áreas de trabalho sem perder nenhuma rota operacional", () => {
+    const layout = source("client/src/components/DashboardLayout.tsx");
+
+    for (const group of ["Visão geral", "Atendimento comercial", "Cadastros", "Suprimentos e estoque", "Gestão"]) {
+      expect(layout).toContain(`label: "${group}"`);
+    }
+    for (const path of ["/", "/counter-sale", "/quotes", "/orders", "/clients", "/products", "/suppliers", "/purchases", "/stock", "/reports"]) {
+      expect(layout).toContain(`path: "${path}"`);
+    }
+    expect(layout).toContain("menuGroups.flatMap");
+    expect(layout).toContain("<SidebarGroup");
+    expect(layout).toContain("<SidebarGroupLabel");
+  });
 });

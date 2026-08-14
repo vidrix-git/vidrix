@@ -10,6 +10,8 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarInset,
   SidebarMenu,
@@ -39,17 +41,38 @@ import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 
-const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/" },
-  { icon: FileText, label: "Orçamentos", path: "/quotes" },
-  { icon: ShoppingCart, label: "Pedidos de Venda", path: "/orders" },
-  { icon: ShoppingBasket, label: "Venda Direta", path: "/counter-sale" },
-  { icon: Truck, label: "Pedidos de Compra", path: "/purchases" },
-  { icon: Warehouse, label: "Estoque", path: "/stock" },
-  { icon: BarChart3, label: "Relatórios", path: "/reports" },
-  { icon: Users, label: "Clientes", path: "/clients" },
-  { icon: Package, label: "Produtos", path: "/products" },
-  { icon: Building2, label: "Fornecedores", path: "/suppliers" },
+const menuGroups = [
+  {
+    label: "Visão geral",
+    items: [{ icon: LayoutDashboard, label: "Dashboard", path: "/" }],
+  },
+  {
+    label: "Atendimento comercial",
+    items: [
+      { icon: ShoppingBasket, label: "Balcão", path: "/counter-sale" },
+      { icon: FileText, label: "Orçamentos", path: "/quotes" },
+      { icon: ShoppingCart, label: "Pedidos de Venda", path: "/orders" },
+    ],
+  },
+  {
+    label: "Cadastros",
+    items: [
+      { icon: Users, label: "Clientes", path: "/clients" },
+      { icon: Package, label: "Produtos", path: "/products" },
+      { icon: Building2, label: "Fornecedores", path: "/suppliers" },
+    ],
+  },
+  {
+    label: "Suprimentos e estoque",
+    items: [
+      { icon: Truck, label: "Pedidos de Compra", path: "/purchases" },
+      { icon: Warehouse, label: "Estoque", path: "/stock" },
+    ],
+  },
+  {
+    label: "Gestão",
+    items: [{ icon: BarChart3, label: "Relatórios", path: "/reports" }],
+  },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
@@ -133,7 +156,7 @@ function DashboardLayoutContent({
   const isCollapsed = state === "collapsed";
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
-  const activeMenuItem = menuItems.find(item => item.path === location);
+  const activeMenuItem = menuGroups.flatMap((group) => group.items).find((item) => item.path === location);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -203,27 +226,32 @@ function DashboardLayoutContent({
             </div>
           </SidebarHeader>
 
-          <SidebarContent className="gap-0">
-            <SidebarMenu className="px-2 py-1">
-              {menuItems.map(item => {
-                const isActive = location === item.path;
-                return (
-                  <SidebarMenuItem key={item.path}>
-                    <SidebarMenuButton
-                      isActive={isActive}
-                      onClick={() => setLocation(item.path)}
-                      tooltip={item.label}
-                      className={`h-10 transition-all font-normal`}
-                    >
-                      <item.icon
-                        className={`h-4 w-4 ${isActive ? "text-primary" : ""}`}
-                      />
-                      <span>{item.label}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
+          <SidebarContent className="gap-0 py-2">
+            {menuGroups.map((group) => (
+              <SidebarGroup key={group.label} className="px-2 py-1">
+                <SidebarGroupLabel className="h-6 px-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground group-data-[collapsible=icon]:hidden">
+                  {group.label}
+                </SidebarGroupLabel>
+                <SidebarMenu>
+                  {group.items.map((item) => {
+                    const isActive = location === item.path;
+                    return (
+                      <SidebarMenuItem key={item.path}>
+                        <SidebarMenuButton
+                          isActive={isActive}
+                          onClick={() => setLocation(item.path)}
+                          tooltip={item.label}
+                          className="h-10 transition-all font-normal"
+                        >
+                          <item.icon className={`h-4 w-4 ${isActive ? "text-primary" : ""}`} />
+                          <span>{item.label}</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              </SidebarGroup>
+            ))}
           </SidebarContent>
 
           <SidebarFooter className="p-3">
