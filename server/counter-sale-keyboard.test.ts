@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { moveCounterPriceDecision, moveCounterSaleOutcomeFocus, shouldConfirmCounterPriceDecision, shouldOpenCounterPriceDecision } from "../shared/counter-sale-keyboard";
+import { moveCounterPriceDecision, moveCounterSaleOutcomeFocus, shouldConfirmCounterPriceDecision, shouldConfirmCounterSaleOutcome, shouldOpenCounterPriceDecision } from "../shared/counter-sale-keyboard";
 
 describe("decisão pelo preço no Balcão", () => {
   it("abre a decisão apenas para Enter simples no campo Preço", () => {
@@ -26,5 +26,11 @@ describe("decisão pelo preço no Balcão", () => {
     expect(moveCounterSaleOutcomeFocus("sale", "ArrowLeft")).toBe("quote");
     expect(moveCounterSaleOutcomeFocus("quote", "ArrowLeft")).toBe("quote");
     expect(moveCounterSaleOutcomeFocus("sale", "ArrowRight")).toBe("sale");
+  });
+
+  it("confirma o resultado destacado somente com Enter simples", () => {
+    expect(shouldConfirmCounterSaleOutcome({ key: "Enter" })).toBe(true);
+    expect(shouldConfirmCounterSaleOutcome({ key: "Enter", shiftKey: true })).toBe(false);
+    expect(shouldConfirmCounterSaleOutcome({ key: "ArrowRight" })).toBe(false);
   });
 });

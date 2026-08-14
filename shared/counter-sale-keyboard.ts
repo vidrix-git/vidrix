@@ -36,3 +36,8 @@ export function moveCounterSaleOutcomeFocus(current: CounterSaleOutcome, key: st
   if (key === "ArrowRight" && current === "quote") return "sale";
   return current;
 }
+
+/** Confirma o resultado comercial que está com foco no seletor horizontal. */
+export function shouldConfirmCounterSaleOutcome(event: CounterPriceKeyEvent) {
+  return event.key === "Enter" && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey;
+}

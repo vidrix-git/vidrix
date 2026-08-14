@@ -36,6 +36,8 @@ describe("contratos operacionais da interface", () => {
     expect(counter).toContain("moveCounterPriceDecision(priceDecision, event.key)");
     expect(counter).toContain("shouldConfirmCounterPriceDecision(event)");
     expect(counter).toContain("moveCounterSaleOutcomeFocus(currentOutcome, event.key)");
+    expect(counter).toContain("shouldConfirmCounterSaleOutcome(event)");
+    expect(counter).toContain("chooseOutcome(currentOutcome)");
     expect(counter).toContain("outcomeClientSearchRef.current?.focus()");
     expect(counter).toContain("event.stopPropagation()");
     expect(counter).toContain("Use ← e → para alternar e Enter para confirmar");
