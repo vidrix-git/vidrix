@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isValidClientDocument, isValidZipCode } from "./client-identifiers";
 
 const parseBrazilianDecimal = (value: string) => {
   const compact = value.trim().replace(/\s+/g, "");
@@ -17,25 +18,41 @@ const positiveIntegerString = (field: string) => z.string().trim().refine(
 // ============================================================
 // CLIENTS
 // ============================================================
-export const createClientSchema = z.object({
+const clientFields = {
   name: z.string().min(1, "Nome é obrigatório"),
   type: z.enum(["PF", "PJ"]),
   cpfCnpj: z.string().min(1, "CPF/CNPJ é obrigatório"),
   address: z.string().optional().nullable(),
+  neighborhood: z.string().optional().nullable(),
   phone: z.string().optional().nullable(),
   email: z.string().email("Email inválido").optional().nullable(),
   city: z.string().optional().nullable(),
+  state: z.string().trim().length(2, "UF deve ter 2 letras").optional().nullable(),
+  zipCode: z.string().refine((value) => !value || isValidZipCode(value), "CEP deve ter 8 dígitos").optional().nullable(),
+};
+
+export const createClientSchema = z.object(clientFields).superRefine((value, context) => {
+  if (!isValidClientDocument(value.cpfCnpj, value.type)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["cpfCnpj"], message: value.type === "PJ" ? "CNPJ inválido" : "CPF inválido" });
+  }
 });
 
 export const updateClientSchema = z.object({
   id: z.number().int().positive("ID do cliente deve ser positivo"),
-  name: z.string().min(1, "Nome é obrigatório").optional(),
-  type: z.enum(["PF", "PJ"]).optional(),
-  cpfCnpj: z.string().min(1, "CPF/CNPJ é obrigatório").optional(),
-  address: z.string().optional().nullable(),
-  phone: z.string().optional().nullable(),
-  email: z.string().email("Email inválido").optional().nullable(),
-  city: z.string().optional().nullable(),
+  name: clientFields.name.optional(),
+  type: clientFields.type.optional(),
+  cpfCnpj: clientFields.cpfCnpj.optional(),
+  address: clientFields.address,
+  neighborhood: clientFields.neighborhood,
+  phone: clientFields.phone,
+  email: clientFields.email,
+  city: clientFields.city,
+  state: clientFields.state,
+  zipCode: clientFields.zipCode,
+}).superRefine((value, context) => {
+  if (value.cpfCnpj && value.type && !isValidClientDocument(value.cpfCnpj, value.type)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["cpfCnpj"], message: value.type === "PJ" ? "CNPJ inválido" : "CPF inválido" });
+  }
 });
 
 // ============================================================

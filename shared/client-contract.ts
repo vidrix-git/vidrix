@@ -1,11 +1,16 @@
+import { formatClientDocument, formatPhone, formatZipCode, type ClientType } from "./client-identifiers";
+
 export type ClientMutationForm = {
   name: string;
-  type: "PF" | "PJ";
+  type: ClientType;
   cpfCnpj: string;
   email?: string | null;
   phone?: string | null;
   address?: string | null;
+  neighborhood?: string | null;
   city?: string | null;
+  state?: string | null;
+  zipCode?: string | null;
 };
 
 function optionalText(value: string | null | undefined) {
@@ -22,10 +27,13 @@ export function toClientMutationInput(form: ClientMutationForm) {
   return {
     name: form.name.trim(),
     type: form.type,
-    cpfCnpj: form.cpfCnpj.trim(),
+    cpfCnpj: formatClientDocument(form.cpfCnpj, form.type),
     email: optionalText(form.email),
-    phone: optionalText(form.phone),
+    phone: optionalText(formatPhone(form.phone)),
     address: optionalText(form.address),
+    neighborhood: optionalText(form.neighborhood),
     city: optionalText(form.city),
+    state: optionalText(form.state)?.toUpperCase(),
+    zipCode: optionalText(formatZipCode(form.zipCode)),
   };
 }

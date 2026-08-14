@@ -30,7 +30,7 @@ function createAuthenticatedCaller() {
 describe("integração do contrato de clientes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    persistedClients = [{ id: 82, name: "Cliente de teste", type: "PF", cpfCnpj: "123.456.789-00", city: "Cidade inicial" }];
+    persistedClients = [{ id: 82, name: "Cliente de teste", type: "PF", cpfCnpj: "529.982.247-25", city: "Cidade inicial" }];
     vi.mocked(getDb).mockResolvedValue(mockDb as never);
     insertValues.mockResolvedValue([{ insertId: 82 }]);
     mockDb.insert.mockReturnValue({ values: insertValues });
@@ -51,20 +51,20 @@ describe("integração do contrato de clientes", () => {
 
   it("envia tipo e CPF/CNPJ obrigatórios, convertendo os demais campos vazios em null", async () => {
     const input = toClientMutationInput({
-      name: "Cliente de teste", type: "PF", cpfCnpj: "123.456.789-00",
+      name: "Cliente de teste", type: "PF", cpfCnpj: "529.982.247-25",
       email: "", phone: "", address: "", city: "",
     });
 
     await expect(createAuthenticatedCaller().clients.create(input)).resolves.toEqual({ success: true, insertId: 82 });
     expect(insertValues).toHaveBeenCalledWith(expect.objectContaining({
-      name: "Cliente de teste", type: "PF", cpfCnpj: "123.456.789-00",
+      name: "Cliente de teste", type: "PF", cpfCnpj: "529.982.247-25",
       email: null, phone: null, address: null, city: null,
     }));
   });
 
   it("aceita a edição com os valores serializados pela tela", async () => {
     const input = toClientMutationInput({
-      name: "Cliente de teste atualizado", type: "PJ", cpfCnpj: "12.345.678/0001-90",
+      name: "Cliente de teste atualizado", type: "PJ", cpfCnpj: "04.252.011/0001-10",
       email: "contato@cliente.com", phone: "21999990000", address: "Rua A", city: "Rio de Janeiro",
     });
 
@@ -73,10 +73,24 @@ describe("integração do contrato de clientes", () => {
     expect(updateWhere).toHaveBeenCalledTimes(1);
   });
 
+  it("consulta o CEP e devolve os dados do endereço prontos para o formulário", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ cep: "01001-000", logradouro: "Praça da Sé", bairro: "Sé", localidade: "São Paulo", uf: "SP" }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(createAuthenticatedCaller().clients.lookupCep({ zipCode: "01001000" })).resolves.toEqual({
+      zipCode: "01001-000", address: "Praça da Sé", neighborhood: "Sé", city: "São Paulo", state: "SP",
+    });
+    expect(fetchMock).toHaveBeenCalledWith("https://viacep.com.br/ws/01001000/json/");
+    vi.unstubAllGlobals();
+  });
+
   it("persiste a cidade atualizada e a devolve em uma nova consulta", async () => {
     const caller = createAuthenticatedCaller();
     const input = toClientMutationInput({
-      name: "Cliente de teste", type: "PF", cpfCnpj: "123.456.789-00",
+      name: "Cliente de teste", type: "PF", cpfCnpj: "529.982.247-25",
       city: "Cidade de Teste Atualizada",
     });
 

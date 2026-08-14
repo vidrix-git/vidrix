@@ -119,6 +119,17 @@
 - [x] Revalidar visualmente a edição de cliente no Azure, confirmando na própria tabela o valor atualizado da cidade após o salvamento
 - [x] Investigar eventual estado desatualizado da lista de clientes após uma edição bem-sucedida; a invalidação concluiu normalmente
 
+## Melhorias de experiência no cadastro de clientes
+- [x] Aplicar máscaras de entrada para CPF/CNPJ, telefone e CEP
+- [x] Validar os dígitos verificadores de CPF e CNPJ antes de submeter o formulário
+- [x] Adicionar CEP e preenchimento automático de endereço, cidade e estado
+- [x] Exibir estados visuais claros de consulta de CEP, sucesso e erro na submissão do cliente
+- [x] Cobrir máscaras, validações e resposta de CEP com testes de regressão
+- [ ] Publicar e validar visualmente o formulário aprimorado no ambiente Azure
+- [ ] Comprovar na interface a aplicação das máscaras de CPF/CNPJ, telefone e CEP
+- [ ] Validar na interface o autopreenchimento por CEP e o tratamento de CEP inválido ou indisponível
+- [ ] Registrar evidência explícita dos estados visuais de consulta de CEP e de sucesso ou erro ao salvar cliente
+
 ## Correções críticas antes da validação operacional
 - [x] Formalizar centímetros como unidade comercial de largura e altura no Vidrix
 - [x] Validar valores numéricos positivos e precisos nos itens de orçamento e pedido

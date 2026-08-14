@@ -34,8 +34,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { CheckCircle2, CircleAlert, Loader2, MapPin, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { toClientMutationInput } from "../../../shared/client-contract";
+import { clientDocumentError, formatClientDocument, formatPhone, formatZipCode, isValidClientDocument, isValidZipCode } from "../../../shared/client-identifiers";
 
 type ClientForm = {
   name: string;
@@ -44,8 +46,13 @@ type ClientForm = {
   email?: string | null;
   phone?: string | null;
   address?: string | null;
+  neighborhood?: string | null;
   city?: string | null;
+  state?: string | null;
+  zipCode?: string | null;
 };
+
+type FormStatus = { kind: "success" | "error" | "info"; message: string } | null;
 
 export default function Clients() {
   const utils = trpc.useUtils();
@@ -53,28 +60,28 @@ export default function Clients() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const emptyForm: ClientForm = { name: "", type: "PF", cpfCnpj: "", email: "", phone: "", address: "", city: "" };
+  const emptyForm: ClientForm = { name: "", type: "PF", cpfCnpj: "", email: "", phone: "", address: "", neighborhood: "", city: "", state: "", zipCode: "" };
   const [form, setForm] = useState<ClientForm>(emptyForm);
+  const [formStatus, setFormStatus] = useState<FormStatus>(null);
 
   const { data: clients, isLoading } = trpc.clients.list.useQuery();
   const createMutation = trpc.clients.create.useMutation({
     onSuccess: () => {
       utils.clients.list.invalidate();
-      setDialogOpen(false);
-      setForm(emptyForm);
+      setFormStatus({ kind: "success", message: "Cliente cadastrado com sucesso." });
       toast.success("Cliente cadastrado com sucesso");
+      window.setTimeout(() => { setDialogOpen(false); setForm(emptyForm); setFormStatus(null); }, 2500);
     },
-    onError: (e) => toast.error(e.message),
+    onError: (e) => { setFormStatus({ kind: "error", message: e.message }); toast.error(e.message); },
   });
   const updateMutation = trpc.clients.update.useMutation({
     onSuccess: () => {
       utils.clients.list.invalidate();
-      setDialogOpen(false);
-      setEditId(null);
-      setForm(emptyForm);
+      setFormStatus({ kind: "success", message: "Cliente atualizado com sucesso." });
       toast.success("Cliente atualizado com sucesso");
+      window.setTimeout(() => { setDialogOpen(false); setEditId(null); setForm(emptyForm); setFormStatus(null); }, 2500);
     },
-    onError: (e) => toast.error(e.message),
+    onError: (e) => { setFormStatus({ kind: "error", message: e.message }); toast.error(e.message); },
   });
   const deleteMutation = trpc.clients.delete.useMutation({
     onSuccess: () => {
@@ -84,16 +91,50 @@ export default function Clients() {
     },
     onError: (e) => toast.error(e.message),
   });
+  const cepMutation = trpc.clients.lookupCep.useMutation({
+    onSuccess: (address) => {
+      setForm((current) => ({
+        ...current,
+        zipCode: address.zipCode,
+        address: address.address || current.address,
+        neighborhood: address.neighborhood || current.neighborhood,
+        city: address.city || current.city,
+        state: address.state || current.state,
+      }));
+      setFormStatus({ kind: "success", message: "CEP encontrado. Endereço preenchido; revise o número e complemente se necessário." });
+      toast.success("CEP encontrado e endereço preenchido");
+    },
+    onError: (e) => { setFormStatus({ kind: "error", message: e.message }); toast.error(e.message); },
+  });
+
+  const setError = (message: string) => {
+    setFormStatus({ kind: "error", message });
+    toast.error(message);
+  };
+
+  const handleCepLookup = () => {
+    if (!isValidZipCode(form.zipCode)) {
+      setError("Informe um CEP com 8 dígitos para consultar o endereço");
+      return;
+    }
+    setFormStatus({ kind: "info", message: "Consultando CEP..." });
+    cepMutation.mutate({ zipCode: form.zipCode || "" });
+  };
 
   const handleSubmit = () => {
     if (!form.name.trim()) {
-      toast.error("Nome é obrigatório");
+      setError("Nome é obrigatório");
       return;
     }
     if (!form.cpfCnpj.trim()) {
-      toast.error("CPF/CNPJ é obrigatório");
+      setError("CPF/CNPJ é obrigatório");
       return;
     }
+    if (!isValidClientDocument(form.cpfCnpj, form.type)) {
+      setError(clientDocumentError(form.type));
+      return;
+    }
+    setFormStatus({ kind: "info", message: editId ? "Atualizando cliente..." : "Cadastrando cliente..." });
     const input = toClientMutationInput(form);
     if (editId) {
       updateMutation.mutate({ id: editId, ...input });
@@ -111,7 +152,10 @@ export default function Clients() {
       email: client.email || "",
       phone: client.phone || "",
       address: client.address || "",
+      neighborhood: client.neighborhood || "",
       city: client.city || "",
+      state: client.state || "",
+      zipCode: client.zipCode || "",
     });
     setDialogOpen(true);
   };
@@ -128,7 +172,7 @@ export default function Clients() {
           <h1 className="text-2xl font-bold text-foreground">Clientes</h1>
           <p className="text-sm text-muted-foreground">Gerencie seus clientes</p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) { setEditId(null); setForm(emptyForm); } }}>
+        <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) { setEditId(null); setForm(emptyForm); setFormStatus(null); } }}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
@@ -140,6 +184,13 @@ export default function Clients() {
               <DialogTitle>{editId ? "Editar Cliente" : "Novo Cliente"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
+              {formStatus && (
+                <Alert variant={formStatus.kind === "error" ? "destructive" : "default"} className={formStatus.kind === "success" ? "border-emerald-500/40 bg-emerald-50 text-emerald-950 dark:bg-emerald-950/30 dark:text-emerald-50" : ""}>
+                  {formStatus.kind === "success" ? <CheckCircle2 className="h-4 w-4" /> : formStatus.kind === "info" ? <Loader2 className="h-4 w-4 animate-spin" /> : <CircleAlert className="h-4 w-4" />}
+                  <AlertTitle>{formStatus.kind === "success" ? "Concluído" : formStatus.kind === "info" ? "Aguarde" : "Atenção"}</AlertTitle>
+                  <AlertDescription>{formStatus.message}</AlertDescription>
+                </Alert>
+              )}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Nome *</label>
                 <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Nome do cliente" />
@@ -149,7 +200,10 @@ export default function Clients() {
                   <label className="text-sm font-medium">Tipo *</label>
                   <select
                     value={form.type}
-                    onChange={(e) => setForm({ ...form, type: e.target.value as "PF" | "PJ" })}
+                    onChange={(e) => {
+                      const type = e.target.value as "PF" | "PJ";
+                      setForm({ ...form, type, cpfCnpj: formatClientDocument(form.cpfCnpj, type) });
+                    }}
                     className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                   >
                     <option value="PF">Pessoa física</option>
@@ -160,8 +214,10 @@ export default function Clients() {
                   <label className="text-sm font-medium">{form.type === "PJ" ? "CNPJ" : "CPF"} *</label>
                   <Input
                     value={form.cpfCnpj}
-                    onChange={(e) => setForm({ ...form, cpfCnpj: e.target.value })}
+                    onChange={(e) => setForm({ ...form, cpfCnpj: formatClientDocument(e.target.value, form.type) })}
                     placeholder={form.type === "PJ" ? "00.000.000/0000-00" : "000.000.000-00"}
+                    inputMode="numeric"
+                    maxLength={form.type === "PJ" ? 18 : 14}
                   />
                 </div>
               </div>
@@ -171,11 +227,31 @@ export default function Clients() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Telefone</label>
-                <Input value={form.phone || ""} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="(00) 00000-0000" />
+                <Input value={form.phone || ""} onChange={(e) => setForm({ ...form, phone: formatPhone(e.target.value) })} placeholder="(00) 00000-0000" inputMode="tel" maxLength={15} />
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div className="space-y-2 sm:col-span-2">
+                  <label className="text-sm font-medium">CEP</label>
+                  <div className="flex gap-2">
+                    <Input value={form.zipCode || ""} onChange={(e) => setForm({ ...form, zipCode: formatZipCode(e.target.value) })} onBlur={handleCepLookup} placeholder="00000-000" inputMode="numeric" maxLength={9} />
+                    <Button type="button" variant="outline" onClick={handleCepLookup} disabled={cepMutation.isPending} aria-label="Consultar CEP">
+                      {cepMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
+                      <span className="hidden sm:inline">Buscar</span>
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">UF</label>
+                  <Input value={form.state || ""} onChange={(e) => setForm({ ...form, state: e.target.value.toUpperCase().slice(0, 2) })} placeholder="SP" maxLength={2} />
+                </div>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Endereço</label>
                 <Input value={form.address || ""} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Rua, número" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Bairro</label>
+                <Input value={form.neighborhood || ""} onChange={(e) => setForm({ ...form, neighborhood: e.target.value })} placeholder="Bairro" />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Cidade</label>
@@ -183,8 +259,8 @@ export default function Clients() {
               </div>
             </div>
             <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-              <Button onClick={handleSubmit} disabled={createMutation.isPending || updateMutation.isPending}>
+              <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={createMutation.isPending || updateMutation.isPending}>Cancelar</Button>
+              <Button onClick={handleSubmit} disabled={createMutation.isPending || updateMutation.isPending || cepMutation.isPending}>
                 {createMutation.isPending || updateMutation.isPending ? "Salvando..." : "Salvar"}
               </Button>
             </div>

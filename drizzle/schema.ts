@@ -32,6 +32,9 @@ export const clients = mysqlTable("clients", {
   phone: varchar("phone", { length: 255 }),
   email: varchar("email", { length: 255 }),
   city: varchar("city", { length: 255 }),
+  state: varchar("state", { length: 2 }),
+  neighborhood: varchar("neighborhood", { length: 255 }),
+  zipCode: varchar("zipCode", { length: 9 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
