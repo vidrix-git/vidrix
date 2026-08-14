@@ -11,7 +11,7 @@ const insertValues = vi.fn();
 const updateWhere = vi.fn();
 const updateSet = vi.fn();
 const mockDb = { insert: vi.fn(), update: vi.fn(), select: vi.fn() };
-let persistedClients: Array<{ id: number; name: string; type: "PF" | "PJ"; cpfCnpj: string; city: string | null }>;
+let persistedClients: Array<{ id: number; name: string; type: "PF" | "PJ"; cpfCnpj: string; city: string | null; whatsApp?: string | null }>;
 let pendingClientUpdate: Record<string, unknown>;
 
 function createAuthenticatedCaller() {
@@ -58,7 +58,7 @@ describe("integração do contrato de clientes", () => {
     await expect(createAuthenticatedCaller().clients.create(input)).resolves.toEqual({ success: true, insertId: 82 });
     expect(insertValues).toHaveBeenCalledWith(expect.objectContaining({
       name: "Cliente de teste", type: "PF", cpfCnpj: "529.982.247-25",
-      email: null, phone: null, address: null, city: null,
+      email: null, phone: null, whatsApp: null, address: null, city: null,
     }));
   });
 
@@ -98,5 +98,19 @@ describe("integração do contrato de clientes", () => {
     await expect(caller.clients.list()).resolves.toEqual([
       expect.objectContaining({ id: 82, city: "Cidade de Teste Atualizada" }),
     ]);
+  });
+
+  it("normaliza e persiste o WhatsApp na criação e na edição do cliente", async () => {
+    const caller = createAuthenticatedCaller();
+    const input = toClientMutationInput({
+      name: "Cliente de teste", type: "PF", cpfCnpj: "529.982.247-25",
+      whatsApp: "(21) 99999-0000",
+    });
+
+    await expect(caller.clients.create(input)).resolves.toEqual({ success: true, insertId: 82 });
+    expect(insertValues).toHaveBeenLastCalledWith(expect.objectContaining({ whatsApp: "(21) 99999-0000" }));
+
+    await expect(caller.clients.update({ id: 82, ...input })).resolves.toEqual({ success: true });
+    expect(updateSet).toHaveBeenLastCalledWith(expect.objectContaining({ whatsApp: "(21) 99999-0000" }));
   });
 });

@@ -25,6 +25,7 @@ const clientFields = {
   address: z.string().optional().nullable(),
   neighborhood: z.string().optional().nullable(),
   phone: z.string().optional().nullable(),
+  whatsApp: z.string().optional().nullable(),
   email: z.string().email("Email inválido").optional().nullable(),
   city: z.string().optional().nullable(),
   state: z.string().trim().length(2, "UF deve ter 2 letras").optional().nullable(),
@@ -45,6 +46,7 @@ export const updateClientSchema = z.object({
   address: clientFields.address,
   neighborhood: clientFields.neighborhood,
   phone: clientFields.phone,
+  whatsApp: clientFields.whatsApp,
   email: clientFields.email,
   city: clientFields.city,
   state: clientFields.state,
@@ -190,6 +192,22 @@ export const updateOrderItemSchema = z.object({
   quantity: positiveIntegerString("Quantidade").optional(),
   unitPrice: positiveDecimalString("Preço por m²").optional(),
   notes: z.string().optional().nullable(),
+});
+
+// ============================================================
+// COUNTER SALES (Venda Direta / Balcão)
+// ============================================================
+export const createCounterSaleSchema = z.object({
+  clientId: z.number().int().positive("Selecione o cliente da venda"),
+  notes: z.string().trim().max(1000).optional().nullable(),
+  items: z.array(z.object({
+    productId: z.number().int().positive("Selecione um produto"),
+    width: positiveDecimalString("Largura em centímetros"),
+    height: positiveDecimalString("Altura em centímetros"),
+    quantity: positiveIntegerString("Quantidade"),
+    unitPrice: positiveDecimalString("Preço por m²"),
+    notes: z.string().trim().max(1000).optional().nullable(),
+  })).min(1, "Adicione pelo menos um item à venda"),
 });
 
 // ============================================================

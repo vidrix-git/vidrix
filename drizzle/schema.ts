@@ -30,6 +30,7 @@ export const clients = mysqlTable("clients", {
   cpfCnpj: varchar("cpfCnpj", { length: 255 }).notNull().unique(),
   address: text("address"),
   phone: varchar("phone", { length: 255 }),
+  whatsApp: varchar("whatsApp", { length: 255 }),
   email: varchar("email", { length: 255 }),
   city: varchar("city", { length: 255 }),
   state: varchar("state", { length: 2 }),

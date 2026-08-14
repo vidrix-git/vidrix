@@ -15,6 +15,7 @@ import Reports from "./pages/Reports";
 import Clients from "./pages/Clients";
 import Products from "./pages/Products";
 import Suppliers from "./pages/Suppliers";
+import CounterSale from "./pages/CounterSale";
 
 function Router() {
   return (
@@ -28,6 +29,7 @@ function Router() {
             <Route path={"/"} component={Dashboard} />
             <Route path={"/quotes"} component={Quotes} />
             <Route path={"/orders"} component={Orders} />
+            <Route path={"/counter-sale"} component={CounterSale} />
             <Route path={"/purchases"} component={Purchases} />
             <Route path={"/stock"} component={Stock} />
             <Route path={"/reports"} component={Reports} />

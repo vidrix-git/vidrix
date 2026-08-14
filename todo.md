@@ -137,9 +137,24 @@
 - [ ] Validar visualmente os modais ajustados em desktop e em largura mobile
 - [x] Cobrir os layouts de formulário com uma verificação de regressão adequada
 - [ ] Publicar e validar os ajustes de responsividade no ambiente Azure
+
+## Expansão comercial: WhatsApp, Orçamentos e Balcão
+- [x] Adicionar campo de WhatsApp ao cadastro de clientes, com máscara, persistência e edição
+- [x] Revisar e disponibilizar o fluxo de criação de orçamentos com itens e cálculo comercial
+- [x] Confirmar a conversão idempotente de orçamento em venda/pedido e sua baixa de estoque
+- [x] Criar a tela de Venda Direta (Balcão) com cliente, itens, totalização e conclusão de venda
+- [x] Integrar a venda de balcão ao pedido, estoque e histórico de movimentos
+- [x] Adicionar testes de regressão para WhatsApp, venda direta e efeitos de estoque
+- [ ] Validar visualmente os novos fluxos em desktop e mobile
+- [ ] Publicar e documentar a expansão comercial no Azure
 - [x] Registrar verificação de regressão específica para Pedidos após a revisão responsiva
 - [x] Aplicar um contêiner responsivo ao histórico de Estoque para preservar as colunas em larguras reduzidas
 - [x] Adicionar regressão estrutural específica para a responsividade da tabela de Estoque
+
+## Complementos de qualidade da Venda Direta
+- [x] Exibir estados de carregamento, erro e ausência de clientes ou produtos na tela de Venda Direta
+- [x] Cobrir a persistência e edição do WhatsApp com teste de contrato de clientes
+- [x] Cobrir a transação de Venda Direta com pedido entregue, baixa de estoque e movimento auditável
 
 ## Correções críticas antes da validação operacional
 - [x] Formalizar centímetros como unidade comercial de largura e altura no Vidrix

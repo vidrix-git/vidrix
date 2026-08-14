@@ -19,6 +19,7 @@ export const ERP_SCHEMA_STATEMENTS = [
     \`cpfCnpj\` varchar(255) NOT NULL,
     \`address\` text,
     \`phone\` varchar(255),
+    \`whatsApp\` varchar(255),
     \`email\` varchar(255),
     \`city\` varchar(255),
     \`state\` varchar(2),
@@ -196,6 +197,7 @@ export const ERP_SCHEMA_STATEMENTS = [
   `ALTER TABLE \`clients\` ADD COLUMN \`neighborhood\` varchar(255)`,
   `ALTER TABLE \`clients\` ADD COLUMN \`zipCode\` varchar(9)`,
   `UPDATE \`orders\` SET \`stockAllocatedAt\` = \`createdAt\` WHERE \`quoteId\` IS NOT NULL AND \`stockAllocatedAt\` IS NULL AND \`status\` <> 'cancelado'`,
+  `ALTER TABLE \`clients\` ADD COLUMN \`whatsApp\` varchar(255)`,
 ] as const;
 
 // Lazily create the drizzle instance so local tooling can run without a DB.

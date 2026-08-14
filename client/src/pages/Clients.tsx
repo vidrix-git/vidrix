@@ -45,6 +45,7 @@ type ClientForm = {
   cpfCnpj: string;
   email?: string | null;
   phone?: string | null;
+  whatsApp?: string | null;
   address?: string | null;
   neighborhood?: string | null;
   city?: string | null;
@@ -60,7 +61,7 @@ export default function Clients() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const emptyForm: ClientForm = { name: "", type: "PF", cpfCnpj: "", email: "", phone: "", address: "", neighborhood: "", city: "", state: "", zipCode: "" };
+  const emptyForm: ClientForm = { name: "", type: "PF", cpfCnpj: "", email: "", phone: "", whatsApp: "", address: "", neighborhood: "", city: "", state: "", zipCode: "" };
   const [form, setForm] = useState<ClientForm>(emptyForm);
   const [formStatus, setFormStatus] = useState<FormStatus>(null);
 
@@ -151,6 +152,7 @@ export default function Clients() {
       cpfCnpj: client.cpfCnpj || "",
       email: client.email || "",
       phone: client.phone || "",
+      whatsApp: client.whatsApp || "",
       address: client.address || "",
       neighborhood: client.neighborhood || "",
       city: client.city || "",
@@ -225,9 +227,15 @@ export default function Clients() {
                 <label className="text-sm font-medium">Email</label>
                 <Input value={form.email || ""} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="email@exemplo.com" />
               </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Telefone</label>
                 <Input value={form.phone || ""} onChange={(e) => setForm({ ...form, phone: formatPhone(e.target.value) })} placeholder="(00) 00000-0000" inputMode="tel" maxLength={15} />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">WhatsApp</label>
+                <Input value={form.whatsApp || ""} onChange={(e) => setForm({ ...form, whatsApp: formatPhone(e.target.value) })} placeholder="(00) 00000-0000" inputMode="tel" maxLength={15} />
+              </div>
               </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div className="space-y-2 sm:col-span-2">
@@ -295,6 +303,7 @@ export default function Clients() {
                   <TableHead>Nome</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Telefone</TableHead>
+                  <TableHead>WhatsApp</TableHead>
                   <TableHead>Cidade</TableHead>
                   <TableHead className="w-[100px]">Ações</TableHead>
                 </TableRow>
@@ -305,6 +314,7 @@ export default function Clients() {
                     <TableCell className="font-medium">{client.name}</TableCell>
                     <TableCell>{client.email || "-"}</TableCell>
                     <TableCell>{client.phone || "-"}</TableCell>
+                    <TableCell>{client.whatsApp || "-"}</TableCell>
                     <TableCell>{client.city || "-"}</TableCell>
                     <TableCell>
                       <div className="flex gap-1">

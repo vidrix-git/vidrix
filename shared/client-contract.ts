@@ -6,6 +6,7 @@ export type ClientMutationForm = {
   cpfCnpj: string;
   email?: string | null;
   phone?: string | null;
+  whatsApp?: string | null;
   address?: string | null;
   neighborhood?: string | null;
   city?: string | null;
@@ -30,6 +31,7 @@ export function toClientMutationInput(form: ClientMutationForm) {
     cpfCnpj: formatClientDocument(form.cpfCnpj, form.type),
     email: optionalText(form.email),
     phone: optionalText(formatPhone(form.phone)),
+    whatsApp: optionalText(formatPhone(form.whatsApp)),
     address: optionalText(form.address),
     neighborhood: optionalText(form.neighborhood),
     city: optionalText(form.city),
