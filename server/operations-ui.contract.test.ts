@@ -26,6 +26,12 @@ describe("contratos operacionais da interface", () => {
     expect(counter).toContain("data-keyboard-scope");
     expect(counter).not.toContain('<CardHeader><CardTitle>Atendimento</CardTitle>');
     expect(counter).toContain("Use Enter para avançar pelos campos");
+    expect(counter).toContain("shouldOpenCounterPriceDecision(event)");
+    expect(counter).toContain("Próximo passo do atendimento");
+    expect(counter).toContain("Adicionar novo produto");
+    expect(counter).toContain("Finalizar atendimento");
+    expect(counter).toContain("setShowPriceDecision(false)");
+    expect(counter).toContain("outcomeChoiceRef.current?.focus()");
   });
 
   it("impede reenvio de recebimento de compra enquanto a transação está pendente", () => {

@@ -234,3 +234,8 @@
 - [x] Revalidar no navegador o cadastro de produto para confirmar o uso do contrato corrigido
 - [x] Revalidar no navegador a edição de um produto existente, alterando um campo pela UI e confirmando a persistência visual
 - [x] Salvar a evidência final da revalidação visual de cadastro e edição de produto no ambiente publicado
+
+## Ajuste de encerramento por teclado no Balcão
+- [ ] Exibir uma escolha ao pressionar Enter no campo Preço do Balcão: adicionar novo produto ou finalizar atendimento
+- [ ] Ao escolher finalizar, mover o foco para a seção de desfecho Orçamento ou Venda sem usar o mouse
+- [ ] Cobrir o novo fluxo de decisão por teclado com testes de comportamento e validação visual
