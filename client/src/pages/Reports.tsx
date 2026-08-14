@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import {
   Card,
@@ -44,9 +44,22 @@ function exportToCSV(data: any[], filename: string) {
   toast.success(`Relatório exportado: ${filename}.csv`);
 }
 
+function formatDateInput(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function resolveRevenuePeriod(period: string) {
+  if (period === "all") return undefined;
+  const end = new Date();
+  const start = new Date(end);
+  start.setDate(start.getDate() - (period === "7d" ? 6 : period === "90d" ? 89 : 29));
+  return { startDate: formatDateInput(start), endDate: formatDateInput(end) };
+}
+
 export default function Reports() {
   const [period, setPeriod] = useState("30d");
-  const { data: revenueReport } = trpc.reports.revenue.useQuery();
+  const revenuePeriod = useMemo(() => resolveRevenuePeriod(period), [period]);
+  const { data: revenueReport } = trpc.reports.revenue.useQuery(revenuePeriod);
   const { data: commissionReport } = trpc.reports.commissions.useQuery();
   const { data: stockReport } = trpc.reports.stockAnalysis.useQuery();
 
@@ -81,14 +94,18 @@ export default function Reports() {
                 <CardTitle className="text-sm">Faturamento por Período</CardTitle>
                 <CardDescription>Resumo de vendas entregues</CardDescription>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => revenueReport && exportToCSV(revenueReport as any[], "faturamento")}
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Exportar CSV
-              </Button>
+              <div className="flex items-center gap-2">
+                <select aria-label="Período do faturamento" value={period} onChange={(event) => setPeriod(event.target.value)} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
+                  <option value="7d">Últimos 7 dias</option>
+                  <option value="30d">Últimos 30 dias</option>
+                  <option value="90d">Últimos 90 dias</option>
+                  <option value="all">Todo o período</option>
+                </select>
+                <Button variant="outline" size="sm" onClick={() => revenueReport && exportToCSV(revenueReport as any[], "faturamento")}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Exportar CSV
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="p-0">
               <Table>

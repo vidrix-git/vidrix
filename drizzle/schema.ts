@@ -174,6 +174,27 @@ export type InsertOrderItem = typeof orderItems.$inferInsert;
 export type UpdateOrderItem = typeof orderItems.$inferInsert;
 
 // ============================================================
+// COMMERCIAL EXTRAS (Complementos de atendimento de balcão)
+// ============================================================
+export const commercialExtras = mysqlTable("commercialExtras", {
+  id: int("id").autoincrement().primaryKey(),
+  quoteId: int("quoteId"),
+  orderId: int("orderId"),
+  productId: int("productId"),
+  kind: mysqlEnum("kind", ["acessorio", "massa", "tarugo", "moldura", "montagem"]).notNull(),
+  description: varchar("description", { length: 255 }).notNull(),
+  unit: varchar("unit", { length: 20 }).notNull(),
+  quantity: decimal("quantity", { precision: 12, scale: 3 }).notNull(),
+  unitPrice: decimal("unitPrice", { precision: 12, scale: 2 }).notNull(),
+  subtotal: decimal("subtotal", { precision: 12, scale: 2 }).notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type CommercialExtra = typeof commercialExtras.$inferSelect;
+export type InsertCommercialExtra = typeof commercialExtras.$inferInsert;
+
+// ============================================================
 // PURCHASE ORDERS (Pedidos de Compra)
 // ============================================================
 export const purchaseOrders = mysqlTable("purchaseOrders", {

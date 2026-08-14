@@ -95,11 +95,11 @@ export default function Purchases() {
   });
 
   const receiveMutation = trpc.purchaseOrders.receive.useMutation({
-    onSuccess: () => {
+    onSuccess: (result: any) => {
       utils.purchaseOrders.list.invalidate();
       utils.products.list.invalidate();
       utils.stockMovements.list.invalidate();
-      toast.success("Mercadoria recebida! Estoque atualizado automaticamente.");
+      toast.success(result?.alreadyReceived ? "Este pedido já havia sido recebido; o estoque não foi alterado novamente." : "Mercadoria recebida! Estoque atualizado automaticamente.");
     },
     onError: (e) => toast.error(e.message),
   });
@@ -169,6 +169,7 @@ export default function Purchases() {
   };
 
   const handleReceive = (poId: number) => {
+    if (receiveMutation.isPending) return;
     if (window.confirm("Confirmar recebimento da mercadoria? O estoque será atualizado automaticamente.")) {
       receiveMutation.mutate({ id: poId });
     }
@@ -291,7 +292,7 @@ export default function Purchases() {
                       <TableCell>
                         <div className="flex gap-1">
                           {po.status === "pendente" && (
-                            <Button variant="ghost" size="icon" className="text-green-600" onClick={() => handleReceive(po.id)}>
+                            <Button variant="ghost" size="icon" className="text-green-600" onClick={() => handleReceive(po.id)} disabled={receiveMutation.isPending} title={receiveMutation.isPending ? "Recebendo mercadoria..." : "Receber mercadoria"}>
                               <PackageCheck className="h-4 w-4" />
                             </Button>
                           )}

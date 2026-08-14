@@ -29,18 +29,26 @@ const typeColors: Record<string, string> = {
 
 const sourceLabels: Record<string, string> = {
   "purchase": "Pedido de Compra",
+  "purchase_order": "Recebimento de Compra",
   "order": "Pedido de Venda",
+  "counter_sale": "Venda de Balcão",
   "manual": "Manual",
   "conversion": "Conversão de Orçamento",
   "order_cancel": "Cancelamento de Pedido",
+  "order_adjust": "Ajuste de Pedido",
+  "order_item_remove": "Remoção de Item",
 };
 
 const sourceIcons: Record<string, string> = {
-  "purchase": "🛒",
-  "order": "📦",
-  "manual": "✏️",
-  "conversion": "🔄",
-  "order_cancel": "↩",
+  "purchase": "",
+  "purchase_order": "",
+  "order": "",
+  "counter_sale": "",
+  "manual": "",
+  "conversion": "",
+  "order_cancel": "",
+  "order_adjust": "",
+  "order_item_remove": "",
 };
 
 export default function Stock() {

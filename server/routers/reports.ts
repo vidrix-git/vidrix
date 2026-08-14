@@ -2,8 +2,21 @@ import { z } from "zod";
 import { protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { orders, quotes, users, products, stockMovements, clients, orderItems } from "../../drizzle/schema";
-import { eq, desc, gte, lte, sql } from "drizzle-orm";
+import { and, eq, desc, gte, lte } from "drizzle-orm";
 import { toStockMovementReportRow } from "../stock-history";
+
+export type RevenuePeriodInput = { startDate?: string; endDate?: string } | undefined;
+
+export function resolveRevenuePeriod(input: RevenuePeriodInput) {
+  if (!input?.startDate && !input?.endDate) return null;
+  if (!input?.startDate || !input?.endDate) throw new Error("Período de faturamento inválido");
+
+  const start = new Date(input.startDate);
+  const end = new Date(input.endDate);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || start > end) throw new Error("Período de faturamento inválido");
+  end.setHours(23, 59, 59, 999);
+  return { start, end };
+}
 
 export const reportsRouter = router({
   revenue: protectedProcedure
@@ -12,20 +25,13 @@ export const reportsRouter = router({
       const db = await getDb();
       if (!db) throw new Error("Database not available");
 
-      let query = db.select().from(orders).where(eq(orders.status, "entregue"));
-
-      if (opts?.input?.startDate && opts?.input?.endDate) {
-        const start = new Date(opts.input.startDate);
-        const end = new Date(opts.input.endDate);
-        end.setHours(23, 59, 59, 999);
-        // Use SQL filter via where
-        const result = await db.execute(
-          sql`SELECT * FROM orders WHERE status = 'entregue' AND createdAt >= ${start.toISOString()} AND createdAt <= ${end.toISOString()} ORDER BY createdAt DESC`
-        );
-        return result;
+      const period = resolveRevenuePeriod(opts.input);
+      if (period) {
+        return db.select().from(orders)
+          .where(and(eq(orders.status, "entregue"), gte(orders.createdAt, period.start), lte(orders.createdAt, period.end)))
+          .orderBy(desc(orders.createdAt));
       }
-
-      return await query.orderBy(desc(orders.createdAt));
+      return db.select().from(orders).where(eq(orders.status, "entregue")).orderBy(desc(orders.createdAt));
     }),
 
   revenueSummary: protectedProcedure.query(async () => {

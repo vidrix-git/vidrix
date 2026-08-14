@@ -1,5 +1,41 @@
 # Vidrix ERP - TODO Completo
 
+## Auditoria integral de funcionamento e paridade MDB
+- [x] Consolidar as evidências e os critérios de aceite para todos os módulos e fluxos comerciais
+- [ ] Revalidar a paridade estrutural, de dados, regras e eventos entre o MDB legado e o Vidrix
+- [ ] Consolidar a revalidação estrutural do MDB × Vidrix com conclusões verificáveis para dados, regras e eventos
+- [x] Reexecutar e registrar a comparação atual de dados preservados, contagens e limitações operacionais
+- [x] Registrar no relatório as contagens atuais, a linha de base e as limitações da reconciliação de produção
+- [x] Confirmar a persistência no repositório da reconciliação atual antes de encerrar a evidência de dados
+- [ ] Registrar evidência explícita dos eventos e regras revalidados antes de encerrar a paridade
+- [x] Auditar tecnicamente cadastros, orçamentos, conversão em pedidos, venda direta, estoque, compras e relatórios
+- [x] Registrar evidência explícita dos eventos e regras revalidados antes de encerrar a paridade
+- [ ] Executar cenários controlados no ambiente publicado e registrar evidências de ponta a ponta
+- [ ] Corrigir divergências críticas ou de alta prioridade identificadas pela auditoria
+- [ ] Produzir relatório final de auditoria com matriz de paridade, evidências, limitações e recomendações
+
+## Correções críticas identificadas na auditoria
+- [x] Tornar o recebimento de pedido de compra transacional e idempotente para impedir entrada duplicada de estoque
+- [x] Criar teste de integração para recebimento de compra, estoque e movimento auditável
+- [ ] Definir e aplicar permissões por papel nos módulos operacionais, com testes de acesso não administrativo
+- [x] Validar por inspeção e teste o bloqueio de reenvio no recebimento da tela de compras
+- [x] Validar por inspeção e teste os rótulos amigáveis do histórico de estoque
+- [x] Adicionar teste de contrato para receita por período válido, inválido e invertido
+- [ ] Cobrir dashboard e relatórios gerais com testes de contrato dos indicadores e filtros
+
+## Atendimento comercial unificado de balcão
+- [x] Inspecionar e testar a tela e o endpoint unificado para orçamento e venda
+- [x] Validar o início sem cliente e o vínculo obrigatório apenas no encerramento
+- [x] Adicionar teste de integração para finalizar atendimento unificado como orçamento
+- [x] Implementar busca real de cliente no encerramento do atendimento e validar o cadastro rápido
+- [x] Adicionar teste de integração de venda com complemento vinculado a produto, totalização, baixa e movimento auditável
+- [x] Confirmar que cálculo em centímetros, estoque e referências se preservam no fluxo unificado
+- [x] Concluir testes de contrato e integração para orçamento e venda originados do mesmo atendimento
+- [x] Limpar a busca após cadastro rápido e manter o cliente recém-criado selecionado no encerramento
+- [x] Cobrir por contrato o estado de seleção retornado após cadastro rápido de cliente no balcão
+- [x] Cobrir a aplicação do resultado do cadastro rápido no estado final de encerramento do balcão
+- [x] Validar comportamentalmente o callback de sucesso do cadastro rápido com os setters do encerramento
+
 ## Backend
 - [x] Corrigir erros de TypeScript em todos os routers
 - [x] Router: clients (list, get, create, update, delete)

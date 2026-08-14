@@ -3,7 +3,7 @@ import { protectedProcedure, router } from "../_core/trpc";
 import { createPurchaseOrderSchema, updatePurchaseOrderSchema, createPurchaseOrderItemSchema, updatePurchaseOrderItemSchema } from "../../shared/schemas";
 import { getDb } from "../db";
 import { purchaseOrders, purchaseOrderItems, products, stockMovements } from "../../drizzle/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 export const purchaseOrdersRouter = router({
   list: protectedProcedure.query(async () => {
@@ -117,27 +117,34 @@ export const purchaseOrdersRouter = router({
   receive: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async (opts) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
-    const po = await db.select().from(purchaseOrders).where(eq(purchaseOrders.id, opts.input.id)).limit(1);
-    if (po.length === 0) throw new Error("Pedido de compra não encontrado");
-    const items = await db.select().from(purchaseOrderItems).where(eq(purchaseOrderItems.purchaseOrderId, opts.input.id));
-    for (const item of items as any[]) {
-      // Add stock
-      const currentProduct = await db.select().from(products).where(eq(products.id, item.productId)).limit(1);
-      if (currentProduct.length > 0) {
-        const newStock = currentProduct[0].stockQuantity + item.quantity;
-        await db.update(products).set({ stockQuantity: newStock }).where(eq(products.id, item.productId));
+    return db.transaction(async (tx) => {
+      await tx.execute(sql`SELECT id FROM purchaseOrders WHERE id = ${opts.input.id} FOR UPDATE`);
+      const po = await tx.select().from(purchaseOrders).where(eq(purchaseOrders.id, opts.input.id)).limit(1);
+      if (po.length === 0) throw new Error("Pedido de compra não encontrado");
+      if (po[0].status === "recebido") return { success: true, alreadyReceived: true };
+      if (po[0].status === "cancelado") throw new Error("Pedido de compra cancelado não pode ser recebido");
+
+      const items = await tx.select().from(purchaseOrderItems).where(eq(purchaseOrderItems.purchaseOrderId, opts.input.id));
+      if (items.length === 0) throw new Error("Inclua ao menos um item antes de receber o pedido de compra");
+
+      for (const item of items as any[]) {
+        await tx.execute(sql`SELECT id FROM products WHERE id = ${item.productId} FOR UPDATE`);
+        const result = await tx.update(products)
+          .set({ stockQuantity: sql`${products.stockQuantity} + ${item.quantity}` })
+          .where(eq(products.id, item.productId));
+        const header = Array.isArray(result) ? result[0] as any : result as any;
+        if (Number(header?.affectedRows ?? 0) !== 1) throw new Error(`Produto #${item.productId} não encontrado para recebimento`);
+        await tx.insert(stockMovements).values({
+          productId: item.productId,
+          type: "entrada",
+          quantity: item.quantity,
+          referenceType: "purchase_order",
+          referenceId: opts.input.id,
+          notes: `Entrada pelo pedido de compra #${opts.input.id}`,
+        });
       }
-      // Stock movement
-      await db.insert(stockMovements).values({
-        productId: item.productId,
-        type: "entrada",
-        quantity: item.quantity,
-        referenceType: "purchase_order",
-        referenceId: opts.input.id,
-        notes: `Entrada pelo pedido de compra #${opts.input.id}`,
-      });
-    }
-    await db.update(purchaseOrders).set({ status: "recebido" }).where(eq(purchaseOrders.id, opts.input.id));
-    return { success: true };
+      await tx.update(purchaseOrders).set({ status: "recebido" }).where(eq(purchaseOrders.id, opts.input.id));
+      return { success: true, alreadyReceived: false };
+    });
   }),
 });

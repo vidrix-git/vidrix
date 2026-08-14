@@ -14,6 +14,10 @@ const positiveIntegerString = (field: string) => z.string().trim().refine(
   (value) => Number.isInteger(Number(value)) && Number(value) > 0,
   `${field} deve ser um número inteiro positivo`,
 );
+const nonNegativeDecimalString = (field: string) => z.string().trim().refine(
+  (value) => Number.isFinite(parseBrazilianDecimal(value)) && parseBrazilianDecimal(value) >= 0,
+  `${field} deve ser um número igual ou maior que zero`,
+);
 
 // ============================================================
 // CLIENTS
@@ -197,17 +201,38 @@ export const updateOrderItemSchema = z.object({
 // ============================================================
 // COUNTER SALES (Venda Direta / Balcão)
 // ============================================================
+const counterTransactionItemsSchema = z.array(z.object({
+  productId: z.number().int().positive("Selecione um produto"),
+  width: positiveDecimalString("Largura em centímetros"),
+  height: positiveDecimalString("Altura em centímetros"),
+  quantity: positiveIntegerString("Quantidade"),
+  unitPrice: positiveDecimalString("Preço por m²"),
+  notes: z.string().trim().max(1000).optional().nullable(),
+})).min(1, "Adicione pelo menos um item ao atendimento");
+
 export const createCounterSaleSchema = z.object({
   clientId: z.number().int().positive("Selecione o cliente da venda"),
   notes: z.string().trim().max(1000).optional().nullable(),
-  items: z.array(z.object({
-    productId: z.number().int().positive("Selecione um produto"),
-    width: positiveDecimalString("Largura em centímetros"),
-    height: positiveDecimalString("Altura em centímetros"),
-    quantity: positiveIntegerString("Quantidade"),
-    unitPrice: positiveDecimalString("Preço por m²"),
-    notes: z.string().trim().max(1000).optional().nullable(),
-  })).min(1, "Adicione pelo menos um item à venda"),
+  items: counterTransactionItemsSchema,
+});
+
+const counterCommercialExtrasSchema = z.array(z.object({
+  kind: z.enum(["acessorio", "massa", "tarugo", "moldura", "montagem"]),
+  description: z.string().trim().min(1, "Descrição do complemento é obrigatória").max(255),
+  unit: z.enum(["un", "kg", "cm", "m", "servico"]),
+  quantity: positiveDecimalString("Quantidade do complemento"),
+  unitPrice: nonNegativeDecimalString("Preço unitário do complemento"),
+  productId: z.number().int().positive().optional().nullable(),
+  notes: z.string().trim().max(1000).optional().nullable(),
+})).default([]);
+
+/** Fecha um atendimento de balcão como orçamento ou venda; o cliente é definido apenas no encerramento. */
+export const finalizeCounterTransactionSchema = z.object({
+  outcome: z.enum(["quote", "sale"]),
+  clientId: z.number().int().positive("Selecione ou cadastre o cliente para concluir o atendimento"),
+  notes: z.string().trim().max(1000).optional().nullable(),
+  items: counterTransactionItemsSchema,
+  extras: counterCommercialExtrasSchema,
 });
 
 // ============================================================
