@@ -18,6 +18,7 @@ export type LegacyClient = {
 };
 
 export type LegacyProduct = {
+  code: string | null;
   name: string;
   type: string;
   thickness: string;
@@ -83,8 +84,12 @@ export function mapLegacyClient(row: LegacyRow): LegacyClient | null {
 export function mapLegacyProduct(row: LegacyRow, sourceTable: "KIt_Fontal" | "Kit_Canto"): LegacyProduct | null {
   const name = value(row, "Medida");
   if (!name) return null;
+  const legacyCode = value(row, "Código");
 
   return {
+    // O MDB reinicia a numeração em cada tabela de kit; o prefixo preserva
+    // a origem e produz um identificador único para pesquisa no Vidrix.
+    code: legacyCode ? `${sourceTable === "KIt_Fontal" ? "KF" : "KC"}-${legacyCode}` : null,
     name,
     type: sourceTable === "KIt_Fontal" ? "Kit frontal" : "Kit canto",
     thickness: "N/A",

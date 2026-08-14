@@ -9,14 +9,15 @@ import { toClientMutationInput, type ClientMutationForm } from "../../../shared/
 import { formatClientDocument, formatPhone } from "../../../shared/client-identifiers";
 import { applyQuickClientCompletion } from "../../../shared/counter-client";
 import { moveCounterPriceDecision, moveCounterSaleOutcomeFocus, shouldConfirmCounterPriceDecision, shouldConfirmCounterSaleOutcome, shouldOpenCounterPriceDecision, type CounterPriceDecision, type CounterSaleOutcome } from "../../../shared/counter-sale-keyboard";
+import { findCounterProductByCode, normalizeCounterProductCode } from "../../../shared/counter-product-code";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-type SaleItem = { key: number; productId: string; width: string; height: string; quantity: string; unitPrice: string; notes: string };
+type SaleItem = { key: number; productCode: string; productId: string; width: string; height: string; quantity: string; unitPrice: string; notes: string };
 type ExtraKind = "acessorio" | "massa" | "tarugo" | "moldura" | "montagem";
 type CommercialExtra = { key: number; kind: ExtraKind; description: string; unit: "un" | "kg" | "cm" | "m" | "servico"; quantity: string; unitPrice: string; productId: string; notes: string };
 
-const emptyItem = (key: number): SaleItem => ({ key, productId: "", width: "100", height: "100", quantity: "1", unitPrice: "", notes: "" });
+const emptyItem = (key: number): SaleItem => ({ key, productCode: "", productId: "", width: "100", height: "100", quantity: "1", unitPrice: "", notes: "" });
 const emptyExtra = (key: number, kind: ExtraKind = "acessorio"): CommercialExtra => ({ key, kind, description: "", unit: kind === "massa" ? "kg" : kind === "moldura" ? "cm" : kind === "montagem" ? "servico" : "un", quantity: "1", unitPrice: "0", productId: "", notes: "" });
 const emptyQuickClient: ClientMutationForm = { name: "", type: "PF", cpfCnpj: "", phone: "", whatsApp: "", email: "", address: "", neighborhood: "", city: "", state: "", zipCode: "" };
 
@@ -45,8 +46,8 @@ export default function CounterSale() {
   const outcomeChoiceRef = useRef<HTMLButtonElement>(null);
   const saleOutcomeChoiceRef = useRef<HTMLButtonElement>(null);
   const outcomeClientSearchRef = useRef<HTMLInputElement>(null);
-  const initialProductRef = useRef<HTMLSelectElement>(null);
-  const hasFocusedInitialProduct = useRef(false);
+  const initialProductCodeRef = useRef<HTMLInputElement>(null);
+  const hasFocusedInitialProductCode = useRef(false);
   const addProductDecisionRef = useRef<HTMLButtonElement>(null);
   const finishDecisionRef = useRef<HTMLButtonElement>(null);
 
@@ -63,9 +64,9 @@ export default function CounterSale() {
   const catalogReady = !productsLoading && !productsError && products.length > 0;
 
   useEffect(() => {
-    if (!catalogReady || hasFocusedInitialProduct.current) return;
-    hasFocusedInitialProduct.current = true;
-    window.requestAnimationFrame(() => initialProductRef.current?.focus());
+    if (!catalogReady || hasFocusedInitialProductCode.current) return;
+    hasFocusedInitialProductCode.current = true;
+    window.requestAnimationFrame(() => initialProductCodeRef.current?.focus());
   }, [catalogReady]);
 
   useEffect(() => {
@@ -106,7 +107,7 @@ export default function CounterSale() {
   const appendItem = () => {
     const key = Date.now();
     setItems((current) => [...current, emptyItem(key)]);
-    window.requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-counter-product="${key}"]`)?.focus());
+    window.requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-counter-product-code="${key}"]`)?.focus());
   };
   const addItemFromPriceDecision = () => {
     setShowPriceDecision(false);
@@ -155,7 +156,15 @@ export default function CounterSale() {
   };
   const chooseProduct = (item: SaleItem, productId: string) => {
     const product = products.find((entry: any) => String(entry.id) === productId) as any;
-    updateItem(item.key, { productId, unitPrice: product ? String(product.unitPrice) : item.unitPrice });
+    updateItem(item.key, { productId, productCode: product?.code || "", unitPrice: product ? String(product.unitPrice) : item.unitPrice });
+  };
+  const chooseProductByCode = (item: SaleItem, code: string) => {
+    const product = findCounterProductByCode(products as any[], code) as any;
+    updateItem(item.key, {
+      productCode: normalizeCounterProductCode(code),
+      productId: product ? String(product.id) : "",
+      unitPrice: product ? String(product.unitPrice) : item.unitPrice,
+    });
   };
   const submit = () => {
     if (!outcome) return toast.error("Escolha se deseja salvar como orçamento ou concluir como venda");
@@ -170,9 +179,9 @@ export default function CounterSale() {
   return <div className="mx-auto max-w-6xl space-y-6" data-keyboard-scope>
     <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><h1 className="text-2xl font-bold">Atendimento de Balcão</h1><p className="text-sm text-muted-foreground">Monte os itens primeiro e escolha no encerramento se será orçamento ou venda.</p></div><div className="rounded-lg border bg-card px-4 py-3 text-right"><p className="text-xs text-muted-foreground">Total estimado</p><p className="text-xl font-bold">R$ {estimatedTotal.toFixed(2)}</p></div></div>
 
-    <Card><CardHeader className="flex-row items-center justify-between space-y-0"><div><CardTitle>Vidros</CardTitle><CardDescription>O atendimento começa no Produto. Use Enter para avançar pelos campos e Shift+Enter para retornar. No preço, Enter abre a decisão; use ← e → para escolher e Enter para confirmar. Dimensões em centímetros; preço por metro quadrado.</CardDescription></div><Button variant="outline" size="sm" onClick={appendItem}><Plus className="mr-2 h-4 w-4" />Adicionar vidro</Button></CardHeader><CardContent className="space-y-3">
+    <Card><CardHeader className="flex-row items-center justify-between space-y-0"><div><CardTitle>Vidros</CardTitle><CardDescription>O atendimento começa no Código. Digite um código cadastrado para selecionar o produto automaticamente; use Enter para avançar pelos campos e Shift+Enter para retornar. No preço, Enter abre a decisão; use ← e → para escolher e Enter para confirmar. Dimensões em centímetros; preço por metro quadrado.</CardDescription></div><Button variant="outline" size="sm" onClick={appendItem}><Plus className="mr-2 h-4 w-4" />Adicionar vidro</Button></CardHeader><CardContent className="space-y-3">
       {productsError ? <p role="alert" className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">Não foi possível carregar os produtos. Atualize a página e tente novamente.</p> : productsLoading ? <p className="rounded-md border bg-muted px-3 py-2 text-sm text-muted-foreground">Carregando produtos…</p> : products.length === 0 ? <p className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-800 dark:text-amber-200">Cadastre ao menos um produto antes de realizar o atendimento.</p> : null}
-      {items.map((item, index) => <div key={item.key} className="grid gap-3 rounded-lg border p-3 sm:grid-cols-2 lg:grid-cols-[minmax(180px,2fr)_repeat(4,minmax(90px,1fr))_40px]"><div className="space-y-1"><Label>Produto</Label><select ref={index === 0 ? initialProductRef : undefined} data-counter-product={item.key} value={item.productId} onChange={(e) => chooseProduct(item, e.target.value)} disabled={productsLoading || Boolean(productsError) || products.length === 0} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm disabled:cursor-not-allowed disabled:opacity-50"><option value="">Selecione</option>{products.map((product: any) => <option key={product.id} value={product.id}>{product.name} — estoque {product.stockQuantity}</option>)}</select></div><div className="space-y-1"><Label>Larg. (cm)</Label><Input inputMode="decimal" value={item.width} onChange={(e) => updateItem(item.key, { width: e.target.value })} /></div><div className="space-y-1"><Label>Alt. (cm)</Label><Input inputMode="decimal" value={item.height} onChange={(e) => updateItem(item.key, { height: e.target.value })} /></div><div className="space-y-1"><Label>Qtd.</Label><Input inputMode="numeric" value={item.quantity} onChange={(e) => updateItem(item.key, { quantity: e.target.value })} /></div><div className="space-y-1"><Label>Preço/m²</Label><Input inputMode="decimal" value={item.unitPrice} onChange={(e) => updateItem(item.key, { unitPrice: e.target.value })} onKeyDown={handlePriceKeyDown} /></div><Button variant="ghost" size="icon" className="self-end text-destructive" onClick={() => setItems((current) => current.length === 1 ? current : current.filter((entry) => entry.key !== item.key))} aria-label="Remover vidro"><Trash2 className="h-4 w-4" /></Button></div>)}
+      {items.map((item, index) => <div key={item.key} className="grid gap-3 rounded-lg border p-3 sm:grid-cols-2 lg:grid-cols-[minmax(105px,0.7fr)_minmax(180px,2fr)_repeat(4,minmax(90px,1fr))_40px]"><div className="space-y-1"><Label>Código</Label><Input ref={index === 0 ? initialProductCodeRef : undefined} data-counter-product-code={item.key} value={item.productCode} onChange={(e) => chooseProductByCode(item, e.target.value)} placeholder="Ex.: KF-1" autoCapitalize="characters" disabled={productsLoading || Boolean(productsError) || products.length === 0} /></div><div className="space-y-1"><Label>Produto</Label><select data-counter-product={item.key} value={item.productId} onChange={(e) => chooseProduct(item, e.target.value)} disabled={productsLoading || Boolean(productsError) || products.length === 0} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm disabled:cursor-not-allowed disabled:opacity-50"><option value="">Selecione</option>{products.map((product: any) => <option key={product.id} value={product.id}>{product.code ? `${product.code} — ` : ""}{product.name} — estoque {product.stockQuantity}</option>)}</select></div><div className="space-y-1"><Label>Larg. (cm)</Label><Input inputMode="decimal" value={item.width} onChange={(e) => updateItem(item.key, { width: e.target.value })} /></div><div className="space-y-1"><Label>Alt. (cm)</Label><Input inputMode="decimal" value={item.height} onChange={(e) => updateItem(item.key, { height: e.target.value })} /></div><div className="space-y-1"><Label>Qtd.</Label><Input inputMode="numeric" value={item.quantity} onChange={(e) => updateItem(item.key, { quantity: e.target.value })} /></div><div className="space-y-1"><Label>Preço/m²</Label><Input inputMode="decimal" value={item.unitPrice} onChange={(e) => updateItem(item.key, { unitPrice: e.target.value })} onKeyDown={handlePriceKeyDown} /></div><Button variant="ghost" size="icon" className="self-end text-destructive" onClick={() => setItems((current) => current.length === 1 ? current : current.filter((entry) => entry.key !== item.key))} aria-label="Remover vidro"><Trash2 className="h-4 w-4" /></Button></div>)}
     </CardContent></Card>
 
     <Card><CardHeader className="flex-row items-center justify-between space-y-0"><div><CardTitle>Complementos</CardTitle><CardDescription>Acessórios, massa, tarugo, moldura e montagem entram no mesmo total. Vincule um produto somente quando houver baixa de estoque.</CardDescription></div><Button variant="outline" size="sm" onClick={() => setExtras((current) => [...current, emptyExtra(Date.now())])}><PackagePlus className="mr-2 h-4 w-4" />Adicionar complemento</Button></CardHeader><CardContent className="space-y-3">{extras.length === 0 ? <p className="rounded-md border border-dashed px-3 py-4 text-sm text-muted-foreground">Nenhum complemento adicionado a este atendimento.</p> : extras.map((extra) => <div key={extra.key} className="grid gap-3 rounded-lg border p-3 md:grid-cols-2 xl:grid-cols-[130px_minmax(160px,2fr)_90px_90px_110px_minmax(150px,1fr)_40px]"><div className="space-y-1"><Label>Tipo</Label><select value={extra.kind} onChange={(e) => { const kind = e.target.value as ExtraKind; updateExtra(extra.key, { kind, unit: kind === "massa" ? "kg" : kind === "moldura" ? "cm" : kind === "montagem" ? "servico" : "un" }); }} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">{Object.entries(extraLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div><div className="space-y-1"><Label>Descrição</Label><Input value={extra.description} onChange={(e) => updateExtra(extra.key, { description: e.target.value })} placeholder={extraLabels[extra.kind]} /></div><div className="space-y-1"><Label>Unidade</Label><select value={extra.unit} onChange={(e) => updateExtra(extra.key, { unit: e.target.value as CommercialExtra["unit"] })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"><option value="un">un</option><option value="kg">kg</option><option value="cm">cm</option><option value="m">m</option><option value="servico">serviço</option></select></div><div className="space-y-1"><Label>Qtd.</Label><Input inputMode="decimal" value={extra.quantity} onChange={(e) => updateExtra(extra.key, { quantity: e.target.value })} /></div><div className="space-y-1"><Label>Valor un.</Label><Input inputMode="decimal" value={extra.unitPrice} onChange={(e) => updateExtra(extra.key, { unitPrice: e.target.value })} /></div><div className="space-y-1"><Label>Produto estoque</Label><select value={extra.productId} onChange={(e) => updateExtra(extra.key, { productId: e.target.value })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"><option value="">Não movimenta estoque</option>{products.map((product: any) => <option key={product.id} value={product.id}>{product.name}</option>)}</select></div><Button variant="ghost" size="icon" className="self-end text-destructive" onClick={() => setExtras((current) => current.filter((entry) => entry.key !== extra.key))} aria-label="Remover complemento"><Trash2 className="h-4 w-4" /></Button></div>)}</CardContent></Card>

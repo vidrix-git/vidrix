@@ -52,7 +52,7 @@ export default function Products() {
   const [editId, setEditId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [form, setForm] = useState<ProductCatalogForm>({
-    name: "", type: "", thickness: "", color: "",
+    code: "", name: "", type: "", thickness: "", color: "",
     unitPrice: "0", stockQuantity: 0, minStockQuantity: 10,
   });
 
@@ -99,6 +99,7 @@ export default function Products() {
   const openEdit = (product: any) => {
     setEditId(product.id);
     setForm({
+      code: product.code || "",
       name: product.name || "",
       type: product.type || "",
       thickness: product.thickness || "",
@@ -111,7 +112,7 @@ export default function Products() {
   };
 
   const filtered = products?.filter((p: any) =>
-    p.name?.toLowerCase().includes(search.toLowerCase())
+    [p.code, p.name].filter(Boolean).some((value) => String(value).toLowerCase().includes(search.toLowerCase()))
   ) || [];
 
   const getStockBadge = (p: any) => {
@@ -139,6 +140,10 @@ export default function Products() {
               <DialogTitle>{editId ? "Editar Produto" : "Novo Produto"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Código</label>
+                <Input value={form.code || ""} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })} placeholder="Ex.: KF-1" maxLength={64} />
+              </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Nome *</label>
                 <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Ex: Vidro incolor 4mm" />
@@ -197,7 +202,7 @@ export default function Products() {
 
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Buscar produto..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+        <Input placeholder="Buscar por código ou produto..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
       </div>
 
       <Card>
@@ -212,6 +217,7 @@ export default function Products() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Código</TableHead>
                   <TableHead>Nome</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead>Espessura</TableHead>
@@ -224,6 +230,7 @@ export default function Products() {
               <TableBody>
                 {filtered.map((product: any) => (
                   <TableRow key={product.id}>
+                    <TableCell className="font-mono text-xs">{product.code || "-"}</TableCell>
                     <TableCell className="font-medium">{product.name}</TableCell>
                     <TableCell>{product.type || "-"}</TableCell>
                     <TableCell>{product.thickness || "-"}</TableCell>

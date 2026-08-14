@@ -49,6 +49,7 @@ export type UpdateClient = typeof clients.$inferInsert;
 // ============================================================
 export const products = mysqlTable("products", {
   id: int("id").autoincrement().primaryKey(),
+  code: varchar("code", { length: 64 }).unique(),
   name: varchar("name", { length: 255 }).notNull(),
   type: varchar("type", { length: 255 }),
   thickness: varchar("thickness", { length: 255 }).notNull(),

@@ -5,6 +5,7 @@ import { toProductMutationInput } from "../shared/product-contract";
 describe("contrato de cadastro de produtos", () => {
   it("serializa um produto de catálogo sem dimensões próprias no formato aceito pelo router", () => {
     const input = toProductMutationInput({
+      code: "  kf-1 ",
       name: "  TESTE - Vidro Incolor 4mm  ",
       type: "vidro_incolor",
       thickness: "4",
@@ -15,6 +16,7 @@ describe("contrato de cadastro de produtos", () => {
     });
 
     expect(input).toMatchObject({
+      code: "KF-1",
       name: "TESTE - Vidro Incolor 4mm",
       width: "0",
       height: "0",
@@ -37,5 +39,11 @@ describe("contrato de cadastro de produtos", () => {
 
     expect(input.thickness).toBe("N/A");
     expect(createProductSchema.parse(input)).toEqual(input);
+  });
+
+  it("rejeita caracteres incompatíveis com o código operacional", () => {
+    expect(() => createProductSchema.parse({
+      name: "Produto", thickness: "N/A", width: "0", height: "0", unitPrice: "10", stockQuantity: "0", minStockQuantity: "0", code: "código com espaço",
+    })).toThrow("Código deve conter apenas");
   });
 });

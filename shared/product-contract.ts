@@ -1,4 +1,5 @@
 export type ProductCatalogForm = {
+  code?: string | null;
   name: string;
   type?: string | null;
   thickness?: string | null;
@@ -15,6 +16,7 @@ export type ProductCatalogForm = {
  */
 export function toProductMutationInput(form: ProductCatalogForm) {
   return {
+    code: form.code?.trim().toUpperCase() || null,
     name: form.name.trim(),
     type: form.type || null,
     thickness: form.thickness?.trim() || "N/A",

@@ -32,6 +32,7 @@ export const ERP_SCHEMA_STATEMENTS = [
   )`,
   `CREATE TABLE IF NOT EXISTS \`products\` (
     \`id\` int AUTO_INCREMENT NOT NULL,
+    \`code\` varchar(64),
     \`name\` varchar(255) NOT NULL,
     \`type\` varchar(255),
     \`thickness\` varchar(255) NOT NULL,
@@ -43,7 +44,8 @@ export const ERP_SCHEMA_STATEMENTS = [
     \`minStockQuantity\` int NOT NULL DEFAULT 0,
     \`createdAt\` timestamp NOT NULL DEFAULT (now()),
     \`updatedAt\` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY(\`id\`)
+    PRIMARY KEY(\`id\`),
+    UNIQUE KEY \`products_code_unique\` (\`code\`)
   )`,
   `CREATE TABLE IF NOT EXISTS \`suppliers\` (
     \`id\` int AUTO_INCREMENT NOT NULL,
@@ -213,6 +215,8 @@ export const ERP_SCHEMA_STATEMENTS = [
   `ALTER TABLE \`clients\` ADD COLUMN \`zipCode\` varchar(9)`,
   `UPDATE \`orders\` SET \`stockAllocatedAt\` = \`createdAt\` WHERE \`quoteId\` IS NOT NULL AND \`stockAllocatedAt\` IS NULL AND \`status\` <> 'cancelado'`,
   `ALTER TABLE \`clients\` ADD COLUMN \`whatsApp\` varchar(255)`,
+  `ALTER TABLE \`products\` ADD COLUMN \`code\` varchar(64)`,
+  `ALTER TABLE \`products\` ADD UNIQUE INDEX \`products_code_unique\` (\`code\`)`,
 ] as const;
 
 // Lazily create the drizzle instance so local tooling can run without a DB.
@@ -240,7 +244,7 @@ export async function ensureDatabaseSchema(): Promise<void> {
             await db.execute(statement);
           } catch (error: any) {
             const errorCode = error?.code || error?.cause?.code;
-            if (errorCode !== "ER_DUP_FIELDNAME") throw error;
+            if (errorCode !== "ER_DUP_FIELDNAME" && errorCode !== "ER_DUP_KEYNAME") throw error;
           }
         }
         console.log("[Database] ERP schema is ready");

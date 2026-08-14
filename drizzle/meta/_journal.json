@@ -71,6 +71,13 @@
       "when": 1786717183824,
       "tag": "0009_nappy_dust",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1786730257790,
+      "tag": "0010_soft_cerise",
+      "breakpoints": true
     }
   ]
 }

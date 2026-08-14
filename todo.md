@@ -250,3 +250,9 @@
 - [ ] Alternar o foco entre Salvar como orçamento e Concluir como venda com as setas esquerda e direita
 - [ ] Confirmar por Enter o resultado destacado e abrir a respectiva etapa de cliente sem usar o mouse
 - [ ] Cobrir a seleção de resultado por setas com teste de comportamento e validação publicada
+
+## Código de produto no Balcão
+- [ ] Identificar no MDB legado a origem, formato e disponibilidade do código de produto
+- [ ] Adicionar e migrar o código de produto no catálogo Vidrix, preservando produtos existentes
+- [ ] Incluir o campo Código antes do Produto no Balcão com seleção automática pelo código informado
+- [ ] Cobrir código de produto e seleção por teclado com testes e validação publicada

@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { clients, cuttingRules, legacyImportRecords, products } from "../../drizzle/schema";
 import { ensureDatabaseSchema, getDb } from "../db";
@@ -94,12 +94,18 @@ export const legacyMigrationRouter = router({
           const product = mapLegacyProduct(entry.row, entry.sourceTable as "KIt_Fontal" | "Kit_Canto");
           if (!product) continue;
           const [knownRows] = await tx.execute(sql`
-            SELECT id FROM ${products}
+            SELECT id, code FROM ${products}
             WHERE ${products.name} = ${product.name} AND ${products.type} = ${product.type}
             LIMIT 1
           `);
-          const existingProducts = knownRows as unknown as Array<{ id: number }>;
-          if (existingProducts.length > 0) continue;
+          const existingProducts = knownRows as unknown as Array<{ id: number; code?: string | null }>;
+          if (existingProducts.length > 0) {
+            if (product.code && !existingProducts[0].code) {
+              await tx.update(products).set({ code: product.code }).where(eq(products.id, existingProducts[0].id));
+              productsProcessed += 1;
+            }
+            continue;
+          }
           await tx.insert(products).values({
             ...product,
             width: product.width.toFixed(2), height: product.height.toFixed(2), unitPrice: product.unitPrice.toFixed(2),

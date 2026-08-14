@@ -19,10 +19,11 @@ describe("mapeamento de dados do MDB legado", () => {
     });
   });
 
-  it("mapeia kits para produtos sem inventar medidas físicas", () => {
-    const product = mapLegacyProduct({ Medida: "KIT FRONTAL 120MT ALM FOSCO", Preço: "117.00" }, "KIt_Fontal");
+  it("mapeia kits para produtos sem inventar medidas físicas e preserva a origem do código", () => {
+    const product = mapLegacyProduct({ Código: "1", Medida: "KIT FRONTAL 120MT ALM FOSCO", Preço: "117.00" }, "KIt_Fontal");
 
     expect(product).toEqual({
+      code: "KF-1",
       name: "KIT FRONTAL 120MT ALM FOSCO",
       type: "Kit frontal",
       thickness: "N/A",
@@ -31,6 +32,10 @@ describe("mapeamento de dados do MDB legado", () => {
       height: 0,
       unitPrice: 117,
     });
+  });
+
+  it("diferencia códigos repetidos em tabelas distintas do MDB", () => {
+    expect(mapLegacyProduct({ Código: "1", Medida: "KIT CANTO 100MT ALM FOSCO", Preço: "155.00" }, "Kit_Canto")?.code).toBe("KC-1");
   });
 
   it("converte regras de corte e mantém hashes determinísticos", () => {

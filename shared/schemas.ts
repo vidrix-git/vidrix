@@ -65,6 +65,7 @@ export const updateClientSchema = z.object({
 // PRODUCTS
 // ============================================================
 export const createProductSchema = z.object({
+  code: z.string().trim().min(1, "Código inválido").max(64, "Código deve ter até 64 caracteres").regex(/^[A-Za-z0-9][A-Za-z0-9._/-]*$/, "Código deve conter apenas letras, números, ponto, hífen, barra ou sublinhado").optional().nullable(),
   name: z.string().min(1, "Nome é obrigatório"),
   type: z.string().optional().nullable(),
   thickness: z.string().min(1, "Espessura é obrigatória"),
@@ -78,6 +79,7 @@ export const createProductSchema = z.object({
 
 export const updateProductSchema = z.object({
   id: z.number().int().positive("ID do produto deve ser positivo"),
+  code: z.string().trim().min(1, "Código inválido").max(64, "Código deve ter até 64 caracteres").regex(/^[A-Za-z0-9][A-Za-z0-9._/-]*$/, "Código deve conter apenas letras, números, ponto, hífen, barra ou sublinhado").optional().nullable(),
   name: z.string().min(1, "Nome é obrigatório").optional(),
   type: z.string().optional().nullable(),
   thickness: z.string().optional(),
