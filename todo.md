@@ -245,3 +245,8 @@
 - [ ] Permitir alternar entre Adicionar novo produto e Finalizar atendimento pelas setas esquerda e direita no diálogo
 - [ ] Confirmar a opção destacada com Enter e preservar o foco correto após cada ação
 - [ ] Cobrir foco inicial e seleção por setas com testes de comportamento e validação publicada
+
+## Escolha por setas entre orçamento e venda
+- [ ] Alternar o foco entre Salvar como orçamento e Concluir como venda com as setas esquerda e direita
+- [ ] Confirmar por Enter o resultado destacado e abrir a respectiva etapa de cliente sem usar o mouse
+- [ ] Cobrir a seleção de resultado por setas com teste de comportamento e validação publicada

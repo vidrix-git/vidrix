@@ -27,3 +27,12 @@ export function moveCounterPriceDecision(current: CounterPriceDecision, key: str
   if (key !== "ArrowLeft" && key !== "ArrowRight") return current;
   return current === "add" ? "finish" : "add";
 }
+
+export type CounterSaleOutcome = "quote" | "sale";
+
+/** Move pelo seletor horizontal de orçamento e venda, respeitando a direção solicitada. */
+export function moveCounterSaleOutcomeFocus(current: CounterSaleOutcome, key: string): CounterSaleOutcome {
+  if (key === "ArrowLeft" && current === "sale") return "quote";
+  if (key === "ArrowRight" && current === "quote") return "sale";
+  return current;
+}

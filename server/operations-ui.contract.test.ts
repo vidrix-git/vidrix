@@ -12,8 +12,8 @@ describe("contratos operacionais da interface", () => {
     const counter = source("client/src/pages/CounterSale.tsx");
 
     expect(counter).toContain('useState<"quote" | "sale" | null>(null)');
-    expect(counter).toContain('setOutcome("quote")');
-    expect(counter).toContain('setOutcome("sale")');
+    expect(counter).toContain('chooseOutcome("quote")');
+    expect(counter).toContain('chooseOutcome("sale")');
     expect(counter).toContain('{outcome && <Card');
     expect(counter).toContain('Cadastrar e selecionar cliente');
     expect(counter).toContain('placeholder="Buscar por nome, CPF/CNPJ, telefone ou WhatsApp"');
@@ -35,6 +35,8 @@ describe("contratos operacionais da interface", () => {
     expect(counter).toContain("initialProductRef.current?.focus()");
     expect(counter).toContain("moveCounterPriceDecision(priceDecision, event.key)");
     expect(counter).toContain("shouldConfirmCounterPriceDecision(event)");
+    expect(counter).toContain("moveCounterSaleOutcomeFocus(currentOutcome, event.key)");
+    expect(counter).toContain("outcomeClientSearchRef.current?.focus()");
     expect(counter).toContain("event.stopPropagation()");
     expect(counter).toContain("Use ← e → para alternar e Enter para confirmar");
   });
