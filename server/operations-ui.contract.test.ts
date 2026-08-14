@@ -32,6 +32,9 @@ describe("contratos operacionais da interface", () => {
     expect(counter).toContain("Finalizar atendimento");
     expect(counter).toContain("setShowPriceDecision(false)");
     expect(counter).toContain("outcomeChoiceRef.current?.focus()");
+    expect(counter).toContain("initialProductRef.current?.focus()");
+    expect(counter).toContain("moveCounterPriceDecision(priceDecision, event.key)");
+    expect(counter).toContain("Use ← e → para alternar e Enter para confirmar");
   });
 
   it("impede reenvio de recebimento de compra enquanto a transação está pendente", () => {

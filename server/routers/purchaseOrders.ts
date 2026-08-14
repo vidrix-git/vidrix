@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { protectedProcedure, router } from "../_core/trpc";
+import { adminProcedure, protectedProcedure, router } from "../_core/trpc";
 import { createPurchaseOrderSchema, updatePurchaseOrderSchema, createPurchaseOrderItemSchema, updatePurchaseOrderItemSchema } from "../../shared/schemas";
 import { getDb } from "../db";
 import { purchaseOrders, purchaseOrderItems, products, stockMovements } from "../../drizzle/schema";
@@ -26,7 +26,7 @@ export const purchaseOrdersRouter = router({
     return db.select().from(purchaseOrderItems).where(eq(purchaseOrderItems.purchaseOrderId, opts.input.id));
   }),
 
-  create: protectedProcedure.input(createPurchaseOrderSchema).mutation(async (opts) => {
+  create: adminProcedure.input(createPurchaseOrderSchema).mutation(async (opts) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
     const userId = opts.ctx.user?.id ?? 0;
@@ -41,7 +41,7 @@ export const purchaseOrdersRouter = router({
     return { success: true, insertId: result[0].insertId };
   }),
 
-  update: protectedProcedure.input(updatePurchaseOrderSchema).mutation(async (opts) => {
+  update: adminProcedure.input(updatePurchaseOrderSchema).mutation(async (opts) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
     const { id, ...data } = opts.input;
@@ -53,7 +53,7 @@ export const purchaseOrdersRouter = router({
     return { success: true };
   }),
 
-  delete: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async (opts) => {
+  delete: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async (opts) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
     await db.delete(purchaseOrderItems).where(eq(purchaseOrderItems.purchaseOrderId, opts.input.id));
@@ -61,7 +61,7 @@ export const purchaseOrdersRouter = router({
     return { success: true };
   }),
 
-  addItem: protectedProcedure.input(createPurchaseOrderItemSchema).mutation(async (opts) => {
+  addItem: adminProcedure.input(createPurchaseOrderItemSchema).mutation(async (opts) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
     const { quantity, unitCost, ...rest } = opts.input;
@@ -80,7 +80,7 @@ export const purchaseOrdersRouter = router({
     return { success: true, insertId: result[0].insertId };
   }),
 
-  updateItem: protectedProcedure.input(updatePurchaseOrderItemSchema).mutation(async (opts) => {
+  updateItem: adminProcedure.input(updatePurchaseOrderItemSchema).mutation(async (opts) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
     const { id, quantity, unitCost, ...rest } = opts.input;
@@ -101,7 +101,7 @@ export const purchaseOrdersRouter = router({
     return { success: true };
   }),
 
-  deleteItem: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async (opts) => {
+  deleteItem: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async (opts) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
     const item = await db.select().from(purchaseOrderItems).where(eq(purchaseOrderItems.id, opts.input.id)).limit(1);
@@ -114,7 +114,7 @@ export const purchaseOrdersRouter = router({
     return { success: true };
   }),
 
-  receive: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async (opts) => {
+  receive: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async (opts) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
     return db.transaction(async (tx) => {

@@ -4,52 +4,54 @@ import { getDb } from "../db";
 import { orders, orderItems, quotes, clients, users, products, purchaseOrders, stockMovements } from "../../drizzle/schema";
 import { eq, desc, sql, and, gte, lte } from "drizzle-orm";
 
+export type DashboardPeriod = "7d" | "30d" | "90d" | "month" | "year";
+
+export function resolveDashboardStartDate(period: DashboardPeriod = "30d", now = new Date()): Date {
+  if (period === "7d") return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  if (period === "90d") return new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+  if (period === "month") return new Date(now.getFullYear(), now.getMonth(), 1);
+  if (period === "year") return new Date(now.getFullYear(), 0, 1);
+  return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+}
+
+export function summarizeDashboardStats(
+  deliveredOrders: Array<{ totalAmount: string | number }>,
+  allOrders: Array<{ status: string }>,
+  allProducts: Array<{ stockQuantity: number; minStockQuantity: number }>,
+  activeQuotes: unknown[],
+  recentOrders: unknown[],
+) {
+  const ordersByStatus: Record<string, number> = {};
+  for (const order of allOrders) ordersByStatus[order.status] = (ordersByStatus[order.status] || 0) + 1;
+  const criticalStock = allProducts.filter(product => product.stockQuantity <= product.minStockQuantity && product.stockQuantity > 0);
+  const outOfStock = allProducts.filter(product => product.stockQuantity === 0);
+
+  return {
+    totalRevenue: deliveredOrders.reduce((sum, order) => sum + Number(order.totalAmount), 0),
+    ordersByStatus,
+    totalOrders: allOrders.length,
+    criticalStock: criticalStock.length,
+    outOfStock: outOfStock.length,
+    activeQuotes: activeQuotes.length,
+    recentOrders,
+    pendingPurchases: allProducts.filter(product => product.stockQuantity < product.minStockQuantity * 2).length,
+  };
+}
+
 export const dashboardRouter = router({
   stats: protectedProcedure.input(z.object({ period: z.enum(["7d", "30d", "90d", "month", "year"]).default("30d") }).optional()).query(async (opts) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
 
-    // Calculate date range
-    const now = new Date();
-    let startDate: Date;
-    if (opts.input?.period === "7d") startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    else if (opts.input?.period === "90d") startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
-    else if (opts.input?.period === "month") startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-    else if (opts.input?.period === "year") startDate = new Date(now.getFullYear(), 0, 1);
-    else startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const startDate = resolveDashboardStartDate(opts.input?.period);
 
     // Total revenue (delivered orders)
     const deliveredOrders = await db.select().from(orders).where(and(eq(orders.status, "entregue"), gte(orders.createdAt, startDate)));
-    const totalRevenue = deliveredOrders.reduce((sum: number, o: any) => sum + parseFloat(String(o.totalAmount)), 0);
-
-    // Orders by status
     const allOrders = await db.select().from(orders).orderBy(orders.createdAt);
-    const ordersByStatus: Record<string, number> = {};
-    for (const o of allOrders as any[]) {
-      ordersByStatus[o.status] = (ordersByStatus[o.status] || 0) + 1;
-    }
-
-    // Critical stock (products below min)
     const allProducts = await db.select().from(products);
-    const criticalStock = allProducts.filter((p: any) => p.stockQuantity <= p.minStockQuantity && p.stockQuantity > 0);
-    const outOfStock = allProducts.filter((p: any) => p.stockQuantity === 0);
-
-    // Active quotes
     const activeQuotes = await db.select().from(quotes).where(eq(quotes.status, "rascunho"));
-
-    // Recent orders
     const recentOrders = await db.select().from(orders).orderBy(desc(orders.createdAt)).limit(10);
-
-    return {
-      totalRevenue,
-      ordersByStatus,
-      totalOrders: allOrders.length,
-      criticalStock: criticalStock.length,
-      outOfStock: outOfStock.length,
-      activeQuotes: activeQuotes.length,
-      recentOrders,
-      pendingPurchases: allProducts.filter((p: any) => p.stockQuantity < p.minStockQuantity * 2).length,
-    };
+    return summarizeDashboardStats(deliveredOrders as any[], allOrders as any[], allProducts as any[], activeQuotes, recentOrders);
   }),
 
   revenueByMonth: protectedProcedure.input(z.object({ months: z.number().int().positive().default(6) }).optional()).query(async (opts) => {

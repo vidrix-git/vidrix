@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { protectedProcedure, router } from "../_core/trpc";
+import { adminProcedure, protectedProcedure, router } from "../_core/trpc";
 import { createOrderSchema, updateOrderSchema, createOrderItemSchema, updateOrderItemSchema } from "../../shared/schemas";
 import { getDb } from "../db";
 import { orders, orderItems, products, stockMovements } from "../../drizzle/schema";
@@ -74,7 +74,7 @@ export const ordersRouter = router({
     return { success: true };
   }),
 
-  updateStatus: protectedProcedure.input(z.object({
+  updateStatus: adminProcedure.input(z.object({
     id: z.number().int().positive(),
     status: z.enum(["aprovado", "em_producao", "pronto", "entregue", "cancelado"]),
     cancellationReason: z.string().trim().max(500).optional(),
@@ -114,7 +114,7 @@ export const ordersRouter = router({
     throw new Error("Pedidos operacionais não podem ser excluídos. Use o cancelamento auditável.");
   }),
 
-  addItem: protectedProcedure.input(createOrderItemSchema).mutation(async (opts) => {
+  addItem: adminProcedure.input(createOrderItemSchema).mutation(async (opts) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
     const calculated = calculateCommercialItem(opts.input);
@@ -133,7 +133,7 @@ export const ordersRouter = router({
     });
   }),
 
-  updateItem: protectedProcedure.input(updateOrderItemSchema).mutation(async (opts) => {
+  updateItem: adminProcedure.input(updateOrderItemSchema).mutation(async (opts) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
     return db.transaction(async (tx) => {
@@ -160,7 +160,7 @@ export const ordersRouter = router({
     });
   }),
 
-  deleteItem: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async (opts) => {
+  deleteItem: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async (opts) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
     return db.transaction(async (tx) => {

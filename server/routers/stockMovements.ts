@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { protectedProcedure, router } from "../_core/trpc";
+import { adminProcedure, protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { stockMovements, products } from "../../drizzle/schema";
 import { and, eq, gte, sql } from "drizzle-orm";
@@ -17,7 +17,7 @@ export const stockMovementsRouter = router({
     return db.select().from(stockMovements).where(eq(stockMovements.productId, opts.input.productId));
   }),
 
-  manualEntry: protectedProcedure.input(z.object({ productId: z.number().int().positive(), type: z.enum(["entrada", "saida"]), quantity: z.number().int().positive(), notes: z.string().optional().nullable() })).mutation(async (opts) => {
+  manualEntry: adminProcedure.input(z.object({ productId: z.number().int().positive(), type: z.enum(["entrada", "saida"]), quantity: z.number().int().positive(), notes: z.string().optional().nullable() })).mutation(async (opts) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
     await db.transaction(async (tx) => {

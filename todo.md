@@ -2,12 +2,12 @@
 
 ## Auditoria integral de funcionamento e paridade MDB
 - [x] Consolidar as evidências e os critérios de aceite para todos os módulos e fluxos comerciais
-- [ ] Revalidar a paridade estrutural, de dados, regras e eventos entre o MDB legado e o Vidrix
-- [ ] Consolidar a revalidação estrutural do MDB × Vidrix com conclusões verificáveis para dados, regras e eventos
+- [x] Revalidar a paridade estrutural, de dados, regras e eventos entre o MDB legado e o Vidrix
+- [x] Consolidar a revalidação estrutural do MDB × Vidrix com conclusões verificáveis para dados, regras e eventos
 - [x] Reexecutar e registrar a comparação atual de dados preservados, contagens e limitações operacionais
 - [x] Registrar no relatório as contagens atuais, a linha de base e as limitações da reconciliação de produção
 - [x] Confirmar a persistência no repositório da reconciliação atual antes de encerrar a evidência de dados
-- [ ] Registrar evidência explícita dos eventos e regras revalidados antes de encerrar a paridade
+- [x] Registrar evidência explícita dos eventos e regras revalidados antes de encerrar a paridade
 - [x] Auditar tecnicamente cadastros, orçamentos, conversão em pedidos, venda direta, estoque, compras e relatórios
 - [x] Registrar evidência explícita dos eventos e regras revalidados antes de encerrar a paridade
 - [x] Executar cenários controlados no ambiente publicado e registrar evidências de ponta a ponta
@@ -15,12 +15,12 @@
 - [x] Produzir relatório final de auditoria com matriz de paridade, evidências, limitações e recomendações
 - [x] Executar cenários controlados publicados e registrar evidências ponta a ponta para os fluxos auditados prioritários do MDB
 - [ ] Fechar os achados críticos ainda abertos ou reclassificá-los formalmente como fora de escopo com justificativa aprovada
-- [ ] Registrar evidência item a item das regras e eventos MDB revalidados no Vidrix com rastreabilidade
+- [x] Registrar evidência item a item das regras e eventos MDB revalidados no Vidrix com rastreabilidade
 
 ## Correções críticas identificadas na auditoria
 - [x] Tornar o recebimento de pedido de compra transacional e idempotente para impedir entrada duplicada de estoque
 - [x] Criar teste de integração para recebimento de compra, estoque e movimento auditável
-- [ ] Definir e aplicar permissões por papel nos módulos operacionais, com testes de acesso não administrativo
+- [x] Definir e aplicar permissões por papel nos módulos operacionais, com testes de acesso não administrativo
 - [x] Validar por inspeção e teste o bloqueio de reenvio no recebimento da tela de compras
 - [x] Validar por inspeção e teste os rótulos amigáveis do histórico de estoque
 - [x] Adicionar teste de contrato para receita por período válido, inválido e invertido
@@ -239,3 +239,9 @@
 - [x] Exibir uma escolha ao pressionar Enter no campo Preço do Balcão: adicionar novo produto ou finalizar atendimento
 - [x] Ao escolher finalizar, mover o foco para a seção de desfecho Orçamento ou Venda sem usar o mouse
 - [x] Cobrir o novo fluxo de decisão por teclado com testes de comportamento e validação visual
+
+## Aprimoramento de foco e escolha no Balcão
+- [ ] Iniciar o Balcão com foco automático no primeiro seletor de Produto disponível
+- [ ] Permitir alternar entre Adicionar novo produto e Finalizar atendimento pelas setas esquerda e direita no diálogo
+- [ ] Confirmar a opção destacada com Enter e preservar o foco correto após cada ação
+- [ ] Cobrir foco inicial e seleção por setas com testes de comportamento e validação publicada

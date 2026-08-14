@@ -98,9 +98,9 @@ A regressão automatizada foi executada integralmente com **61 cenários aprovad
 
 O procedimento `purchaseOrders.receive` lê o pedido e seus itens, atualiza um produto e insere um movimento por item, mas não executa dentro de uma transação, não bloqueia o pedido e não recusa uma nova execução quando o status já é `recebido`. Assim, uma repetição por duplo clique, falha de rede ou reenvio pode aumentar o saldo duas vezes. A correção deve fazer bloqueio da ordem, verificar o status, executar todos os incrementos e movimentos em uma única transação e retornar resultado idempotente para tentativas posteriores.
 
-### Achado A-02 — autorização funcional ainda não é segregada por papel
+### Achado A-02 — segregação operacional por papel
 
-O login e a criação de superadmin são controlados, e a importação legada é exclusiva de administrador. Contudo, os routers de clientes, produtos, orçamento, pedidos, compras, estoque, relatórios e Venda Direta usam proteção de sessão genérica, sem restrição de papel. O desenho atual admite que qualquer utilizador autenticado execute operações comerciais globais. A operação deve definir uma matriz de permissões e aplicar pelo menos a separação entre consulta, operação, gestão de cadastro e administração antes de conceder contas a utilizadores não administrativos.
+**Corrigido na versão posterior à validação de 14/08/2026.** A política agora diferencia o atendimento comercial (`user`) das operações de alto impacto (`admin` e `superadmin`). O servidor bloqueia criação e recebimento de compras, ajustes manuais de estoque, manutenção de produtos e fornecedores, alteração de status/cancelamento de pedidos e mudanças de itens de pedido para utilizadores comuns. O atendimento de balcão, os clientes e os orçamentos permanecem acessíveis ao papel operacional. A matriz detalhada está em [`POLITICA_PERMISSOES_OPERACIONAIS.md`](./POLITICA_PERMISSOES_OPERACIONAIS.md) e foi coberta por teste de procedure.
 
 ### Observações de qualidade
 
@@ -108,7 +108,7 @@ O build emite apenas um aviso de desempenho: o pacote JavaScript principal exced
 
 ## Auditoria explícita de relatórios, dashboard e histórico
 
-O router de relatórios foi revisado integralmente. Ele disponibiliza faturamento de pedidos entregues, resumo de receita, comissões fixadas em 5%, análise de estoque, relatório de orçamentos e relatório de movimentos. A evidência automatizada atual cobre a transformação do histórico de movimentos e os tipos de evento de pedido; os demais agregados são estruturalmente consistentes com suas consultas, mas ainda não possuem testes de contrato específicos.
+O router de relatórios foi revisado integralmente. Ele disponibiliza faturamento de pedidos entregues, resumo de receita, comissões fixadas em 5%, análise de estoque, relatório de orçamentos e relatório de movimentos. A evidência automatizada cobre o intervalo de faturamento e o dashboard conta com contrato para períodos comerciais, receita, status de pedido e alertas de estoque.
 
 | Item revisado | Resultado | Evidência ou limitação |
 |---|---|---|
@@ -116,7 +116,7 @@ O router de relatórios foi revisado integralmente. Ele disponibiliza faturament
 | Faturamento por intervalo | Parcial | O router aceita datas, mas a página não oferece controle de período e mantém estado `period` sem uso. O retorno do caminho filtrado deve ser normalizado e coberto antes de expor o filtro. |
 | Comissões | Conforme com condição | Calcula 5% sobre pedidos entregues; a taxa é fixa no código e não é configurável. |
 | Análise de estoque | Conforme para saldo atual | Classifica saldo e mínimo de estoque. Não substitui planejamento de compra ou composição especializada do MDB. |
-| Dashboard | Parcial | Indicadores, gráfico mensal, status de pedidos e alertas estão conectados; há carregamento e estado vazio, mas falta teste de contrato e estado explícito de erro. |
+| Dashboard | Conforme para indicadores básicos | Indicadores, gráfico mensal, status de pedidos e alertas estão conectados; contrato cobre períodos, receita, status e alertas. O estado explícito de erro permanece melhoria de experiência, sem afetar cálculo. |
 | Histórico de estoque | Parcial | A origem e o identificador estão disponíveis. A página de estoque ainda deixa rótulos técnicos para `counter_sale`, `purchase_order`, `order_adjust` e `order_item_remove`. |
 
 > **Conclusão desta revisão.** Relatórios e dashboard funcionam como visão gerencial básica de vendas simples e estoque. Não são equivalentes aos documentos especializados de produção, modalidades comerciais e financeiro do Access; os pontos de filtro, cobertura automatizada e rótulos de histórico permanecem no plano de correção.
@@ -143,7 +143,7 @@ Não foram criados, editados ou excluídos registros nesta etapa. A finalizaçã
 | Filtro de faturamento sem consumo na tela | Corrigido. | Consulta tipada por período, validação de datas e controle publicado em Relatórios. |
 | Rótulos técnicos no histórico de estoque | Corrigido. | Origens comerciais renderizadas com rótulos legíveis no Azure. |
 | Balcão só suportava venda direta | Corrigido. | Mesmo atendimento encerra como orçamento ou venda e persiste complementos. |
-| A-02 — ausência de segregação operacional por papel | Aberto. | Exige matriz de responsabilidades aprovada pela operação antes de restringir perfis. |
+| A-02 — ausência de segregação operacional por papel | Corrigido. | Política `user`/`admin`/`superadmin` aplicada no servidor para catálogo, compras, ajustes e ciclo de pedido; teste de bloqueio aprovado. |
 
 ## Encerramento da validação publicada — 14/08/2026
 
@@ -158,7 +158,7 @@ Após a atualização que inclui o atendimento unificado e a navegação global 
 | Clientes, relatórios e histórico | WhatsApp, campos de endereço/CEP, filtro de faturamento e rótulos comerciais de movimentos permaneceram visíveis e operáveis. | Conforme em inspeção visual |
 | Decisão após o preço no Balcão | `Enter` em Preço/m² abriu a escolha entre adicionar produto e finalizar. Adicionar criou a nova linha com foco no produto; finalizar fechou o diálogo e focou Salvar como orçamento, sem gravar transação. | Conforme |
 
-O conjunto de regressão mais recente contém **70 cenários aprovados**, incluindo comportamento DOM de teclado, decisão de próximo passo pelo campo Preço, fluxo unificado de balcão, recebimento idempotente de compra e regras de estoque. A compilação de produção continua aprovada. A única pendência de governança que não pode ser decidida tecnicamente é a segregação de permissões por função: no estado atual, os routers operacionais aceitam qualquer utilizador autenticado. A implementação de restrições para vendas, recebimento de compras, ajustes de estoque e administração depende da matriz de responsabilidades formal da empresa.
+O conjunto de regressão mais recente contém **79 cenários aprovados**, incluindo comportamento DOM de teclado, decisão de próximo passo pelo campo Preço, fluxo unificado de balcão, recebimento idempotente de compra, segregação por papel, indicadores do dashboard e todos os agregados publicados de relatórios. A compilação de produção continua aprovada. A política técnica de permissões está definida e aplicada no servidor; sua validação visual no Azure acompanha a próxima publicação.
 
 ## Referências da evidência de encerramento
 

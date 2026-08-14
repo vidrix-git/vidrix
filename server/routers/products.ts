@@ -1,4 +1,4 @@
-import { protectedProcedure, router } from "../_core/trpc";
+import { adminProcedure, protectedProcedure, router } from "../_core/trpc";
 import { createProductSchema, updateProductSchema } from "../../shared/schemas";
 import { getDb } from "../db";
 import { products } from "../../drizzle/schema";
@@ -19,7 +19,7 @@ export const productsRouter = router({
     return result[0];
   }),
 
-  create: protectedProcedure.input(createProductSchema).mutation(async (opts) => {
+  create: adminProcedure.input(createProductSchema).mutation(async (opts) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
     const { width, height, unitPrice, stockQuantity, minStockQuantity, ...rest } = opts.input;
@@ -34,7 +34,7 @@ export const productsRouter = router({
     return { success: true, insertId: result[0].insertId };
   }),
 
-  update: protectedProcedure.input(updateProductSchema).mutation(async (opts) => {
+  update: adminProcedure.input(updateProductSchema).mutation(async (opts) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
     const { id, width, height, unitPrice, stockQuantity, minStockQuantity, ...rest } = opts.input;
@@ -48,7 +48,7 @@ export const productsRouter = router({
     return { success: true };
   }),
 
-  delete: protectedProcedure.input(updateProductSchema.pick({ id: true })).mutation(async (opts) => {
+  delete: adminProcedure.input(updateProductSchema.pick({ id: true })).mutation(async (opts) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
     await db.delete(products).where(eq(products.id, opts.input.id));
