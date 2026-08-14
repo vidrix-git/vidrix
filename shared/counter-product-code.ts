@@ -7,3 +7,6 @@ export function findCounterProductByCode<T extends { code?: string | null }>(pro
   if (!normalized) return null;
   return products.find((product) => normalizeCounterProductCode(product.code || "") === normalized) || null;
 }
+
+/** Mantém a confirmação de código explícita no Enter, sem confundi-la com o avanço global de foco. */
+export const shouldResolveCounterProductCode = (key: string) => key === "Enter";

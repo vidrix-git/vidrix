@@ -26,7 +26,7 @@ describe("contratos operacionais da interface", () => {
     expect(counter).toContain("data-keyboard-scope");
     expect(counter).not.toContain('<CardHeader><CardTitle>Atendimento</CardTitle>');
     expect(counter).toContain("O atendimento começa no Código");
-    expect(counter).toContain("Digite um código cadastrado para selecionar o produto automaticamente");
+    expect(counter).toContain("Escolha ou digite um código cadastrado e pressione Enter para preencher o Produto");
     expect(counter).toContain("shouldOpenCounterPriceDecision(event)");
     expect(counter).toContain("Próximo passo do atendimento");
     expect(counter).toContain("Adicionar novo produto");
@@ -34,7 +34,9 @@ describe("contratos operacionais da interface", () => {
     expect(counter).toContain("setShowPriceDecision(false)");
     expect(counter).toContain("outcomeChoiceRef.current?.focus()");
     expect(counter).toContain("initialProductCodeRef.current?.focus()");
-    expect(counter).toContain("data-counter-product-code");
+    expect(counter).toContain('data-counter-product-code={item.key}');
+    expect(counter).toContain('list={`counter-product-codes-${item.key}`}');
+    expect(counter).toContain('handleProductCodeKeyDown(event, item)');
     expect(counter).toContain("findCounterProductByCode(products as any[], code)");
     expect(counter).toContain("moveCounterPriceDecision(priceDecision, event.key)");
     expect(counter).toContain("shouldConfirmCounterPriceDecision(event)");

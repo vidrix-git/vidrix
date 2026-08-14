@@ -256,3 +256,8 @@
 - [ ] Adicionar e migrar o código de produto no catálogo Vidrix, preservando produtos existentes
 - [ ] Incluir o campo Código antes do Produto no Balcão com seleção automática pelo código informado
 - [ ] Cobrir código de produto e seleção por teclado com testes e validação publicada
+
+## Combobox de código no Balcão
+- [ ] Exibir todos os códigos de produto cadastrados em um combobox antes do seletor Produto
+- [ ] Ao escolher ou digitar código válido e pressionar Enter, preencher o produto correspondente e avançar o foco
+- [ ] Cobrir a consulta por código e a confirmação por Enter com testes e validação publicada
