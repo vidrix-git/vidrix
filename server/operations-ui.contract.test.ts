@@ -72,6 +72,9 @@ describe("contratos operacionais da interface", () => {
     expect(keyboard).toContain("backwards ? currentIndex - 1 : currentIndex + 1");
     expect(keyboard).toContain("moveFocus(target, event.shiftKey)");
     expect(keyboard).toContain("target instanceof HTMLTextAreaElement");
+    expect(keyboard).toContain("target instanceof HTMLSelectElement");
+    expect(keyboard).toContain('target.dataset.keyboardSelection = "true"');
+    expect(keyboard).toContain('if (target.dataset.keyboardSelection === "true")');
     expect(keyboard).toContain('[role="combobox"]');
     expect(keyboard).toContain("[data-keyboard-scope], [role='dialog']");
     expect(keyboard).toContain('target.getAttribute("aria-hidden") !== "true"');

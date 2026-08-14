@@ -1,4 +1,4 @@
-import type { ChangeEvent, KeyboardEvent, ReactNode } from "react";
+import React, { type ChangeEvent, type KeyboardEvent, type ReactNode } from "react";
 
 const FIELD_SELECTOR = [
   'input:not([type="hidden"]):not([disabled])',
@@ -9,14 +9,20 @@ const FIELD_SELECTOR = [
 
 function canMoveWithEnter(target: HTMLElement) {
   if (target instanceof HTMLTextAreaElement) return false;
-  if (target instanceof HTMLInputElement || target instanceof HTMLSelectElement) return true;
+  if (target instanceof HTMLInputElement) return true;
   return target.matches("[data-enter-target]");
+}
+
+function isVisibleKeyboardTarget(field: HTMLElement) {
+  if (field.hasAttribute("aria-hidden") || field.hidden) return false;
+  const style = window.getComputedStyle(field);
+  return style.display !== "none" && style.visibility !== "hidden";
 }
 
 function moveFocus(target: HTMLElement, backwards = false) {
   const root = target.closest<HTMLElement>("[data-keyboard-scope], [role='dialog']") ?? document.body;
   const fields = Array.from(root.querySelectorAll<HTMLElement>(FIELD_SELECTOR))
-    .filter((field) => field.offsetParent !== null && !field.hasAttribute("aria-hidden"));
+    .filter(isVisibleKeyboardTarget);
   const currentIndex = fields.indexOf(target);
   const next = fields[backwards ? currentIndex - 1 : currentIndex + 1];
   if (currentIndex >= 0 && next) next.focus();
@@ -31,6 +37,15 @@ export function KeyboardNavigator({ children }: { children: ReactNode }) {
     if (event.key !== "Enter" || event.altKey || event.ctrlKey || event.metaKey) return;
 
     const target = event.target as HTMLElement;
+    if (target instanceof HTMLSelectElement) {
+      if (event.shiftKey) {
+        event.preventDefault();
+        moveFocus(target, true);
+      } else {
+        target.dataset.keyboardSelection = "true";
+      }
+      return;
+    }
     if (!canMoveWithEnter(target)) return;
 
     event.preventDefault();
@@ -39,7 +54,17 @@ export function KeyboardNavigator({ children }: { children: ReactNode }) {
 
   const handleChange = (event: ChangeEvent<HTMLDivElement>) => {
     const target = event.target;
-    if (!(target instanceof HTMLSelectElement) || target.getAttribute("aria-hidden") !== "true") return;
+    if (!(target instanceof HTMLSelectElement)) return;
+
+    if (target.dataset.keyboardSelection === "true") {
+      delete target.dataset.keyboardSelection;
+      window.setTimeout(() => {
+        if (target === document.activeElement) moveFocus(target);
+      }, 0);
+      return;
+    }
+
+    if (target.getAttribute("aria-hidden") !== "true") return;
 
     window.setTimeout(() => {
       const trigger = target.parentElement?.querySelector<HTMLElement>('[role="combobox"]');

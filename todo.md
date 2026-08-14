@@ -53,6 +53,10 @@
 - [x] Garantir foco visível, sequência previsível e ativação segura de botões por teclado
 - [x] Cobrir o comportamento de teclado e a nova barra lateral com regressão automatizada
 - [ ] Adicionar testes de interface e comportamento por teclado específicos para cada módulo operacional crítico
+- [ ] Executar testes comportamentais de foco, Enter e Shift+Enter nos formulários e diálogos de Clientes, Produtos, Fornecedores e Compras
+- [ ] Executar testes comportamentais dos filtros, botões, tabelas, Kanban e diálogos de Estoque, Relatórios, Orçamentos e Pedidos
+- [x] Cobrir em DOM a infraestrutura global de Enter, Shift+Enter, textarea, select nativo e escopo de diálogo
+- [x] Preservar a escolha por Enter em seletores nativos e avançar somente após a confirmação da opção
 
 ## Backend
 - [x] Corrigir erros de TypeScript em todos os routers
