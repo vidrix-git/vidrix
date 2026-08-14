@@ -1,0 +1,1 @@
+ALTER TABLE `clients` ADD `city` varchar(255);

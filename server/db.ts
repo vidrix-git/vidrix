@@ -20,6 +20,7 @@ export const ERP_SCHEMA_STATEMENTS = [
     \`address\` text,
     \`phone\` varchar(255),
     \`email\` varchar(255),
+    \`city\` varchar(255),
     \`createdAt\` timestamp NOT NULL DEFAULT (now()),
     \`updatedAt\` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY(\`id\`),
@@ -187,6 +188,7 @@ export const ERP_SCHEMA_STATEMENTS = [
   `ALTER TABLE \`orders\` ADD COLUMN \`cancelledAt\` timestamp NULL`,
   `ALTER TABLE \`orders\` ADD COLUMN \`cancelledByUserId\` int NULL`,
   `ALTER TABLE \`orders\` ADD COLUMN \`cancellationReason\` text`,
+  `ALTER TABLE \`clients\` ADD COLUMN \`city\` varchar(255)`,
   `UPDATE \`orders\` SET \`stockAllocatedAt\` = \`createdAt\` WHERE \`quoteId\` IS NOT NULL AND \`stockAllocatedAt\` IS NULL AND \`status\` <> 'cancelado'`,
 ] as const;
 

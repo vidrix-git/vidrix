@@ -110,6 +110,11 @@
 - [x] Elaborar manual de implementação, operação e implantação do Vidrix com mapa comentado dos módulos centrais
 - [x] Gerar pacote ZIP final do projeto e da documentação para entrega
 
+## Correção de cadastro de clientes
+- [x] Corrigir a serialização do formulário de Clientes para não enviar tipo ou documento indefinidos
+- [x] Adicionar teste de contrato do cadastro e edição de clientes com campos opcionais vazios
+- [ ] Publicar e validar visualmente a criação e a edição de cliente no ambiente Azure
+
 ## Correções críticas antes da validação operacional
 - [x] Formalizar centímetros como unidade comercial de largura e altura no Vidrix
 - [x] Validar valores numéricos positivos e precisos nos itens de orçamento e pedido

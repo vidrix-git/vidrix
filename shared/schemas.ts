@@ -24,6 +24,7 @@ export const createClientSchema = z.object({
   address: z.string().optional().nullable(),
   phone: z.string().optional().nullable(),
   email: z.string().email("Email inválido").optional().nullable(),
+  city: z.string().optional().nullable(),
 });
 
 export const updateClientSchema = z.object({
@@ -34,6 +35,7 @@ export const updateClientSchema = z.object({
   address: z.string().optional().nullable(),
   phone: z.string().optional().nullable(),
   email: z.string().email("Email inválido").optional().nullable(),
+  city: z.string().optional().nullable(),
 });
 
 // ============================================================

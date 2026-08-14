@@ -35,9 +35,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { toClientMutationInput } from "../../../shared/client-contract";
 
 type ClientForm = {
   name: string;
+  type: "PF" | "PJ";
+  cpfCnpj: string;
   email?: string | null;
   phone?: string | null;
   address?: string | null;
@@ -50,14 +53,15 @@ export default function Clients() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [form, setForm] = useState<ClientForm>({ name: "", email: "", phone: "", address: "", city: "" });
+  const emptyForm: ClientForm = { name: "", type: "PF", cpfCnpj: "", email: "", phone: "", address: "", city: "" };
+  const [form, setForm] = useState<ClientForm>(emptyForm);
 
   const { data: clients, isLoading } = trpc.clients.list.useQuery();
   const createMutation = trpc.clients.create.useMutation({
     onSuccess: () => {
       utils.clients.list.invalidate();
       setDialogOpen(false);
-      setForm({ name: "", email: "", phone: "", address: "", city: "" });
+      setForm(emptyForm);
       toast.success("Cliente cadastrado com sucesso");
     },
     onError: (e) => toast.error(e.message),
@@ -67,7 +71,7 @@ export default function Clients() {
       utils.clients.list.invalidate();
       setDialogOpen(false);
       setEditId(null);
-      setForm({ name: "", email: "", phone: "", address: "", city: "" });
+      setForm(emptyForm);
       toast.success("Cliente atualizado com sucesso");
     },
     onError: (e) => toast.error(e.message),
@@ -86,10 +90,15 @@ export default function Clients() {
       toast.error("Nome é obrigatório");
       return;
     }
+    if (!form.cpfCnpj.trim()) {
+      toast.error("CPF/CNPJ é obrigatório");
+      return;
+    }
+    const input = toClientMutationInput(form);
     if (editId) {
-      updateMutation.mutate({ id: editId, ...form });
+      updateMutation.mutate({ id: editId, ...input });
     } else {
-      createMutation.mutate(form as any);
+      createMutation.mutate(input);
     }
   };
 
@@ -97,6 +106,8 @@ export default function Clients() {
     setEditId(client.id);
     setForm({
       name: client.name || "",
+      type: client.type === "PJ" ? "PJ" : "PF",
+      cpfCnpj: client.cpfCnpj || "",
       email: client.email || "",
       phone: client.phone || "",
       address: client.address || "",
@@ -117,7 +128,7 @@ export default function Clients() {
           <h1 className="text-2xl font-bold text-foreground">Clientes</h1>
           <p className="text-sm text-muted-foreground">Gerencie seus clientes</p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) { setEditId(null); setForm({ name: "", email: "", phone: "", address: "", city: "" }); } }}>
+        <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) { setEditId(null); setForm(emptyForm); } }}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
@@ -132,6 +143,27 @@ export default function Clients() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Nome *</label>
                 <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Nome do cliente" />
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Tipo *</label>
+                  <select
+                    value={form.type}
+                    onChange={(e) => setForm({ ...form, type: e.target.value as "PF" | "PJ" })}
+                    className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                  >
+                    <option value="PF">Pessoa física</option>
+                    <option value="PJ">Pessoa jurídica</option>
+                  </select>
+                </div>
+                <div className="space-y-2 sm:col-span-2">
+                  <label className="text-sm font-medium">{form.type === "PJ" ? "CNPJ" : "CPF"} *</label>
+                  <Input
+                    value={form.cpfCnpj}
+                    onChange={(e) => setForm({ ...form, cpfCnpj: e.target.value })}
+                    placeholder={form.type === "PJ" ? "00.000.000/0000-00" : "000.000.000-00"}
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Email</label>
