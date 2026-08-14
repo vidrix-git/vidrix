@@ -10,10 +10,10 @@
 - [ ] Registrar evidência explícita dos eventos e regras revalidados antes de encerrar a paridade
 - [x] Auditar tecnicamente cadastros, orçamentos, conversão em pedidos, venda direta, estoque, compras e relatórios
 - [x] Registrar evidência explícita dos eventos e regras revalidados antes de encerrar a paridade
-- [ ] Executar cenários controlados no ambiente publicado e registrar evidências de ponta a ponta
+- [x] Executar cenários controlados no ambiente publicado e registrar evidências de ponta a ponta
 - [ ] Corrigir divergências críticas ou de alta prioridade identificadas pela auditoria
 - [x] Produzir relatório final de auditoria com matriz de paridade, evidências, limitações e recomendações
-- [ ] Executar cenários controlados publicados e registrar evidências ponta a ponta para os fluxos auditados prioritários do MDB
+- [x] Executar cenários controlados publicados e registrar evidências ponta a ponta para os fluxos auditados prioritários do MDB
 - [ ] Fechar os achados críticos ainda abertos ou reclassificá-los formalmente como fora de escopo com justificativa aprovada
 - [ ] Registrar evidência item a item das regras e eventos MDB revalidados no Vidrix com rastreabilidade
 
@@ -204,7 +204,7 @@
 - [x] Integrar a venda de balcão ao pedido, estoque e histórico de movimentos
 - [x] Adicionar testes de regressão para WhatsApp, venda direta e efeitos de estoque
 - [ ] Validar visualmente os novos fluxos em desktop e mobile
-- [ ] Publicar e documentar a expansão comercial no Azure
+- [x] Publicar e documentar a expansão comercial no Azure
 - [x] Registrar verificação de regressão específica para Pedidos após a revisão responsiva
 - [x] Aplicar um contêiner responsivo ao histórico de Estoque para preservar as colunas em larguras reduzidas
 - [x] Adicionar regressão estrutural específica para a responsividade da tabela de Estoque

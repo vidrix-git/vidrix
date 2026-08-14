@@ -144,3 +144,24 @@ Não foram criados, editados ou excluídos registros nesta etapa. A finalizaçã
 | Rótulos técnicos no histórico de estoque | Corrigido. | Origens comerciais renderizadas com rótulos legíveis no Azure. |
 | Balcão só suportava venda direta | Corrigido. | Mesmo atendimento encerra como orçamento ou venda e persiste complementos. |
 | A-02 — ausência de segregação operacional por papel | Aberto. | Exige matriz de responsabilidades aprovada pela operação antes de restringir perfis. |
+
+## Encerramento da validação publicada — 14/08/2026
+
+Após a atualização que inclui o atendimento unificado e a navegação global por teclado, foi concluída uma sessão autenticada no ambiente publicado. A sessão confirmou a disponibilidade dos módulos essenciais, a organização lateral por área e a remoção exclusiva do bloco inicial de Atendimento da página Balcão, preservando o grupo **Atendimento Comercial** na barra lateral. A operação por teclado foi observada no Balcão e no diálogo de Clientes: `Enter` avançou entre campos e `Escape` fechou o diálogo sem persistir alterações.
+
+| Cenário publicado | Registro e efeito confirmado | Classificação |
+|---|---|---|
+| Orçamento de balcão | O atendimento foi gravado como **Orçamento #4**, no valor de R$ 101,00, com cliente obrigatório apenas no encerramento e sem movimento de estoque. | Conforme |
+| Venda de balcão | O mesmo fluxo comercial produziu a **Venda/Pedido #3**, entregue, no valor de R$ 101,00. | Conforme |
+| Baixa de estoque | O histórico exibiu saída de uma unidade, referência #3 e origem **Venda de Balcão**. | Conforme |
+| Cancelamento auditável | O pedido #3 mudou para **Cancelado**; foi criada uma única entrada de uma unidade, referência #3 e origem **Cancelamento de Pedido**. | Conforme |
+| Clientes, relatórios e histórico | WhatsApp, campos de endereço/CEP, filtro de faturamento e rótulos comerciais de movimentos permaneceram visíveis e operáveis. | Conforme em inspeção visual |
+
+O conjunto de regressão mais recente contém **69 cenários aprovados**, incluindo comportamento DOM de teclado, fluxo unificado de balcão, recebimento idempotente de compra e regras de estoque. A compilação de produção continua aprovada. A única pendência de governança que não pode ser decidida tecnicamente é a segregação de permissões por função: no estado atual, os routers operacionais aceitam qualquer utilizador autenticado. A implementação de restrições para vendas, recebimento de compras, ajustes de estoque e administração depende da matriz de responsabilidades formal da empresa.
+
+## Referências da evidência de encerramento
+
+- [`AUDITORIA_VISUAL_AZURE_2026-08-14.md`](./AUDITORIA_VISUAL_AZURE_2026-08-14.md), evidências de interface e cenários de escrita controlados no Azure.
+- [`server/counter-sales.integration.test.ts`](./server/counter-sales.integration.test.ts), testes de integração de atendimento de balcão.
+- [`server/orders.cancel.integration.test.ts`](./server/orders.cancel.integration.test.ts), testes de cancelamento e estorno único.
+- [`server/keyboard-navigator.behavior.test.ts`](./server/keyboard-navigator.behavior.test.ts), testes DOM de navegação por teclado.

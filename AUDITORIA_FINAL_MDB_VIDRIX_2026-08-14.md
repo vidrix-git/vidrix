@@ -3,15 +3,15 @@
 **Data:** 14 de agosto de 2026  
 **Sistema auditado:** Vidrix ERP publicado no Azure  
 **Referência funcional:** `Vidracaria2026pdv.mdb`  
-**Versão auditada:** publicação posterior ao checkpoint `475c97be`
+**Versão auditada:** publicação do commit `e57c27f2`
 
 ## Parecer executivo
 
-O **Vidrix está operacionalmente apto para o fluxo comercial simples de uma vidraçaria**: cadastro de clientes e produtos, atendimento de balcão, orçamento, conversão de orçamento, venda concluída, movimentação de estoque, compras, relatórios básicos e rastreabilidade. A auditoria confirmou **61 testes automatizados aprovados**, compilação de produção bem-sucedida, reconciliação de dados históricos no Azure e inspeção visual autenticada da versão publicada.[1] [2]
+O **Vidrix está operacionalmente apto para o fluxo comercial simples de uma vidraçaria**: cadastro de clientes e produtos, atendimento de balcão, orçamento, conversão de orçamento, venda concluída, movimentação de estoque, compras, relatórios básicos e rastreabilidade. A auditoria confirmou **69 testes automatizados aprovados**, compilação de produção bem-sucedida, reconciliação de dados históricos no Azure, inspeção visual autenticada e um cenário de escrita controlado integralmente compensado.[1] [2]
 
 O sistema **não é uma reprodução integral do Microsoft Access**. A equivalência alcançada é controlada para vidros e complementos comerciais com preço explícito, medidas em centímetros e estoque de produto. O MDB ainda possui domínios que não foram reproduzidos como regras operacionais: modalidades e vigência de preço, motor de corte, composição de Box/kits, financeiro de pendências e documentos especializados de produção. Esses limites devem ser mantidos explícitos em qualquer decisão de substituição do legado.[3] [4]
 
-> **Conclusão.** O Vidrix pode ser utilizado no atendimento comercial simples, desde que a operação valide um cenário de escrita controlado no Azure e defina a matriz de permissões de utilizadores. Não deve ser anunciado como equivalente integral ao MDB enquanto os domínios especializados e financeiros abaixo permanecerem fora do escopo.
+> **Conclusão.** O Vidrix pode ser utilizado no atendimento comercial simples. O cenário de escrita controlado no Azure foi concluído com orçamento, venda, baixa e estorno de estoque auditáveis. A matriz de permissões de utilizadores permanece uma decisão operacional pendente. O sistema não deve ser anunciado como equivalente integral ao MDB enquanto os domínios especializados e financeiros abaixo permanecerem fora do escopo.
 
 | Dimensão | Situação | Síntese |
 |---|---|---|
@@ -27,11 +27,11 @@ O sistema **não é uma reprodução integral do Microsoft Access**. A equivalê
 
 | Evidência | Resultado | Abrangência |
 |---|---|---|
-| Regressão automatizada | 61 testes aprovados | Autenticação, contratos, cálculos, clientes, balcão, estoque, compras, UI e relatórios. |
+| Regressão automatizada | 69 testes aprovados | Autenticação, contratos, cálculos, clientes, balcão, estoque, compras, UI e relatórios. |
 | Compilação de produção | Aprovada | Frontend e backend compilados para a implantação Azure. |
 | Reconciliação autenticada de dados | Aprovada | 118.295 registros históricos e 118.144 regras preservados sem duplicação. |
-| Inspeção visual autenticada | Aprovada em modo de consulta | Barra lateral, balcão, clientes, estoque e relatórios renderizados no Azure. |
-| Cenários de escrita em produção | Não executados nesta etapa | Requerem autorização explícita para criar orçamento, venda ou recebimento de teste. |
+| Inspeção visual autenticada | Aprovada | Barra lateral, balcão, clientes, estoque e relatórios renderizados no Azure; fluxo de foco por teclado confirmado. |
+| Cenários de escrita em produção | Aprovados | Orçamento #4, venda/pedido #3, saída `counter_sale` e entrada única de cancelamento, todos em dados identificados como TESTE. |
 
 ## Fluxo comercial unificado de balcão
 
@@ -77,14 +77,14 @@ O formulário de balcão foi reorganizado para refletir a regra operacional indi
 | Prioridade | Pendência | Recomendação objetiva |
 |---|---|---|
 | Alta | Matriz de permissões | Definir quem consulta, vende, cadastra, recebe compra, ajusta estoque e administra. Só então restringir routers e interface por papel. |
-| Alta | Aceite de escrita no Azure | Criar um cliente de teste, um orçamento e uma venda de valor controlado; verificar pedido, saldo e movimento; depois decidir sobre manter ou limpar esses registros. |
+| Concluída | Aceite de escrita no Azure | Orçamento #4, venda/pedido #3, baixa de uma unidade e estorno único por cancelamento concluídos com dados TESTE preservados como trilha de auditoria. |
 | Média | Paridade avançada do MDB | Priorizar conforme o uso real: modalidade/preço, Box/kits, corte ou financeiro. Cada domínio precisa de modelo e regra próprios. |
 | Média | Relatórios de produção | Definir quais documentos e indicadores do Access são indispensáveis para emitir os relatórios equivalentes. |
 | Baixa | Desempenho inicial | Dividir dinamicamente módulos de PDF e relatórios para reduzir o pacote principal acima de 500 kB. |
 
 ## Decisão de operação recomendada
 
-Para operação comercial corrente, recomenda-se iniciar com o escopo de **vidros e complementos comercialmente simples**, utilizando o atendimento unificado de balcão. A entrada em produção deve ser acompanhada de uma política simples de utilizadores e de uma primeira venda controlada. Processos de fabricação por Box, composição de kits, cálculo baseado nas regras de corte ou gestão de pendência financeira devem permanecer no MDB até que sejam formalmente especificados e implementados no Vidrix.
+Para operação comercial corrente, recomenda-se iniciar com o escopo de **vidros e complementos comercialmente simples**, utilizando o atendimento unificado de balcão. A primeira venda controlada, sua baixa e seu cancelamento auditável foram concluídos no Azure. Antes de ampliar o acesso a novos utilizadores, a operação deve aprovar uma política simples de papéis e responsabilidades. Processos de fabricação por Box, composição de kits, cálculo baseado nas regras de corte ou gestão de pendência financeira devem permanecer no MDB até que sejam formalmente especificados e implementados no Vidrix.
 
 ## Referências
 
@@ -92,3 +92,4 @@ Para operação comercial corrente, recomenda-se iniciar com o escopo de **vidro
 [2]: ./UNIFIED_COUNTER_FLOW_SPEC.md "Especificação do atendimento unificado"
 [3]: ./MDB_RULE_EVENT_MATRIX.md "Matriz de regras e eventos do MDB"
 [4]: ./MDB_PARITY_FINAL_REPORT.md "Relatório anterior de paridade MDB–Vidrix"
+[5]: ./AUDITORIA_VISUAL_AZURE_2026-08-14.md "Evidência visual e cenário controlado no Azure"
