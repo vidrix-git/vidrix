@@ -23,6 +23,9 @@ describe("contratos operacionais da interface", () => {
     expect(counter).toContain('trpc.counterSales.finalize.useMutation');
     expect(counter).toContain('acessorio: "Acessório"');
     expect(counter).toContain('montagem: "Montagem"');
+    expect(counter).toContain("data-keyboard-scope");
+    expect(counter).not.toContain('<CardHeader><CardTitle>Atendimento</CardTitle>');
+    expect(counter).toContain("Use Enter para avançar pelos campos");
   });
 
   it("impede reenvio de recebimento de compra enquanto a transação está pendente", () => {
@@ -57,5 +60,23 @@ describe("contratos operacionais da interface", () => {
     expect(layout).toContain("menuGroups.flatMap");
     expect(layout).toContain("<SidebarGroup");
     expect(layout).toContain("<SidebarGroupLabel");
+  });
+
+  it("mantém infraestrutura de navegação por Enter sem quebrar campos multiline", () => {
+    const app = source("client/src/App.tsx");
+    const keyboard = source("client/src/components/KeyboardNavigator.tsx");
+    const styles = source("client/src/index.css");
+
+    expect(app).toContain("<KeyboardNavigator><Router /></KeyboardNavigator>");
+    expect(keyboard).toContain('event.key !== "Enter"');
+    expect(keyboard).toContain("backwards ? currentIndex - 1 : currentIndex + 1");
+    expect(keyboard).toContain("moveFocus(target, event.shiftKey)");
+    expect(keyboard).toContain("target instanceof HTMLTextAreaElement");
+    expect(keyboard).toContain('[role="combobox"]');
+    expect(keyboard).toContain("[data-keyboard-scope], [role='dialog']");
+    expect(keyboard).toContain('target.getAttribute("aria-hidden") !== "true"');
+    expect(keyboard).toContain("if (trigger && trigger === document.activeElement) moveFocus(trigger)");
+    expect(styles).toContain(":focus-visible");
+    expect(styles).toContain("outline: 3px solid var(--ring)");
   });
 });

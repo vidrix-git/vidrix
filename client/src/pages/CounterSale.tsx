@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { toClientMutationInput, type ClientMutationForm } from "../../../shared/client-contract";
 import { formatClientDocument, formatPhone } from "../../../shared/client-identifiers";
 import { applyQuickClientCompletion } from "../../../shared/counter-client";
@@ -34,7 +33,6 @@ export default function CounterSale() {
   const { data: products = [], isLoading: productsLoading, error: productsError } = trpc.products.list.useQuery();
   const [clientId, setClientId] = useState("");
   const [clientSearch, setClientSearch] = useState("");
-  const [notes, setNotes] = useState("");
   const [items, setItems] = useState<SaleItem[]>([emptyItem(1)]);
   const [extras, setExtras] = useState<CommercialExtra[]>([]);
   const [outcome, setOutcome] = useState<"quote" | "sale" | null>(null);
@@ -57,7 +55,7 @@ export default function CounterSale() {
       const reference = result.outcome === "sale" ? `Venda #${result.orderId} concluída` : `Orçamento #${result.quoteId} salvo`;
       toast.success(`${reference} — total R$ ${Number(result.totalAmount).toFixed(2)}`);
       utils.products.list.invalidate(); utils.orders.list.invalidate(); utils.quotes.list.invalidate(); utils.stockMovements.list.invalidate();
-      setClientId(""); setClientSearch(""); setNotes(""); setOutcome(null); setExtras([]); setItems([emptyItem(Date.now())]);
+      setClientId(""); setClientSearch(""); setOutcome(null); setExtras([]); setItems([emptyItem(Date.now())]);
     },
     onError: (error) => toast.error(error.message),
   });
@@ -85,16 +83,14 @@ export default function CounterSale() {
     if (!clientId) return toast.error("Selecione ou cadastre o cliente para concluir o atendimento");
     if (items.some((item) => !item.productId || !item.width || !item.height || !item.quantity || !item.unitPrice)) return toast.error("Preencha produto, dimensões, quantidade e preço de todos os itens");
     if (extras.some((extra) => !extra.description || !extra.quantity || !extra.unitPrice)) return toast.error("Preencha descrição, quantidade e preço de todos os complementos");
-    mutation.mutate({ outcome, clientId: Number(clientId), notes: notes || null, items: items.map(({ productId, width, height, quantity, unitPrice, notes: itemNotes }) => ({ productId: Number(productId), width, height, quantity, unitPrice, notes: itemNotes || null })), extras: extras.map(({ kind, description, unit, quantity, unitPrice, productId, notes: extraNotes }) => ({ kind, description, unit, quantity, unitPrice, productId: productId ? Number(productId) : null, notes: extraNotes || null })) });
+    mutation.mutate({ outcome, clientId: Number(clientId), notes: null, items: items.map(({ productId, width, height, quantity, unitPrice, notes: itemNotes }) => ({ productId: Number(productId), width, height, quantity, unitPrice, notes: itemNotes || null })), extras: extras.map(({ kind, description, unit, quantity, unitPrice, productId, notes: extraNotes }) => ({ kind, description, unit, quantity, unitPrice, productId: productId ? Number(productId) : null, notes: extraNotes || null })) });
   };
   const submitQuickClient = () => createClientMutation.mutate(toClientMutationInput(quickClient));
 
-  return <div className="mx-auto max-w-6xl space-y-6">
+  return <div className="mx-auto max-w-6xl space-y-6" data-keyboard-scope>
     <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><h1 className="text-2xl font-bold">Atendimento de Balcão</h1><p className="text-sm text-muted-foreground">Monte os itens primeiro e escolha no encerramento se será orçamento ou venda.</p></div><div className="rounded-lg border bg-card px-4 py-3 text-right"><p className="text-xs text-muted-foreground">Total estimado</p><p className="text-xl font-bold">R$ {estimatedTotal.toFixed(2)}</p></div></div>
 
-    <Card><CardHeader><CardTitle>Atendimento</CardTitle><CardDescription>O cliente é selecionado somente ao finalizar. Use observações para condições comerciais ou detalhes do balcão.</CardDescription></CardHeader><CardContent><div className="space-y-2"><Label>Observações</Label><Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Forma de pagamento ou observação do atendimento" className="min-h-10" /></div></CardContent></Card>
-
-    <Card><CardHeader className="flex-row items-center justify-between space-y-0"><div><CardTitle>Vidros</CardTitle><CardDescription>Dimensões em centímetros; preço por metro quadrado.</CardDescription></div><Button variant="outline" size="sm" onClick={() => setItems((current) => [...current, emptyItem(Date.now())])}><Plus className="mr-2 h-4 w-4" />Adicionar vidro</Button></CardHeader><CardContent className="space-y-3">
+    <Card><CardHeader className="flex-row items-center justify-between space-y-0"><div><CardTitle>Vidros</CardTitle><CardDescription>Use Enter para avançar pelos campos e Shift+Enter para retornar. Dimensões em centímetros; preço por metro quadrado.</CardDescription></div><Button variant="outline" size="sm" onClick={() => setItems((current) => [...current, emptyItem(Date.now())])}><Plus className="mr-2 h-4 w-4" />Adicionar vidro</Button></CardHeader><CardContent className="space-y-3">
       {productsError ? <p role="alert" className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">Não foi possível carregar os produtos. Atualize a página e tente novamente.</p> : productsLoading ? <p className="rounded-md border bg-muted px-3 py-2 text-sm text-muted-foreground">Carregando produtos…</p> : products.length === 0 ? <p className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-800 dark:text-amber-200">Cadastre ao menos um produto antes de realizar o atendimento.</p> : null}
       {items.map((item) => <div key={item.key} className="grid gap-3 rounded-lg border p-3 sm:grid-cols-2 lg:grid-cols-[minmax(180px,2fr)_repeat(4,minmax(90px,1fr))_40px]"><div className="space-y-1"><Label>Produto</Label><select value={item.productId} onChange={(e) => chooseProduct(item, e.target.value)} disabled={productsLoading || Boolean(productsError) || products.length === 0} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm disabled:cursor-not-allowed disabled:opacity-50"><option value="">Selecione</option>{products.map((product: any) => <option key={product.id} value={product.id}>{product.name} — estoque {product.stockQuantity}</option>)}</select></div><div className="space-y-1"><Label>Larg. (cm)</Label><Input inputMode="decimal" value={item.width} onChange={(e) => updateItem(item.key, { width: e.target.value })} /></div><div className="space-y-1"><Label>Alt. (cm)</Label><Input inputMode="decimal" value={item.height} onChange={(e) => updateItem(item.key, { height: e.target.value })} /></div><div className="space-y-1"><Label>Qtd.</Label><Input inputMode="numeric" value={item.quantity} onChange={(e) => updateItem(item.key, { quantity: e.target.value })} /></div><div className="space-y-1"><Label>Preço/m²</Label><Input inputMode="decimal" value={item.unitPrice} onChange={(e) => updateItem(item.key, { unitPrice: e.target.value })} /></div><Button variant="ghost" size="icon" className="self-end text-destructive" onClick={() => setItems((current) => current.length === 1 ? current : current.filter((entry) => entry.key !== item.key))} aria-label="Remover vidro"><Trash2 className="h-4 w-4" /></Button></div>)}
     </CardContent></Card>

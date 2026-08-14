@@ -1,7 +1,7 @@
 # Auditoria funcional e de paridade — MDB legado × Vidrix
 
 **Data de início:** 14 de agosto de 2026  
-**Objeto auditado:** Vidrix ERP publicado no Azure e sua base de código na versão `a0f4d61d`  
+**Objeto auditado:** Vidrix ERP publicado no Azure e sua base de código na versão posterior a `475c97be`  
 **Referência legada:** `Vidracaria2026pdv.mdb`
 
 ## Objetivo e regra de classificação
@@ -78,7 +78,7 @@ As janelas de criação confirmam que os primeiros clientes e produtos coincidem
 
 ## Auditoria técnica dos fluxos
 
-A regressão automatizada foi executada integralmente com **19 arquivos e 45 cenários aprovados**. A compilação de produção também foi concluída, gerando o frontend Vite e os pacotes de servidor para o App Service. O registro de desenvolvimento confirma que o servidor voltou a iniciar e que o bootstrap do esquema está pronto após as correções anteriores. Os erros de sintaxe presentes em linhas antigas do log são históricos; a compilação atual é bem-sucedida.
+A regressão automatizada foi executada integralmente com **61 cenários aprovados**. A compilação de produção também foi concluída, gerando o frontend Vite e os pacotes de servidor para o App Service. O registro de desenvolvimento confirma que o servidor voltou a iniciar e que o bootstrap do esquema está pronto após as correções anteriores. Os erros de sintaxe presentes em linhas antigas do log são históricos; a compilação atual é bem-sucedida.
 
 | Fluxo auditado | Evidência técnica atual | Resultado |
 |---|---|---|
@@ -120,3 +120,27 @@ O router de relatórios foi revisado integralmente. Ele disponibiliza faturament
 | Histórico de estoque | Parcial | A origem e o identificador estão disponíveis. A página de estoque ainda deixa rótulos técnicos para `counter_sale`, `purchase_order`, `order_adjust` e `order_item_remove`. |
 
 > **Conclusão desta revisão.** Relatórios e dashboard funcionam como visão gerencial básica de vendas simples e estoque. Não são equivalentes aos documentos especializados de produção, modalidades comerciais e financeiro do Access; os pontos de filtro, cobertura automatizada e rótulos de histórico permanecem no plano de correção.
+
+## Evidência visual autenticada da publicação
+
+Em 14 de agosto de 2026, a sessão administrativa publicada em `https://vidrix-erp-final.azurewebsites.net/` confirmou a disponibilidade do painel após a atualização. A barra lateral apresenta a nova taxonomia, sem rota omitida: **Visão geral**, **Atendimento comercial**, **Cadastros**, **Suprimentos e estoque** e **Gestão**.
+
+| Área consultada | Evidência observada no Azure | Resultado |
+|---|---|---|
+| Dashboard e navegação lateral | Indicadores renderizados e todos os módulos visíveis sob os grupos corretos. | Conforme. |
+| Balcão unificado | Atendimento inicia com itens, sem cliente; apresenta botões distintos de salvar orçamento e concluir venda, além dos blocos de complementos. | Conforme em modo de consulta. |
+| Relatórios | Período de faturamento, abas e exportação CSV renderizados; o estado vazio é informado quando não há vendas entregues no intervalo. | Conforme em modo de consulta. |
+| Estoque | Histórico mostra Pedido de Venda, Ajuste de Pedido, Remoção de Item, Cancelamento de Pedido e Venda de Balcão com origem legível. | Conforme em modo de consulta. |
+| Clientes | Grade mostra WhatsApp e cidade; o formulário novo expõe CPF/CNPJ, telefone, WhatsApp, CEP, busca ViaCEP e endereço. | Conforme em modo de consulta. |
+
+Não foram criados, editados ou excluídos registros nesta etapa. A finalização real de um orçamento, venda ou recebimento de compra permanece condicionada a um cenário de teste controlado e autorização expressa da operação.
+
+## Atualização de achados após correção
+
+| Achado anterior | Situação atual | Evidência de encerramento |
+|---|---|---|
+| A-01 — recebimento de compra podia duplicar estoque | Corrigido. | Transação, bloqueio de pedido e produtos, retorno idempotente, prevenção de clique repetido e teste de integração. |
+| Filtro de faturamento sem consumo na tela | Corrigido. | Consulta tipada por período, validação de datas e controle publicado em Relatórios. |
+| Rótulos técnicos no histórico de estoque | Corrigido. | Origens comerciais renderizadas com rótulos legíveis no Azure. |
+| Balcão só suportava venda direta | Corrigido. | Mesmo atendimento encerra como orçamento ou venda e persiste complementos. |
+| A-02 — ausência de segregação operacional por papel | Aberto. | Exige matriz de responsabilidades aprovada pela operação antes de restringir perfis. |

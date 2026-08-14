@@ -12,7 +12,10 @@
 - [x] Registrar evidência explícita dos eventos e regras revalidados antes de encerrar a paridade
 - [ ] Executar cenários controlados no ambiente publicado e registrar evidências de ponta a ponta
 - [ ] Corrigir divergências críticas ou de alta prioridade identificadas pela auditoria
-- [ ] Produzir relatório final de auditoria com matriz de paridade, evidências, limitações e recomendações
+- [x] Produzir relatório final de auditoria com matriz de paridade, evidências, limitações e recomendações
+- [ ] Executar cenários controlados publicados e registrar evidências ponta a ponta para os fluxos auditados prioritários do MDB
+- [ ] Fechar os achados críticos ainda abertos ou reclassificá-los formalmente como fora de escopo com justificativa aprovada
+- [ ] Registrar evidência item a item das regras e eventos MDB revalidados no Vidrix com rastreabilidade
 
 ## Correções críticas identificadas na auditoria
 - [x] Tornar o recebimento de pedido de compra transacional e idempotente para impedir entrada duplicada de estoque
@@ -40,6 +43,16 @@
 - [x] Agrupar os módulos da barra lateral em Atendimento Comercial, Cadastros, Suprimentos e Gestão
 - [x] Preservar rotas, destaque do item ativo, responsividade e acessibilidade da navegação reorganizada
 - [x] Cobrir a nova taxonomia da barra lateral com teste de regressão estrutural
+
+## Operação integral por teclado
+- [x] Remover da tela de Balcão o bloco inicial Atendimento e o campo de observações, preservando Atendimento Comercial na barra lateral
+- [x] Criar uma convenção reutilizável: Enter avança, Shift+Enter retorna e controles multiline preservam quebra de linha
+- [x] Aplicar navegação por teclado no Balcão, incluindo itens, complementos, cliente e confirmação
+- [ ] Validar e adaptar explicitamente a navegação por teclado em Clientes, Produtos, Fornecedores e Compras, incluindo modais, selects e ações de salvar ou cancelar
+- [ ] Validar e adaptar explicitamente a navegação por teclado em Estoque, Relatórios, Orçamentos e Pedidos, incluindo foco, Enter, Shift+Enter e controles não textuais
+- [x] Garantir foco visível, sequência previsível e ativação segura de botões por teclado
+- [x] Cobrir o comportamento de teclado e a nova barra lateral com regressão automatizada
+- [ ] Adicionar testes de interface e comportamento por teclado específicos para cada módulo operacional crítico
 
 ## Backend
 - [x] Corrigir erros de TypeScript em todos os routers
@@ -166,7 +179,7 @@
 - [x] Adicionar CEP e preenchimento automático de endereço, cidade e estado
 - [x] Exibir estados visuais claros de consulta de CEP, sucesso e erro na submissão do cliente
 - [x] Cobrir máscaras, validações e resposta de CEP com testes de regressão
-- [ ] Publicar e validar visualmente o formulário aprimorado no ambiente Azure
+- [x] Publicar e validar visualmente o formulário aprimorado no ambiente Azure
 - [ ] Comprovar na interface a aplicação das máscaras de CPF/CNPJ, telefone e CEP
 - [ ] Validar na interface o autopreenchimento por CEP e o tratamento de CEP inválido ou indisponível
 - [ ] Registrar evidência explícita dos estados visuais de consulta de CEP e de sucesso ou erro ao salvar cliente

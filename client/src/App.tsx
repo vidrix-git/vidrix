@@ -6,6 +6,7 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import DashboardLayout from "./components/DashboardLayout";
+import { KeyboardNavigator } from "./components/KeyboardNavigator";
 import Dashboard from "./pages/Dashboard";
 import Quotes from "./pages/Quotes";
 import Orders from "./pages/Orders";
@@ -51,7 +52,7 @@ function App() {
       <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <Toaster />
-          <Router />
+          <KeyboardNavigator><Router /></KeyboardNavigator>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>
