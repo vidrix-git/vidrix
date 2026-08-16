@@ -3,15 +3,15 @@
 **Data:** 14 de agosto de 2026  
 **Sistema auditado:** Vidrix ERP publicado no Azure  
 **Referência funcional:** `Vidracaria2026pdv.mdb`  
-**Versão auditada:** publicação do commit `fe87b53`
+**Versão auditada:** publicação posterior ao commit `fe87b53`, com catálogo codificado e política de papéis aplicada
 
 ## Parecer executivo
 
-O **Vidrix está operacionalmente apto para o fluxo comercial simples de uma vidraçaria**: cadastro de clientes e produtos, atendimento de balcão, orçamento, conversão de orçamento, venda concluída, movimentação de estoque, compras, relatórios básicos e rastreabilidade. A auditoria confirmou **70 testes automatizados aprovados**, compilação de produção bem-sucedida, reconciliação de dados históricos no Azure, inspeção visual autenticada e um cenário de escrita controlado integralmente compensado.[1] [2]
+O **Vidrix está operacionalmente apto para o fluxo comercial simples de uma vidraçaria**: cadastro de clientes e produtos, atendimento de balcão, orçamento, conversão de orçamento, venda concluída, movimentação de estoque, compras, relatórios básicos e rastreabilidade. A auditoria confirmou **97 testes automatizados aprovados**, compilação de produção bem-sucedida, reconciliação de dados históricos no Azure, inspeção visual autenticada e um cenário de escrita controlado integralmente compensado.[1] [2]
 
 O sistema **não é uma reprodução integral do Microsoft Access**. A equivalência alcançada é controlada para vidros e complementos comerciais com preço explícito, medidas em centímetros e estoque de produto. O MDB ainda possui domínios que não foram reproduzidos como regras operacionais: modalidades e vigência de preço, motor de corte, composição de Box/kits, financeiro de pendências e documentos especializados de produção. Esses limites devem ser mantidos explícitos em qualquer decisão de substituição do legado.[3] [4]
 
-> **Conclusão.** O Vidrix pode ser utilizado no atendimento comercial simples. O cenário de escrita controlado no Azure foi concluído com orçamento, venda, baixa e estorno de estoque auditáveis. A matriz de permissões de utilizadores permanece uma decisão operacional pendente. O sistema não deve ser anunciado como equivalente integral ao MDB enquanto os domínios especializados e financeiros abaixo permanecerem fora do escopo.
+> **Conclusão.** O Vidrix pode ser utilizado no atendimento comercial simples. O cenário de escrita controlado no Azure foi concluído com orçamento, venda, baixa e estorno de estoque auditáveis. A segregação técnica de `user`, `admin` e `superadmin` está aplicada no servidor. O sistema não deve ser anunciado como equivalente integral ao MDB enquanto os domínios especializados e financeiros abaixo permanecerem fora do escopo.
 
 | Dimensão | Situação | Síntese |
 |---|---|---|
@@ -21,18 +21,19 @@ O sistema **não é uma reprodução integral do Microsoft Access**. A equivalê
 | Cadastro de clientes | Conforme | CPF/CNPJ, telefone, WhatsApp, CEP e endereço presentes no sistema publicado. |
 | Relatórios básicos | Conforme com condição | Faturamento filtrado, estoque e movimentos; sem equivalência aos documentos especializados do Access. |
 | Paridade integral com o MDB | Não equivalente | Faltam regras especializadas de produção, preço e financeiro. |
-| Segregação por papel | Pendente de decisão operacional | O sistema ainda não aplica matriz de autorização entre consulta, operação e administração. |
+| Segregação por papel | Conforme | O servidor restringe catálogo, compras, estoque e mutações de pedido aos papéis administrativos. |
 
 ## Evidências reunidas
 
 | Evidência | Resultado | Abrangência |
 |---|---|---|
-| Regressão automatizada | 70 testes aprovados | Autenticação, contratos, cálculos, clientes, balcão, estoque, compras, UI e relatórios, incluindo a decisão de próximo passo pelo campo Preço. |
+| Regressão automatizada | 97 testes aprovados | Autenticação, permissões, contratos, cálculos, catálogo por código, clientes, balcão, estoque, compras, UI e relatórios. |
 | Compilação de produção | Aprovada | Frontend e backend compilados para a implantação Azure. |
 | Reconciliação autenticada de dados | Aprovada | 118.295 registros históricos e 118.144 regras preservados sem duplicação. |
 | Inspeção visual autenticada | Aprovada | Barra lateral, balcão, clientes, estoque e relatórios renderizados no Azure; fluxo de foco por teclado confirmado. |
 | Cenários de escrita em produção | Aprovados | Orçamento #4, venda/pedido #3, saída `counter_sale` e entrada única de cancelamento, todos em dados identificados como TESTE. |
 | Decisão de próximo passo no Balcão | Aprovada | `Enter` em Preço/m² exibe diálogo; adicionar produto cria linha e recebe foco; finalizar transfere foco à opção de orçamento. |
+| Catálogo por código no Balcão | Aprovado | Combobox de códigos `KC`, `KF` e `PRD`; `Enter` seleciona o produto correspondente e transfere foco ao seletor Produto.[6] |
 
 ## Fluxo comercial unificado de balcão
 
@@ -47,6 +48,7 @@ O formulário de balcão foi reorganizado para refletir a regra operacional indi
 | Venda | No encerramento, exige cliente; cria pedido entregue, baixa saldo e grava movimento `counter_sale`. | Integração transacional e histórico de estoque. |
 | Cliente rápido | Após o cadastro, o cliente recém-criado é selecionado, a busca é limpa e o encerramento é mantido aberto. | Teste comportamental do callback de sucesso. |
 | Decisão após o preço | `Enter` em Preço/m² pede que o operador adicione outro produto ou encerre o atendimento. | Teste de unidade e inspeção autenticada no Azure, sem transação gravada. |
+| Código de produto | Atendimento inicia pelo código; lista códigos cadastrados e seleciona o produto pelo Enter. | Validação publicada para `KF-1`, incluindo foco no Produto e preço aplicado. |
 
 ## Paridade atualizada com o MDB
 
@@ -74,12 +76,13 @@ O formulário de balcão foi reorganizado para refletir a regra operacional indi
 | Origem de movimentos exibia códigos técnicos | Rótulos comerciais adicionados para venda, balcão, compra, ajustes, remoção e cancelamento. | Encerrado. |
 | Navegação lateral plana | Módulos agrupados por Visão geral, Atendimento comercial, Cadastros, Suprimentos e estoque e Gestão. | Encerrado. |
 | Enter no preço avançava para o próximo controle sem confirmar a intenção | Diálogo de escolha com foco para novo produto ou para o desfecho orçamento/venda. | Encerrado. |
+| Catálogo não expunha código comercial no Balcão | Códigos `KF`/`KC` preservados do MDB, fallback `PRD-{id}` para registros sem origem e combobox antes de Produto. | Encerrado. |
 
 ## Pendências e recomendações
 
 | Prioridade | Pendência | Recomendação objetiva |
 |---|---|---|
-| Alta | Matriz de permissões | Definir quem consulta, vende, cadastra, recebe compra, ajusta estoque e administra. Só então restringir routers e interface por papel. |
+| Concluída | Matriz de permissões | Política de papéis aplicada nas procedures de catálogo, compras, estoque e pedido; atendimento comercial permanece disponível a `user`. |
 | Concluída | Aceite de escrita no Azure | Orçamento #4, venda/pedido #3, baixa de uma unidade e estorno único por cancelamento concluídos com dados TESTE preservados como trilha de auditoria. |
 | Média | Paridade avançada do MDB | Priorizar conforme o uso real: modalidade/preço, Box/kits, corte ou financeiro. Cada domínio precisa de modelo e regra próprios. |
 | Média | Relatórios de produção | Definir quais documentos e indicadores do Access são indispensáveis para emitir os relatórios equivalentes. |
@@ -96,3 +99,4 @@ Para operação comercial corrente, recomenda-se iniciar com o escopo de **vidro
 [3]: ./MDB_RULE_EVENT_MATRIX.md "Matriz de regras e eventos do MDB"
 [4]: ./MDB_PARITY_FINAL_REPORT.md "Relatório anterior de paridade MDB–Vidrix"
 [5]: ./AUDITORIA_VISUAL_AZURE_2026-08-14.md "Evidência visual e cenário controlado no Azure"
+[6]: ./VALIDACAO_CODIGO_PRODUTO_AZURE_2026-08-14.md "Evidência publicada do catálogo por código"

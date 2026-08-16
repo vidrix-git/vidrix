@@ -11,10 +11,10 @@
 - [x] Auditar tecnicamente cadastros, orçamentos, conversão em pedidos, venda direta, estoque, compras e relatórios
 - [x] Registrar evidência explícita dos eventos e regras revalidados antes de encerrar a paridade
 - [x] Executar cenários controlados no ambiente publicado e registrar evidências de ponta a ponta
-- [ ] Corrigir divergências críticas ou de alta prioridade identificadas pela auditoria
+- [x] Corrigir divergências críticas ou de alta prioridade identificadas pela auditoria
 - [x] Produzir relatório final de auditoria com matriz de paridade, evidências, limitações e recomendações
 - [x] Executar cenários controlados publicados e registrar evidências ponta a ponta para os fluxos auditados prioritários do MDB
-- [ ] Fechar os achados críticos ainda abertos ou reclassificá-los formalmente como fora de escopo com justificativa aprovada
+- [x] Fechar os achados críticos ainda abertos ou reclassificá-los formalmente como fora de escopo com justificativa aprovada
 - [x] Registrar evidência item a item das regras e eventos MDB revalidados no Vidrix com rastreabilidade
 
 ## Correções críticas identificadas na auditoria
@@ -24,7 +24,7 @@
 - [x] Validar por inspeção e teste o bloqueio de reenvio no recebimento da tela de compras
 - [x] Validar por inspeção e teste os rótulos amigáveis do histórico de estoque
 - [x] Adicionar teste de contrato para receita por período válido, inválido e invertido
-- [ ] Cobrir dashboard e relatórios gerais com testes de contrato dos indicadores e filtros
+- [x] Cobrir dashboard e relatórios gerais com testes de contrato dos indicadores e filtros
 
 ## Atendimento comercial unificado de balcão
 - [x] Inspecionar e testar a tela e o endpoint unificado para orçamento e venda
@@ -241,10 +241,10 @@
 - [x] Cobrir o novo fluxo de decisão por teclado com testes de comportamento e validação visual
 
 ## Aprimoramento de foco e escolha no Balcão
-- [ ] Iniciar o Balcão com foco automático no primeiro seletor de Produto disponível
-- [ ] Permitir alternar entre Adicionar novo produto e Finalizar atendimento pelas setas esquerda e direita no diálogo
-- [ ] Confirmar a opção destacada com Enter e preservar o foco correto após cada ação
-- [ ] Cobrir foco inicial e seleção por setas com testes de comportamento e validação publicada
+- [x] Iniciar o Balcão com foco automático no primeiro seletor de Produto disponível (substituído pelo foco no Código, por solicitação posterior)
+- [x] Permitir alternar entre Adicionar novo produto e Finalizar atendimento pelas setas esquerda e direita no diálogo
+- [x] Confirmar a opção destacada com Enter e preservar o foco correto após cada ação
+- [x] Cobrir foco inicial e seleção por setas com testes de comportamento e validação publicada
 
 ## Escolha por setas entre orçamento e venda
 - [ ] Alternar o foco entre Salvar como orçamento e Concluir como venda com as setas esquerda e direita
@@ -252,16 +252,16 @@
 - [ ] Cobrir a seleção de resultado por setas com teste de comportamento e validação publicada
 
 ## Código de produto no Balcão
-- [ ] Identificar no MDB legado a origem, formato e disponibilidade do código de produto
-- [ ] Adicionar e migrar o código de produto no catálogo Vidrix, preservando produtos existentes
-- [ ] Incluir o campo Código antes do Produto no Balcão com seleção automática pelo código informado
-- [ ] Cobrir código de produto e seleção por teclado com testes e validação publicada
+- [x] Identificar no MDB legado a origem, formato e disponibilidade do código de produto
+- [x] Adicionar e migrar o código de produto no catálogo Vidrix, preservando produtos existentes
+- [x] Incluir o campo Código antes do Produto no Balcão com seleção automática pelo código informado
+- [x] Cobrir código de produto e seleção por teclado com testes e validação publicada
 
 ## Combobox de código no Balcão
-- [ ] Exibir todos os códigos de produto cadastrados em um combobox antes do seletor Produto
-- [ ] Ao escolher ou digitar código válido e pressionar Enter, preencher o produto correspondente e avançar o foco
-- [ ] Cobrir a consulta por código e a confirmação por Enter com testes e validação publicada
+- [x] Exibir todos os códigos de produto cadastrados em um combobox antes do seletor Produto
+- [x] Ao escolher ou digitar código válido e pressionar Enter, preencher o produto correspondente e avançar o foco
+- [x] Cobrir a consulta por código e a confirmação por Enter com testes e validação publicada
 
 ## Preenchimento de códigos legados
-- [ ] Preencher retroativamente os códigos KF e KC dos kits migrados do MDB no catálogo publicado
-- [ ] Atribuir código interno estável aos produtos existentes sem código para que todos apareçam no combobox
+- [x] Preencher retroativamente os códigos KF e KC dos kits migrados do MDB no catálogo publicado
+- [x] Atribuir código interno estável aos produtos existentes sem código para que todos apareçam no combobox

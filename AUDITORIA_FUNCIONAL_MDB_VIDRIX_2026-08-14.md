@@ -132,6 +132,7 @@ Em 14 de agosto de 2026, a sessão administrativa publicada em `https://vidrix-e
 | Relatórios | Período de faturamento, abas e exportação CSV renderizados; o estado vazio é informado quando não há vendas entregues no intervalo. | Conforme em modo de consulta. |
 | Estoque | Histórico mostra Pedido de Venda, Ajuste de Pedido, Remoção de Item, Cancelamento de Pedido e Venda de Balcão com origem legível. | Conforme em modo de consulta. |
 | Clientes | Grade mostra WhatsApp e cidade; o formulário novo expõe CPF/CNPJ, telefone, WhatsApp, CEP, busca ViaCEP e endereço. | Conforme em modo de consulta. |
+| Código de produto | Balcão começa pelo campo Código; os identificadores `KC`, `KF` e `PRD` aparecem no catálogo. Ao confirmar `KF-1` com `Enter`, o produto, preço e foco foram preenchidos corretamente. | Conforme em modo de consulta. |
 
 Não foram criados, editados ou excluídos registros nesta etapa. A finalização real de um orçamento, venda ou recebimento de compra permanece condicionada a um cenário de teste controlado e autorização expressa da operação.
 
