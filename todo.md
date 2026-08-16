@@ -265,3 +265,9 @@
 ## Preenchimento de códigos legados
 - [x] Preencher retroativamente os códigos KF e KC dos kits migrados do MDB no catálogo publicado
 - [x] Atribuir código interno estável aos produtos existentes sem código para que todos apareçam no combobox
+
+## Documentação integral da plataforma
+- [x] Elaborar documento técnico completo sobre a construção, arquitetura, módulos e fluxos do Vidrix
+- [x] Documentar dados, migração MDB, autenticação, permissões, testes, publicação Azure e operação do ERP
+- [x] Incluir instruções de manutenção, implantação, recuperação e evolução segura da plataforma
+- [x] Atualizar o pacote ZIP de entrega com a documentação técnica consolidada e os artefatos atuais
