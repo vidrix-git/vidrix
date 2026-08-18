@@ -6,6 +6,7 @@ import { createRoot } from "react-dom/client";
 import superjson from "superjson";
 import App from "./App";
 import "./index.css";
+import { getLocalSessionAuthorization, LOCAL_TOKEN_STORAGE_KEY } from "./lib/auth-session";
 
 const queryClient = new QueryClient();
 
@@ -42,9 +43,18 @@ const trpcClient = trpc.createClient({
       url: "/api/trpc",
       transformer: superjson,
       fetch(input, init) {
+        const headers = new Headers(init?.headers);
+        const token = typeof window === "undefined" ? null : window.localStorage.getItem(LOCAL_TOKEN_STORAGE_KEY);
+        const authorization = getLocalSessionAuthorization(token);
+
+        for (const [name, value] of Object.entries(authorization)) {
+          if (!headers.has(name)) headers.set(name, value);
+        }
+
         return globalThis.fetch(input, {
           ...(init ?? {}),
           credentials: "include",
+          headers,
         });
       },
     }),

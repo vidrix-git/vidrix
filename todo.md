@@ -131,6 +131,8 @@
 - [x] Confirmar e documentar a base de dados Azure de produção correta e a inexistência de dados legados a reconciliar
 - [x] Validar novamente o login publicado após registar a reconciliação da base de dados Azure
 - [x] Executar uma nova validação HTTP do login publicado após o registo final de reconciliação
+- [ ] Investigar o erro de credenciais informado no login publicado e identificar a causa sem expor senhas
+- [ ] Corrigir a autenticação local publicada, validar o login com conta autorizada e registrar evidência segura
 
 ## Migração de dados legados
 - [x] Inventariar tabelas, campos, relações e contagens do ficheiro Vidracaria2026pdv.mdb

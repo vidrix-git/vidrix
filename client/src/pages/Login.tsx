@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { ShieldCheck, UserPlus, LogIn } from "lucide-react";
+import { LOCAL_TOKEN_STORAGE_KEY } from "@/lib/auth-session";
 
 export default function LoginPage() {
   const [, setLocation] = useLocation();
@@ -54,7 +55,7 @@ export default function LoginPage() {
       const result = await login.mutateAsync({ username: username.trim(), password });
       if (result.success) {
         // Store token in localStorage as fallback
-        localStorage.setItem("vidrix-token", result.token);
+        localStorage.setItem(LOCAL_TOKEN_STORAGE_KEY, result.token);
         toast.success(`Bem-vindo, ${result.user.name || result.user.email || "Usuário"}!`);
         setLocation("/");
       } else {

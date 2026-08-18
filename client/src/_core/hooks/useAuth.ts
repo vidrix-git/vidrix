@@ -1,5 +1,6 @@
 import { trpc } from "@/lib/trpc";
 import { useCallback, useMemo, useState } from "react";
+import { LOCAL_TOKEN_STORAGE_KEY } from "@/lib/auth-session";
 
 type UseAuthOptions = {
   redirectOnUnauthenticated?: boolean;
@@ -17,7 +18,7 @@ export function useAuth(options?: UseAuthOptions) {
 
   const logoutMutation = trpc.auth.logout.useMutation({
     onSuccess: () => {
-      localStorage.removeItem("vidrix-token");
+      localStorage.removeItem(LOCAL_TOKEN_STORAGE_KEY);
       utils.auth.me.setData(undefined, null);
     },
   });
@@ -26,7 +27,7 @@ export function useAuth(options?: UseAuthOptions) {
     try {
       await logoutMutation.mutateAsync();
     } finally {
-      localStorage.removeItem("vidrix-token");
+      localStorage.removeItem(LOCAL_TOKEN_STORAGE_KEY);
       utils.auth.me.setData(undefined, null);
       await utils.auth.me.invalidate();
     }
