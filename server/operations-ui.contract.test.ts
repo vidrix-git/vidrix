@@ -40,6 +40,8 @@ describe("contratos operacionais da interface", () => {
     expect(counter).toContain("findCounterProductByCode(products as any[], code)");
     expect(counter).toContain("moveCounterPriceDecision(priceDecision, event.key)");
     expect(counter).toContain("shouldConfirmCounterPriceDecision(event)");
+    expect(counter).toContain("const focusPriceDecision = (nextDecision: CounterPriceDecision)");
+    expect(counter).toContain('(nextDecision === "add" ? addProductDecisionRef : finishDecisionRef).current?.focus()');
     expect(counter).toContain("moveCounterSaleOutcomeFocus(currentOutcome, event.key)");
     expect(counter).toContain("shouldConfirmCounterSaleOutcome(event)");
     expect(counter).toContain("chooseOutcome(currentOutcome)");

@@ -48,6 +48,7 @@
 - [x] Remover da tela de Balcão o bloco inicial Atendimento e o campo de observações, preservando Atendimento Comercial na barra lateral
 - [x] Criar uma convenção reutilizável: Enter avança, Shift+Enter retorna e controles multiline preservam quebra de linha
 - [x] Aplicar navegação por teclado no Balcão, incluindo itens, complementos, cliente e confirmação
+- [ ] Corrigir a alternância por seta direita no diálogo de próximo passo do Balcão, que permaneceu no botão atual na validação publicada
 - [ ] Validar e adaptar explicitamente a navegação por teclado em Clientes, Produtos, Fornecedores e Compras, incluindo modais, selects e ações de salvar ou cancelar
 - [ ] Validar e adaptar explicitamente a navegação por teclado em Estoque, Relatórios, Orçamentos e Pedidos, incluindo foco, Enter, Shift+Enter e controles não textuais
 - [x] Garantir foco visível, sequência previsível e ativação segura de botões por teclado
@@ -131,8 +132,9 @@
 - [x] Confirmar e documentar a base de dados Azure de produção correta e a inexistência de dados legados a reconciliar
 - [x] Validar novamente o login publicado após registar a reconciliação da base de dados Azure
 - [x] Executar uma nova validação HTTP do login publicado após o registo final de reconciliação
-- [ ] Investigar o erro de credenciais informado no login publicado e identificar a causa sem expor senhas
-- [ ] Corrigir a autenticação local publicada, validar o login com conta autorizada e registrar evidência segura
+- [x] Investigar o erro de credenciais informado no login publicado e identificar a causa sem expor senhas
+- [x] Corrigir a autenticação local publicada, validar o login com conta autorizada e registrar evidência segura
+- [x] Validar ponta a ponta o login publicado após o deploy da correção, incluindo sessão mantida em rota protegida sem expor credenciais
 
 ## Migração de dados legados
 - [x] Inventariar tabelas, campos, relações e contagens do ficheiro Vidracaria2026pdv.mdb

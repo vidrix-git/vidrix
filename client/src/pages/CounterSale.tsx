@@ -113,6 +113,10 @@ export default function CounterSale() {
     setShowPriceDecision(false);
     window.requestAnimationFrame(appendItem);
   };
+  const focusPriceDecision = (nextDecision: CounterPriceDecision) => {
+    setPriceDecision(nextDecision);
+    (nextDecision === "add" ? addProductDecisionRef : finishDecisionRef).current?.focus();
+  };
   const handlePriceKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (!shouldOpenCounterPriceDecision(event)) return;
     event.preventDefault();
@@ -131,7 +135,8 @@ export default function CounterSale() {
     const nextDecision = moveCounterPriceDecision(priceDecision, event.key);
     if (nextDecision === priceDecision) return;
     event.preventDefault();
-    setPriceDecision(nextDecision);
+    event.stopPropagation();
+    focusPriceDecision(nextDecision);
   };
   const focusOutcomeChoice = () => {
     setShowPriceDecision(false);
