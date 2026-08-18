@@ -46,8 +46,9 @@ export function CounterPriceDecisionButtons({
       return;
     }
 
-    const nextDecision = moveCounterPriceDecision(decision, event.key);
-    if (nextDecision === decision) return;
+    const currentDecision = event.currentTarget === addProductRef.current ? "add" : "finish";
+    const nextDecision = moveCounterPriceDecision(currentDecision, event.key);
+    if (nextDecision === currentDecision) return;
     event.preventDefault();
     event.stopPropagation();
     focusDecision(nextDecision);

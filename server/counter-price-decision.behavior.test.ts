@@ -32,4 +32,20 @@ describe("CounterPriceDecisionButtons — comportamento de foco", () => {
     fireEvent.keyDown(add, { key: "ArrowRight" });
     expect(document.activeElement).toBe(finish);
   });
+
+  it("usa o botão realmente focado como origem mesmo se o estado de decisão estiver atrasado", () => {
+    const view = render(h(CounterPriceDecisionButtons, {
+      decision: "finish",
+      onDecisionChange: () => undefined,
+      onAddProduct: () => undefined,
+      onFinish: () => undefined,
+    }));
+    const add = view.getByRole("button", { name: "Adicionar novo produto" });
+    const finish = view.getByRole("button", { name: "Finalizar atendimento" });
+
+    add.focus();
+    fireEvent.keyDown(add, { key: "ArrowRight" });
+
+    expect(document.activeElement).toBe(finish);
+  });
 });

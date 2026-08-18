@@ -39,3 +39,11 @@ A versão publicada foi recarregada após a correção que aplica foco imperativ
 | **→** | O foco visível retornou de **Adicionar novo produto** para **Finalizar atendimento** |
 
 > A alternância bidirecional do diálogo foi confirmada visualmente no Azure. Nenhum atendimento foi confirmado ou persistido nesta validação.
+
+## Evidência verificável na compilação final
+
+A versão com o componente de decisão testado em DOM foi publicada com sucesso (resposta HTTP 200). No Balcão autenticado, **Enter** no preço abriu o diálogo com o foco inicial visível em **Finalizar atendimento**. A troca seguinte por **→** será verificada sem submeter a operação.
+
+Na compilação final, foram enviados **←** e **→** de forma sequencial no diálogo publicado. Como a captura visual sobrepõe os marcadores técnicos aos contornos de foco, a confirmação conclusiva será feita pela ação de **Enter**: se o foco estiver em **Finalizar atendimento**, o sistema abrirá apenas o seletor de orçamento/venda, sem gravar venda, orçamento ou produto.
+
+O Enter subsequente adicionou uma segunda linha local de vidro, o que demonstrou que o foco efetivo permaneceu em **Adicionar novo produto**. Não houve gravação de orçamento, venda, produto ou estoque. A divergência entre o teste DOM e o navegador publicado permanece aberta para diagnóstico.
