@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CounterPriceDecisionButtons } from "@/components/CounterPriceDecisionButtons";
 import { toClientMutationInput, type ClientMutationForm } from "../../../shared/client-contract";
 import { formatClientDocument, formatPhone } from "../../../shared/client-identifiers";
 import { applyQuickClientCompletion } from "../../../shared/counter-client";
-import { moveCounterPriceDecision, moveCounterSaleOutcomeFocus, shouldConfirmCounterPriceDecision, shouldConfirmCounterSaleOutcome, shouldOpenCounterPriceDecision, type CounterPriceDecision, type CounterSaleOutcome } from "../../../shared/counter-sale-keyboard";
+import { moveCounterSaleOutcomeFocus, shouldConfirmCounterSaleOutcome, shouldOpenCounterPriceDecision, type CounterPriceDecision, type CounterSaleOutcome } from "../../../shared/counter-sale-keyboard";
 import { findCounterProductByCode, normalizeCounterProductCode, shouldResolveCounterProductCode } from "../../../shared/counter-product-code";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -48,8 +49,6 @@ export default function CounterSale() {
   const outcomeClientSearchRef = useRef<HTMLInputElement>(null);
   const initialProductCodeRef = useRef<HTMLInputElement>(null);
   const hasFocusedInitialProductCode = useRef(false);
-  const addProductDecisionRef = useRef<HTMLButtonElement>(null);
-  const finishDecisionRef = useRef<HTMLButtonElement>(null);
 
   const itemTotal = useMemo(() => items.reduce((total, item) => total + ((decimal(item.width) * decimal(item.height) / 10000) * decimal(item.quantity) * decimal(item.unitPrice) || 0), 0), [items]);
   const extraTotal = useMemo(() => extras.reduce((total, extra) => total + (decimal(extra.quantity) * decimal(extra.unitPrice) || 0), 0), [extras]);
@@ -68,11 +67,6 @@ export default function CounterSale() {
     hasFocusedInitialProductCode.current = true;
     window.requestAnimationFrame(() => initialProductCodeRef.current?.focus());
   }, [catalogReady]);
-
-  useEffect(() => {
-    if (!showPriceDecision) return;
-    window.requestAnimationFrame(() => (priceDecision === "add" ? addProductDecisionRef.current : finishDecisionRef.current)?.focus());
-  }, [showPriceDecision, priceDecision]);
 
   useEffect(() => {
     if (!outcome || showQuickClient || clientsLoading || clientsError) return;
@@ -113,30 +107,12 @@ export default function CounterSale() {
     setShowPriceDecision(false);
     window.requestAnimationFrame(appendItem);
   };
-  const focusPriceDecision = (nextDecision: CounterPriceDecision) => {
-    setPriceDecision(nextDecision);
-    (nextDecision === "add" ? addProductDecisionRef : finishDecisionRef).current?.focus();
-  };
   const handlePriceKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (!shouldOpenCounterPriceDecision(event)) return;
     event.preventDefault();
     event.stopPropagation();
     setPriceDecision("add");
     setShowPriceDecision(true);
-  };
-  const handlePriceDecisionKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
-    if (shouldConfirmCounterPriceDecision(event)) {
-      event.preventDefault();
-      event.stopPropagation();
-      if (priceDecision === "add") addItemFromPriceDecision();
-      else focusOutcomeChoice();
-      return;
-    }
-    const nextDecision = moveCounterPriceDecision(priceDecision, event.key);
-    if (nextDecision === priceDecision) return;
-    event.preventDefault();
-    event.stopPropagation();
-    focusPriceDecision(nextDecision);
   };
   const focusOutcomeChoice = () => {
     setShowPriceDecision(false);
@@ -203,7 +179,7 @@ export default function CounterSale() {
 
     <Card><CardHeader className="flex-row items-center justify-between space-y-0"><div><CardTitle>Complementos</CardTitle><CardDescription>Acessórios, massa, tarugo, moldura e montagem entram no mesmo total. Vincule um produto somente quando houver baixa de estoque.</CardDescription></div><Button variant="outline" size="sm" onClick={() => setExtras((current) => [...current, emptyExtra(Date.now())])}><PackagePlus className="mr-2 h-4 w-4" />Adicionar complemento</Button></CardHeader><CardContent className="space-y-3">{extras.length === 0 ? <p className="rounded-md border border-dashed px-3 py-4 text-sm text-muted-foreground">Nenhum complemento adicionado a este atendimento.</p> : extras.map((extra) => <div key={extra.key} className="grid gap-3 rounded-lg border p-3 md:grid-cols-2 xl:grid-cols-[130px_minmax(160px,2fr)_90px_90px_110px_minmax(150px,1fr)_40px]"><div className="space-y-1"><Label>Tipo</Label><select value={extra.kind} onChange={(e) => { const kind = e.target.value as ExtraKind; updateExtra(extra.key, { kind, unit: kind === "massa" ? "kg" : kind === "moldura" ? "cm" : kind === "montagem" ? "servico" : "un" }); }} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">{Object.entries(extraLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div><div className="space-y-1"><Label>Descrição</Label><Input value={extra.description} onChange={(e) => updateExtra(extra.key, { description: e.target.value })} placeholder={extraLabels[extra.kind]} /></div><div className="space-y-1"><Label>Unidade</Label><select value={extra.unit} onChange={(e) => updateExtra(extra.key, { unit: e.target.value as CommercialExtra["unit"] })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"><option value="un">un</option><option value="kg">kg</option><option value="cm">cm</option><option value="m">m</option><option value="servico">serviço</option></select></div><div className="space-y-1"><Label>Qtd.</Label><Input inputMode="decimal" value={extra.quantity} onChange={(e) => updateExtra(extra.key, { quantity: e.target.value })} /></div><div className="space-y-1"><Label>Valor un.</Label><Input inputMode="decimal" value={extra.unitPrice} onChange={(e) => updateExtra(extra.key, { unitPrice: e.target.value })} /></div><div className="space-y-1"><Label>Produto estoque</Label><select value={extra.productId} onChange={(e) => updateExtra(extra.key, { productId: e.target.value })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"><option value="">Não movimenta estoque</option>{products.map((product: any) => <option key={product.id} value={product.id}>{product.name}</option>)}</select></div><Button variant="ghost" size="icon" className="self-end text-destructive" onClick={() => setExtras((current) => current.filter((entry) => entry.key !== extra.key))} aria-label="Remover complemento"><Trash2 className="h-4 w-4" /></Button></div>)}</CardContent></Card>
 
-    <Dialog open={showPriceDecision} onOpenChange={setShowPriceDecision}><DialogContent><DialogHeader><DialogTitle>Próximo passo do atendimento</DialogTitle><DialogDescription>Deseja incluir outro produto ou seguir para a escolha entre orçamento e venda? Use ← e → para alternar e Enter para confirmar.</DialogDescription></DialogHeader><DialogFooter><Button ref={addProductDecisionRef} type="button" variant="outline" onFocus={() => setPriceDecision("add")} onKeyDown={handlePriceDecisionKeyDown} onClick={addItemFromPriceDecision}>Adicionar novo produto</Button><Button ref={finishDecisionRef} type="button" onFocus={() => setPriceDecision("finish")} onKeyDown={handlePriceDecisionKeyDown} onClick={focusOutcomeChoice}>Finalizar atendimento</Button></DialogFooter></DialogContent></Dialog>
+    <Dialog open={showPriceDecision} onOpenChange={setShowPriceDecision}><DialogContent><DialogHeader><DialogTitle>Próximo passo do atendimento</DialogTitle><DialogDescription>Deseja incluir outro produto ou seguir para a escolha entre orçamento e venda? Use ← e → para alternar e Enter para confirmar.</DialogDescription></DialogHeader><DialogFooter><CounterPriceDecisionButtons decision={priceDecision} onDecisionChange={setPriceDecision} onAddProduct={addItemFromPriceDecision} onFinish={focusOutcomeChoice} /></DialogFooter></DialogContent></Dialog>
 
     <Card id="counter-sale-outcome"><CardContent className="flex flex-col gap-2 pt-6 sm:flex-row sm:justify-end"><Button ref={outcomeChoiceRef} size="lg" variant="outline" onClick={() => chooseOutcome("quote")} onKeyDown={(event) => handleOutcomeChoiceKeyDown(event, "quote")} disabled={!catalogReady}><FileText className="mr-2 h-5 w-5" />Salvar como orçamento</Button><Button ref={saleOutcomeChoiceRef} size="lg" onClick={() => chooseOutcome("sale")} onKeyDown={(event) => handleOutcomeChoiceKeyDown(event, "sale")} disabled={!catalogReady}><ShoppingBasket className="mr-2 h-5 w-5" />Concluir como venda</Button></CardContent></Card>
 

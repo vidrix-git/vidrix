@@ -10,6 +10,7 @@ function source(relativePath: string) {
 describe("contratos operacionais da interface", () => {
   it("mantém um atendimento único que escolhe orçamento ou venda somente no encerramento", () => {
     const counter = source("client/src/pages/CounterSale.tsx");
+    const priceDecision = source("client/src/components/CounterPriceDecisionButtons.tsx");
 
     expect(counter).toContain('useState<"quote" | "sale" | null>(null)');
     expect(counter).toContain('chooseOutcome("quote")');
@@ -29,8 +30,8 @@ describe("contratos operacionais da interface", () => {
     expect(counter).toContain("Escolha ou digite um código cadastrado e pressione Enter para preencher o Produto");
     expect(counter).toContain("shouldOpenCounterPriceDecision(event)");
     expect(counter).toContain("Próximo passo do atendimento");
-    expect(counter).toContain("Adicionar novo produto");
-    expect(counter).toContain("Finalizar atendimento");
+    expect(priceDecision).toContain("Adicionar novo produto");
+    expect(priceDecision).toContain("Finalizar atendimento");
     expect(counter).toContain("setShowPriceDecision(false)");
     expect(counter).toContain("outcomeChoiceRef.current?.focus()");
     expect(counter).toContain("initialProductCodeRef.current?.focus()");
@@ -38,10 +39,9 @@ describe("contratos operacionais da interface", () => {
     expect(counter).toContain('list={`counter-product-codes-${item.key}`}');
     expect(counter).toContain('handleProductCodeKeyDown(event, item)');
     expect(counter).toContain("findCounterProductByCode(products as any[], code)");
-    expect(counter).toContain("moveCounterPriceDecision(priceDecision, event.key)");
-    expect(counter).toContain("shouldConfirmCounterPriceDecision(event)");
-    expect(counter).toContain("const focusPriceDecision = (nextDecision: CounterPriceDecision)");
-    expect(counter).toContain('(nextDecision === "add" ? addProductDecisionRef : finishDecisionRef).current?.focus()');
+    expect(priceDecision).toContain("moveCounterPriceDecision(decision, event.key)");
+    expect(priceDecision).toContain("shouldConfirmCounterPriceDecision(event)");
+    expect(counter).toContain("<CounterPriceDecisionButtons");
     expect(counter).toContain("moveCounterSaleOutcomeFocus(currentOutcome, event.key)");
     expect(counter).toContain("shouldConfirmCounterSaleOutcome(event)");
     expect(counter).toContain("chooseOutcome(currentOutcome)");

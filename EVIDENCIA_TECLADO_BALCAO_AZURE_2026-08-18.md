@@ -28,3 +28,14 @@ A validação foi executada em `https://vidrix-erp-final.azurewebsites.net/count
 ## Achado de reteste
 
 No reteste imediato, o envio de **→** não transferiu o contorno de foco de **Adicionar novo produto** para **Finalizar atendimento**. A lógica auxiliar estava coberta apenas de forma unitária; a verificação visual identificou a necessidade de reforçar o foco no componente. A operação comercial permaneceu aberta e não foi persistida.
+
+## Reteste após correção publicada
+
+A versão publicada foi recarregada após a correção que aplica foco imperativo ao botão de destino. O diálogo voltou a abrir por **Enter** no preço, com a ação **Finalizar atendimento** destacada. A seguir, será exercitada a alternância bidirecional no pacote atualizado.
+
+| Tecla | Resultado observado na versão corrigida |
+| --- | --- |
+| **←** | O foco visível foi transferido de **Finalizar atendimento** para **Adicionar novo produto** |
+| **→** | O foco visível retornou de **Adicionar novo produto** para **Finalizar atendimento** |
+
+> A alternância bidirecional do diálogo foi confirmada visualmente no Azure. Nenhum atendimento foi confirmado ou persistido nesta validação.

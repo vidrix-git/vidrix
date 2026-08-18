@@ -48,7 +48,9 @@
 - [x] Remover da tela de Balcão o bloco inicial Atendimento e o campo de observações, preservando Atendimento Comercial na barra lateral
 - [x] Criar uma convenção reutilizável: Enter avança, Shift+Enter retorna e controles multiline preservam quebra de linha
 - [x] Aplicar navegação por teclado no Balcão, incluindo itens, complementos, cliente e confirmação
-- [ ] Corrigir a alternância por seta direita no diálogo de próximo passo do Balcão, que permaneceu no botão atual na validação publicada
+- [x] Corrigir a alternância por seta direita no diálogo de próximo passo do Balcão, que permaneceu no botão atual na validação publicada
+- [x] Adicionar teste DOM do diálogo do Balcão que comprove a troca real de foco por ← e → entre as ações do próximo passo
+- [ ] Registrar evidência publicada verificável do botão efetivamente focado após a seta direita no diálogo do Balcão
 - [ ] Validar e adaptar explicitamente a navegação por teclado em Clientes, Produtos, Fornecedores e Compras, incluindo modais, selects e ações de salvar ou cancelar
 - [ ] Validar e adaptar explicitamente a navegação por teclado em Estoque, Relatórios, Orçamentos e Pedidos, incluindo foco, Enter, Shift+Enter e controles não textuais
 - [x] Garantir foco visível, sequência previsível e ativação segura de botões por teclado
