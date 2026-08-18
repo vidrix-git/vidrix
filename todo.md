@@ -50,15 +50,22 @@
 - [x] Aplicar navegação por teclado no Balcão, incluindo itens, complementos, cliente e confirmação
 - [x] Corrigir a alternância por seta direita no diálogo de próximo passo do Balcão, que permaneceu no botão atual na validação publicada
 - [x] Adicionar teste DOM do diálogo do Balcão que comprove a troca real de foco por ← e → entre as ações do próximo passo
-- [ ] Registrar evidência publicada verificável do botão efetivamente focado após a seta direita no diálogo do Balcão
-- [ ] Diagnosticar e corrigir a divergência entre o teste DOM e o navegador publicado na seta direita do diálogo do Balcão
-- [ ] Validar e adaptar explicitamente a navegação por teclado em Clientes, Produtos, Fornecedores e Compras, incluindo modais, selects e ações de salvar ou cancelar
-- [ ] Validar e adaptar explicitamente a navegação por teclado em Estoque, Relatórios, Orçamentos e Pedidos, incluindo foco, Enter, Shift+Enter e controles não textuais
+- [x] Registrar evidência publicada verificável do botão efetivamente focado após a seta direita no diálogo do Balcão
+- [x] Diagnosticar e corrigir a divergência entre o teste DOM e o navegador publicado na seta direita do diálogo do Balcão
+- [x] Validar e adaptar explicitamente a navegação por teclado em Clientes, Produtos, Fornecedores e Compras, incluindo modais, selects e ações de salvar ou cancelar
+- [x] Validar e adaptar explicitamente a navegação por teclado em Estoque, Relatórios, Orçamentos e Pedidos, incluindo foco, Enter, Shift+Enter e controles não textuais
 - [x] Garantir foco visível, sequência previsível e ativação segura de botões por teclado
 - [x] Cobrir o comportamento de teclado e a nova barra lateral com regressão automatizada
-- [ ] Adicionar testes de interface e comportamento por teclado específicos para cada módulo operacional crítico
-- [ ] Executar testes comportamentais de foco, Enter e Shift+Enter nos formulários e diálogos de Clientes, Produtos, Fornecedores e Compras
-- [ ] Executar testes comportamentais dos filtros, botões, tabelas, Kanban e diálogos de Estoque, Relatórios, Orçamentos e Pedidos
+- [x] Adicionar testes de interface e comportamento por teclado específicos para cada módulo operacional crítico
+- [x] Executar testes comportamentais de foco, Enter e Shift+Enter nos formulários e diálogos de Clientes, Produtos, Fornecedores e Compras
+- [x] Executar testes comportamentais dos filtros, botões, tabelas, Kanban e diálogos de Estoque, Relatórios, Orçamentos e Pedidos
+- [x] Adicionar teste DOM real de Orçamentos para foco, Enter, Shift+Enter, seleção, abas e cancelamento
+- [x] Registrar e testar a operação por teclado de Estoque, declarando explicitamente a inexistência de formulário editável quando aplicável
+- [x] Testar Fornecedores e Compras com seleção de combobox por teclado, avanço por Enter e cancelamento seguro
+- [x] Verificar alvos exatos de foco em Fornecedores e Compras após Enter, Shift+Enter e confirmação do combobox
+- [x] Ampliar a prova DOM de Relatórios, Pedidos e Estoque para filtros, botões, tabela, Kanban e diálogos disponíveis
+- [x] Testar Orçamentos com Enter, seleção do cliente, alternância real de abas e cancelamento seguro
+- [x] Adicionar cenário de Compras no qual Enter avança de Observações para o item criado e de Quantidade para Custo Unitário, com foco exato
 - [x] Cobrir em DOM a infraestrutura global de Enter, Shift+Enter, textarea, select nativo e escopo de diálogo
 - [x] Preservar a escolha por Enter em seletores nativos e avançar somente após a confirmação da opção
 
@@ -191,17 +198,20 @@
 - [x] Exibir estados visuais claros de consulta de CEP, sucesso e erro na submissão do cliente
 - [x] Cobrir máscaras, validações e resposta de CEP com testes de regressão
 - [x] Publicar e validar visualmente o formulário aprimorado no ambiente Azure
-- [ ] Comprovar na interface a aplicação das máscaras de CPF/CNPJ, telefone e CEP
-- [ ] Validar na interface o autopreenchimento por CEP e o tratamento de CEP inválido ou indisponível
-- [ ] Registrar evidência explícita dos estados visuais de consulta de CEP e de sucesso ou erro ao salvar cliente
+- [x] Comprovar na interface a aplicação das máscaras de CPF/CNPJ, telefone e CEP
+- [x] Validar na interface o autopreenchimento por CEP e o tratamento de CEP inválido ou indisponível
+- [x] Registrar evidência explícita dos estados visuais de consulta de CEP e de sucesso ou erro ao salvar cliente
+- [x] Capturar e registrar evidência visual explícita do tratamento de CEP inexistente no formulário de clientes
+- [x] Registrar a evidência publicada do estado de carregamento antes da resposta da consulta de CEP
 
 ## Responsividade de modais e formulários
 - [x] Corrigir o modal de itens do orçamento para evitar sobreposição e manter os campos legíveis em larguras reduzidas
 - [x] Revisar e ajustar modais de Clientes, Produtos, Fornecedores e Compras que compartilham padrões de formulário
 - [x] Revisar Orders.tsx e Stock.tsx para confirmar o padrão de modal ou formulário e ajustar responsividade onde necessário
-- [ ] Validar visualmente os modais ajustados em desktop e em largura mobile
+- [x] Validar visualmente os modais ajustados em desktop e em largura mobile
 - [x] Cobrir os layouts de formulário com uma verificação de regressão adequada
-- [ ] Publicar e validar os ajustes de responsividade no ambiente Azure
+- [x] Adicionar uma verificação estrutural complementar de largura, rolagem e grades responsivas nos módulos críticos
+- [x] Publicar e validar os ajustes de responsividade no ambiente Azure
 
 ## Expansão comercial: WhatsApp, Orçamentos e Balcão
 - [x] Adicionar campo de WhatsApp ao cadastro de clientes, com máscara, persistência e edição
@@ -210,7 +220,7 @@
 - [x] Criar a tela de Venda Direta (Balcão) com cliente, itens, totalização e conclusão de venda
 - [x] Integrar a venda de balcão ao pedido, estoque e histórico de movimentos
 - [x] Adicionar testes de regressão para WhatsApp, venda direta e efeitos de estoque
-- [ ] Validar visualmente os novos fluxos em desktop e mobile
+- [x] Validar visualmente os novos fluxos em desktop e mobile
 - [x] Publicar e documentar a expansão comercial no Azure
 - [x] Registrar verificação de regressão específica para Pedidos após a revisão responsiva
 - [x] Aplicar um contêiner responsivo ao histórico de Estoque para preservar as colunas em larguras reduzidas
@@ -254,9 +264,9 @@
 - [x] Cobrir foco inicial e seleção por setas com testes de comportamento e validação publicada
 
 ## Escolha por setas entre orçamento e venda
-- [ ] Alternar o foco entre Salvar como orçamento e Concluir como venda com as setas esquerda e direita
-- [ ] Confirmar por Enter o resultado destacado e abrir a respectiva etapa de cliente sem usar o mouse
-- [ ] Cobrir a seleção de resultado por setas com teste de comportamento e validação publicada
+- [x] Alternar o foco entre Salvar como orçamento e Concluir como venda com as setas esquerda e direita
+- [x] Confirmar por Enter o resultado destacado e abrir a respectiva etapa de cliente sem usar o mouse
+- [x] Cobrir a seleção de resultado por setas com teste de comportamento e validação publicada
 
 ## Código de produto no Balcão
 - [x] Identificar no MDB legado a origem, formato e disponibilidade do código de produto

@@ -47,3 +47,15 @@ A versão com o componente de decisão testado em DOM foi publicada com sucesso 
 Na compilação final, foram enviados **←** e **→** de forma sequencial no diálogo publicado. Como a captura visual sobrepõe os marcadores técnicos aos contornos de foco, a confirmação conclusiva será feita pela ação de **Enter**: se o foco estiver em **Finalizar atendimento**, o sistema abrirá apenas o seletor de orçamento/venda, sem gravar venda, orçamento ou produto.
 
 O Enter subsequente adicionou uma segunda linha local de vidro, o que demonstrou que o foco efetivo permaneceu em **Adicionar novo produto**. Não houve gravação de orçamento, venda, produto ou estoque. A divergência entre o teste DOM e o navegador publicado permanece aberta para diagnóstico.
+
+Após o ajuste que toma o botão efetivamente focado como origem, a página publicada foi recarregada, o estado local foi reiniciado e o diálogo foi novamente aberto por **Enter** no preço. A sequência de teste será **←**, **→**, **Enter**; a confirmação esperada é a abertura apenas do seletor de resultado comercial.
+
+As teclas **←** e **→** foram enviadas à versão atualizada. O Enter seguinte adicionou uma linha local porque a sequência começou em **Adicionar novo produto**: a seta esquerda alternou para **Finalizar atendimento**, e a seta direita retornou corretamente a **Adicionar novo produto**. O estado foi reiniciado sem persistência. A prova conclusiva deve, portanto, partir da decisão inicial e aplicar somente **→**, seguida de **Enter**; o resultado esperado é abrir o seletor de orçamento/venda.
+
+No estado reiniciado, o diálogo foi aberto outra vez pelo preço e recebeu somente **→**. A próxima ação será **Enter** para confirmar funcionalmente que a decisão em foco é **Finalizar atendimento**, sem submeter qualquer venda ou orçamento.
+
+O Enter abriu o seletor de resultado comercial sem criar itens adicionais, confirmando **Finalizar atendimento**. Em seguida, a seta **→** deslocou o foco de **Salvar como orçamento** para **Concluir como venda**. O próximo Enter apenas revelará a seção local obrigatória de cliente, sem confirmar a venda.
+
+O Enter confirmou **Concluir como venda** e abriu a seção **Finalizar como Venda**, com busca de cliente disponível. Nenhum cliente foi escolhido e não foi acionado o botão **Confirmar venda**; portanto, não houve alteração de pedido, estoque, orçamento ou cadastro.
+
+> Conclusão: no Azure publicado, o percurso **Preço → Enter → → → Enter → → → Enter** chega corretamente à etapa de cliente para venda, sem persistir transações durante a prova.
