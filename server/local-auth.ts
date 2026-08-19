@@ -18,7 +18,7 @@ function getSecretKey() {
 // Token expiration: 7 days
 const TOKEN_EXPIRATION_MS = 7 * 24 * 60 * 60 * 1000;
 
-export type LocalUserRole = "admin" | "superadmin" | "user";
+export type LocalUserRole = "admin" | "superadmin" | "user" | "cashier";
 
 /** Both administrator roles are authorized for protected ERP administration. */
 export function isPrivilegedRole(role: string): role is "admin" | "superadmin" {

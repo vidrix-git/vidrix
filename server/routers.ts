@@ -17,6 +17,8 @@ import { dashboardRouter } from "./routers/dashboard";
 import { reportsRouter } from "./routers/reports";
 import { legacyMigrationRouter } from "./routers/legacyMigration";
 import { counterSalesRouter } from "./routers/counterSales";
+import { employeesRouter } from "./routers/employees";
+import { productTypesRouter } from "./routers/productTypes";
 
 export const appRouter = router({
   system: systemRouter,
@@ -146,6 +148,8 @@ export const appRouter = router({
   dashboard: dashboardRouter,
   reports: reportsRouter,
   counterSales: counterSalesRouter,
+  employees: employeesRouter,
+  productTypes: productTypesRouter,
   legacyMigration: legacyMigrationRouter,
 });
 

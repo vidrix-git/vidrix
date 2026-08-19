@@ -57,6 +57,7 @@ export default function Products() {
   });
 
   const { data: products, isLoading } = trpc.products.list.useQuery();
+  const { data: productTypes = [] } = trpc.productTypes.list.useQuery();
   const createMutation = trpc.products.create.useMutation({
     onSuccess: () => {
       utils.products.list.invalidate();
@@ -155,14 +156,7 @@ export default function Products() {
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">Selecione</SelectItem>
-                      <SelectItem value="vidro_incolor">Vidro Incolor</SelectItem>
-                      <SelectItem value="vidro_fumace">Vidro Fumacê</SelectItem>
-                      <SelectItem value="vidro_verde">Vidro Verde</SelectItem>
-                      <SelectItem value="vidro_espelhado">Vidro Espelhado</SelectItem>
-                      <SelectItem value="vidro_temperado">Vidro Temperado</SelectItem>
-                      <SelectItem value="vidro_laminado">Vidro Laminado</SelectItem>
-                      <SelectItem value="acrilico">Acrílico</SelectItem>
-                      <SelectItem value="outro">Outro</SelectItem>
+                      {productTypes.map((type) => <SelectItem key={type.id} value={type.name}>{type.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>

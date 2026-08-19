@@ -5,6 +5,7 @@
 
 | Papel | Atividades autorizadas | Restrições aplicadas no servidor |
 |---|---|---|
+| `cashier` | Consultar produtos e clientes, cadastrar rapidamente um cliente e conduzir o atendimento unificado de **Balcão** até seu encerramento como orçamento ou venda. | A interface redireciona para o Balcão e o servidor permite exclusivamente as procedures indispensáveis a esse fluxo; cadastros administrativos, relatórios, pedidos, estoque, compras e demais consultas são recusados. |
 | `user` | Consultar módulos, atender clientes, registrar e editar clientes, criar orçamentos e concluir atendimento de balcão como orçamento ou venda. | Não pode criar, editar ou excluir produtos/fornecedores; criar, alterar, excluir ou receber compras; lançar ajuste manual de estoque; nem alterar status, cancelar ou alterar itens de pedidos que movimentem estoque. |
 | `admin` | Todas as atividades de `user` e a gestão de catálogo, fornecedores, compras, recebimento, ajuste manual de estoque e ciclo de pedidos. | Não pode ignorar as transações, validações e trilhas de auditoria já existentes. |
 | `superadmin` | Mesmas permissões administrativas e criação de contas `superadmin`. | Continua sujeito às regras transacionais de estoque e cancelamento auditável. |
@@ -19,8 +20,8 @@
 | Suprimentos | Criar, alterar, excluir itens/pedidos de compra e receber mercadoria. |
 | Estoque | Ajuste manual de entrada ou saída. |
 | Pedidos | Alteração de status, cancelamento e inclusão, edição ou remoção de itens com reflexo de estoque. |
-| Administração | Criação de superadministrador. |
+| Administração | Cadastro de funcionários, criação de superadministrador e manutenção de tipos de produto. |
 
 ## Evidência automatizada
 
-O arquivo [`server/role-segregation.test.ts`](./server/role-segregation.test.ts) comprova que um `user` recebe bloqueio para recebimento de compra, ajuste manual de estoque, cancelamento de pedido e alteração de catálogo, preservando o acesso autenticado ao fluxo de balcão. A regressão consolidada totalizou **79 testes aprovados**.
+Os arquivos [`server/role-segregation.test.ts`](./server/role-segregation.test.ts) e [`server/cashier-address-product-types.contract.test.ts`](./server/cashier-address-product-types.contract.test.ts) comprovam o bloqueio de ações administrativas para perfis não administrativos, o perímetro exclusivo de Balcão para `cashier`, e os contratos de endereço e tipos cadastráveis. A regressão consolidada totalizou **131 testes aprovados**.

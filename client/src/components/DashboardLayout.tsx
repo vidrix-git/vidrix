@@ -35,12 +35,15 @@ import {
   Users,
   Package,
   Building2,
+  ContactRound,
+  Tags,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 import { getAccountIdentity } from "@/lib/account-identity";
+import { isCashierOnlyRoute } from "../../../shared/cashier-access";
 
 const menuGroups = [
   {
@@ -52,7 +55,7 @@ const menuGroups = [
     items: [
       { icon: ShoppingBasket, label: "Balcão", path: "/counter-sale" },
       { icon: FileText, label: "Orçamentos", path: "/quotes" },
-      { icon: ShoppingCart, label: "Pedidos de Venda", path: "/orders" },
+      { icon: ShoppingCart, label: "Status das Vendas", path: "/orders" },
     ],
   },
   {
@@ -60,6 +63,7 @@ const menuGroups = [
     items: [
       { icon: Users, label: "Clientes", path: "/clients" },
       { icon: Package, label: "Produtos", path: "/products" },
+      { icon: Tags, label: "Tipos de Produto", path: "/product-types" },
       { icon: Building2, label: "Fornecedores", path: "/suppliers" },
     ],
   },
@@ -72,7 +76,10 @@ const menuGroups = [
   },
   {
     label: "Gestão",
-    items: [{ icon: BarChart3, label: "Relatórios", path: "/reports" }],
+    items: [
+      { icon: BarChart3, label: "Relatórios", path: "/reports" },
+      { icon: ContactRound, label: "Funcionários", path: "/employees" },
+    ],
   },
 ];
 
@@ -157,9 +164,21 @@ function DashboardLayoutContent({
   const isCollapsed = state === "collapsed";
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
-  const activeMenuItem = menuGroups.flatMap((group) => group.items).find((item) => item.path === location);
   const isMobile = useIsMobile();
   const accountIdentity = getAccountIdentity(user);
+  const isCashier = user?.role === "cashier";
+  const visibleMenuGroups = isCashier
+    ? menuGroups
+        .map((group) => ({ ...group, items: group.items.filter((item) => item.path === "/counter-sale") }))
+        .filter((group) => group.items.length > 0)
+    : menuGroups;
+  const activeMenuItem = visibleMenuGroups.flatMap((group) => group.items).find((item) => item.path === location);
+
+  useEffect(() => {
+    if (isCashier && !isCashierOnlyRoute(location)) {
+      setLocation("/counter-sale");
+    }
+  }, [isCashier, location, setLocation]);
 
   useEffect(() => {
     if (isCollapsed) {
@@ -229,7 +248,7 @@ function DashboardLayoutContent({
           </SidebarHeader>
 
           <SidebarContent className="gap-0 py-2">
-            {menuGroups.map((group) => (
+            {visibleMenuGroups.map((group) => (
               <SidebarGroup key={group.label} className="px-2 py-1">
                 <SidebarGroupLabel className="h-6 px-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground group-data-[collapsible=icon]:hidden">
                   {group.label}
@@ -314,7 +333,11 @@ function DashboardLayoutContent({
             </div>
           </div>
         )}
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 p-6">
+          {isCashier && !isCashierOnlyRoute(location) ? (
+            <div className="p-8 text-center text-muted-foreground">Redirecionando para o Balcão...</div>
+          ) : children}
+        </main>
       </SidebarInset>
     </>
   );

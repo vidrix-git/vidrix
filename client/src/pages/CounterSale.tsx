@@ -20,7 +20,7 @@ type CommercialExtra = { key: number; kind: ExtraKind; description: string; unit
 
 const emptyItem = (key: number): SaleItem => ({ key, productCode: "", productId: "", width: "100", height: "100", quantity: "1", unitPrice: "", notes: "" });
 const emptyExtra = (key: number, kind: ExtraKind = "acessorio"): CommercialExtra => ({ key, kind, description: "", unit: kind === "massa" ? "kg" : kind === "moldura" ? "cm" : kind === "montagem" ? "servico" : "un", quantity: "1", unitPrice: "0", productId: "", notes: "" });
-const emptyQuickClient: ClientMutationForm = { name: "", type: "PF", cpfCnpj: "", phone: "", whatsApp: "", email: "", address: "", neighborhood: "", city: "", state: "", zipCode: "" };
+const emptyQuickClient: ClientMutationForm = { name: "", type: "PF", cpfCnpj: "", phone: "", whatsApp: "", email: "", address: "", addressNumber: "", addressComplement: "", neighborhood: "", city: "", state: "", zipCode: "" };
 
 function decimal(value: string) {
   const compact = value.trim().replace(/\s+/g, "");

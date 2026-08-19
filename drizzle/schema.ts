@@ -10,7 +10,7 @@ export const users = mysqlTable("users", {
   name: text("name"),
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
-  role: mysqlEnum("role", ["user", "admin", "superadmin"]).default("user").notNull(),
+  role: mysqlEnum("role", ["user", "cashier", "admin", "superadmin"]).default("user").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -29,6 +29,8 @@ export const clients = mysqlTable("clients", {
   type: mysqlEnum("type", ["PF", "PJ"]).notNull(),
   cpfCnpj: varchar("cpfCnpj", { length: 255 }).notNull().unique(),
   address: text("address"),
+  addressNumber: varchar("addressNumber", { length: 32 }),
+  addressComplement: varchar("addressComplement", { length: 255 }),
   phone: varchar("phone", { length: 255 }),
   whatsApp: varchar("whatsApp", { length: 255 }),
   email: varchar("email", { length: 255 }),
@@ -66,6 +68,19 @@ export const products = mysqlTable("products", {
 export type Product = typeof products.$inferSelect;
 export type InsertProduct = typeof products.$inferInsert;
 export type UpdateProduct = typeof products.$inferInsert;
+
+// ============================================================
+// PRODUCT TYPES
+// ============================================================
+export const productTypes = mysqlTable("productTypes", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 120 }).notNull().unique(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ProductType = typeof productTypes.$inferSelect;
+export type InsertProductType = typeof productTypes.$inferInsert;
 
 // ============================================================
 // SUPPLIERS

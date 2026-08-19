@@ -8,6 +8,8 @@ export type ClientMutationForm = {
   phone?: string | null;
   whatsApp?: string | null;
   address?: string | null;
+  addressNumber?: string | null;
+  addressComplement?: string | null;
   neighborhood?: string | null;
   city?: string | null;
   state?: string | null;
@@ -33,6 +35,8 @@ export function toClientMutationInput(form: ClientMutationForm) {
     phone: optionalText(formatPhone(form.phone)),
     whatsApp: optionalText(formatPhone(form.whatsApp)),
     address: optionalText(form.address),
+    addressNumber: optionalText(form.addressNumber),
+    addressComplement: optionalText(form.addressComplement),
     neighborhood: optionalText(form.neighborhood),
     city: optionalText(form.city),
     state: optionalText(form.state)?.toUpperCase(),

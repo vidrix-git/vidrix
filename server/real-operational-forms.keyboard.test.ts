@@ -25,6 +25,7 @@ vi.mock("@/lib/trpc", () => ({
     useUtils: () => ({
       clients: { list: { invalidate: vi.fn() } },
       products: { list: { invalidate: vi.fn() } },
+      productTypes: { list: { invalidate: vi.fn() } },
       suppliers: { list: { invalidate: vi.fn() } },
       purchaseOrders: { list: { invalidate: vi.fn() }, getItems: { invalidate: vi.fn() } },
       quotes: { list: { invalidate: vi.fn() }, getItems: { invalidate: vi.fn(), fetch: vi.fn() } },
@@ -36,6 +37,7 @@ vi.mock("@/lib/trpc", () => ({
     products: {
       list: { useQuery: () => ({ data: [{ id: 1, name: "Produto Teclado", pricePerM2: "10", stockQuantity: 0, minStock: 0 }], isLoading: false }) }, create: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) }, update: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) }, delete: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) },
     },
+    productTypes: { list: { useQuery: () => ({ data: [{ id: 1, name: "Vidro Incolor" }], isLoading: false }) } },
     suppliers: {
       list: { useQuery: () => ({ data: [{ id: 2, name: "Fornecedor Teclado" }], isLoading: false }) }, create: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) }, update: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) }, delete: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) },
     },

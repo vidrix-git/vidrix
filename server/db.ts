@@ -18,6 +18,8 @@ export const ERP_SCHEMA_STATEMENTS = [
     \`type\` enum('PF','PJ') NOT NULL,
     \`cpfCnpj\` varchar(255) NOT NULL,
     \`address\` text,
+    \`addressNumber\` varchar(32),
+    \`addressComplement\` varchar(255),
     \`phone\` varchar(255),
     \`whatsApp\` varchar(255),
     \`email\` varchar(255),
@@ -47,6 +49,14 @@ export const ERP_SCHEMA_STATEMENTS = [
     PRIMARY KEY(\`id\`),
     UNIQUE KEY \`products_code_unique\` (\`code\`)
   )`,
+  `CREATE TABLE IF NOT EXISTS \`productTypes\` (
+    \`id\` int AUTO_INCREMENT NOT NULL,
+    \`name\` varchar(120) NOT NULL,
+    \`createdAt\` timestamp NOT NULL DEFAULT (now()),
+    \`updatedAt\` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY(\`id\`),
+    UNIQUE KEY \`productTypes_name_unique\` (\`name\`)
+  )`,
   `CREATE TABLE IF NOT EXISTS \`suppliers\` (
     \`id\` int AUTO_INCREMENT NOT NULL,
     \`name\` varchar(255) NOT NULL,
@@ -67,7 +77,7 @@ export const ERP_SCHEMA_STATEMENTS = [
     \`name\` text,
     \`email\` varchar(320),
     \`loginMethod\` varchar(64),
-    \`role\` enum('user','admin','superadmin') NOT NULL DEFAULT 'user',
+    \`role\` enum('user','cashier','admin','superadmin') NOT NULL DEFAULT 'user',
     \`createdAt\` timestamp NOT NULL DEFAULT (now()),
     \`updatedAt\` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
     \`lastSignedIn\` timestamp NOT NULL DEFAULT (now()),
@@ -75,7 +85,7 @@ export const ERP_SCHEMA_STATEMENTS = [
     PRIMARY KEY(\`id\`),
     UNIQUE KEY \`users_openId_unique\` (\`openId\`)
   )`,
-  `ALTER TABLE \`users\` MODIFY COLUMN \`role\` enum('user','admin','superadmin') NOT NULL DEFAULT 'user'`,
+  `ALTER TABLE \`users\` MODIFY COLUMN \`role\` enum('user','cashier','admin','superadmin') NOT NULL DEFAULT 'user'`,
   `CREATE TABLE IF NOT EXISTS \`quotes\` (
     \`id\` int AUTO_INCREMENT NOT NULL,
     \`clientId\` int NOT NULL,
@@ -215,6 +225,8 @@ export const ERP_SCHEMA_STATEMENTS = [
   `ALTER TABLE \`clients\` ADD COLUMN \`zipCode\` varchar(9)`,
   `UPDATE \`orders\` SET \`stockAllocatedAt\` = \`createdAt\` WHERE \`quoteId\` IS NOT NULL AND \`stockAllocatedAt\` IS NULL AND \`status\` <> 'cancelado'`,
   `ALTER TABLE \`clients\` ADD COLUMN \`whatsApp\` varchar(255)`,
+  `ALTER TABLE \`clients\` ADD COLUMN \`addressNumber\` varchar(32)`,
+  `ALTER TABLE \`clients\` ADD COLUMN \`addressComplement\` varchar(255)`,
   `ALTER TABLE \`products\` ADD COLUMN \`code\` varchar(64)`,
   `ALTER TABLE \`products\` ADD UNIQUE INDEX \`products_code_unique\` (\`code\`)`,
   // Os kits do MDB reiniciam o identificador em cada tabela. O prefixo de
@@ -237,6 +249,9 @@ export const ERP_SCHEMA_STATEMENTS = [
   `UPDATE \`products\`
     SET \`code\` = CONCAT('PRD-', \`id\`)
     WHERE \`code\` IS NULL OR TRIM(\`code\`) = ''`,
+  `INSERT IGNORE INTO \`productTypes\` (\`name\`)
+    SELECT DISTINCT TRIM(\`type\`) FROM \`products\`
+    WHERE \`type\` IS NOT NULL AND TRIM(\`type\`) <> ''`,
 ] as const;
 
 // Lazily create the drizzle instance so local tooling can run without a DB.

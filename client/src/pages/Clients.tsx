@@ -47,6 +47,8 @@ type ClientForm = {
   phone?: string | null;
   whatsApp?: string | null;
   address?: string | null;
+  addressNumber?: string | null;
+  addressComplement?: string | null;
   neighborhood?: string | null;
   city?: string | null;
   state?: string | null;
@@ -61,7 +63,7 @@ export default function Clients() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const emptyForm: ClientForm = { name: "", type: "PF", cpfCnpj: "", email: "", phone: "", whatsApp: "", address: "", neighborhood: "", city: "", state: "", zipCode: "" };
+  const emptyForm: ClientForm = { name: "", type: "PF", cpfCnpj: "", email: "", phone: "", whatsApp: "", address: "", addressNumber: "", addressComplement: "", neighborhood: "", city: "", state: "", zipCode: "" };
   const [form, setForm] = useState<ClientForm>(emptyForm);
   const [formStatus, setFormStatus] = useState<FormStatus>(null);
 
@@ -154,6 +156,8 @@ export default function Clients() {
       phone: client.phone || "",
       whatsApp: client.whatsApp || "",
       address: client.address || "",
+      addressNumber: client.addressNumber || "",
+      addressComplement: client.addressComplement || "",
       neighborhood: client.neighborhood || "",
       city: client.city || "",
       state: client.state || "",
@@ -254,8 +258,18 @@ export default function Clients() {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Endereço</label>
-                <Input value={form.address || ""} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Rua, número" />
+                <label className="text-sm font-medium">Logradouro</label>
+                <Input value={form.address || ""} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Rua, avenida ou estrada" />
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Número</label>
+                  <Input value={form.addressNumber || ""} onChange={(e) => setForm({ ...form, addressNumber: e.target.value })} placeholder="123" maxLength={32} />
+                </div>
+                <div className="space-y-2 sm:col-span-2">
+                  <label className="text-sm font-medium">Complemento</label>
+                  <Input value={form.addressComplement || ""} onChange={(e) => setForm({ ...form, addressComplement: e.target.value })} placeholder="Sala, apartamento, bloco etc." maxLength={255} />
+                </div>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Bairro</label>

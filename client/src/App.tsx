@@ -17,6 +17,8 @@ import Clients from "./pages/Clients";
 import Products from "./pages/Products";
 import Suppliers from "./pages/Suppliers";
 import CounterSale from "./pages/CounterSale";
+import Employees from "./pages/Employees";
+import ProductTypes from "./pages/ProductTypes";
 
 function Router() {
   return (
@@ -37,6 +39,8 @@ function Router() {
             <Route path={"/clients"} component={Clients} />
             <Route path={"/products"} component={Products} />
             <Route path={"/suppliers"} component={Suppliers} />
+            <Route path={"/employees"} component={Employees} />
+            <Route path={"/product-types"} component={ProductTypes} />
             <Route path={"/404"} component={NotFound} />
             <Route component={NotFound} />
           </Switch>

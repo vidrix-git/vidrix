@@ -27,6 +27,8 @@ const clientFields = {
   type: z.enum(["PF", "PJ"]),
   cpfCnpj: z.string().min(1, "CPF/CNPJ é obrigatório"),
   address: z.string().optional().nullable(),
+  addressNumber: z.string().trim().max(32, "Número deve ter até 32 caracteres").optional().nullable(),
+  addressComplement: z.string().trim().max(255, "Complemento deve ter até 255 caracteres").optional().nullable(),
   neighborhood: z.string().optional().nullable(),
   phone: z.string().optional().nullable(),
   whatsApp: z.string().optional().nullable(),
@@ -48,6 +50,8 @@ export const updateClientSchema = z.object({
   type: clientFields.type.optional(),
   cpfCnpj: clientFields.cpfCnpj.optional(),
   address: clientFields.address,
+  addressNumber: clientFields.addressNumber,
+  addressComplement: clientFields.addressComplement,
   neighborhood: clientFields.neighborhood,
   phone: clientFields.phone,
   whatsApp: clientFields.whatsApp,
@@ -89,6 +93,14 @@ export const updateProductSchema = z.object({
   unitPrice: z.string().optional(),
   stockQuantity: z.string().optional(),
   minStockQuantity: z.string().optional(),
+});
+
+export const createProductTypeSchema = z.object({
+  name: z.string().trim().min(2, "Nome do tipo deve ter ao menos 2 caracteres").max(120),
+});
+
+export const updateProductTypeSchema = createProductTypeSchema.extend({
+  id: z.number().int().positive("ID do tipo deve ser positivo"),
 });
 
 // ============================================================

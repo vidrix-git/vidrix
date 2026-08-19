@@ -291,3 +291,12 @@
 
 ## Correção do bloco de conta
 - [x] Remover a duplicação do e-mail exibido no rodapé do perfil da barra lateral e cobrir a regressão
+
+## Gestão de vendas, funcionários e cadastros
+- [x] Renomear o item de navegação "Pedidos de Venda" para "Status das Vendas"
+- [x] Criar cadastro administrativo de funcionários com credenciais locais e papel operacional
+- [x] Restringir o papel de vendedor de frente de caixa exclusivamente à rota e às operações de Balcão
+- [x] Ocultar itens e bloquear procedimentos não autorizados para vendedores de frente de caixa
+- [x] Acrescentar número e complemento ao endereço de clientes, com persistência, validação e edição
+- [x] Criar cadastro administrativo de tipos de produto e popular o seletor de tipo do formulário de Produtos com esses registros
+- [x] Cobrir novos modelos, permissões, rotas e formulários com testes de regressão

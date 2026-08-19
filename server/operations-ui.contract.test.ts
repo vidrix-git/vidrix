@@ -77,10 +77,12 @@ describe("contratos operacionais da interface", () => {
     for (const group of ["Visão geral", "Atendimento comercial", "Cadastros", "Suprimentos e estoque", "Gestão"]) {
       expect(layout).toContain(`label: "${group}"`);
     }
-    for (const path of ["/", "/counter-sale", "/quotes", "/orders", "/clients", "/products", "/suppliers", "/purchases", "/stock", "/reports"]) {
+    for (const path of ["/", "/counter-sale", "/quotes", "/orders", "/clients", "/products", "/product-types", "/suppliers", "/purchases", "/stock", "/reports", "/employees"]) {
       expect(layout).toContain(`path: "${path}"`);
     }
-    expect(layout).toContain("menuGroups.flatMap");
+    expect(layout).toContain("visibleMenuGroups.flatMap");
+    expect(layout).toContain("Status das Vendas");
+    expect(layout).toContain("isCashierOnlyRoute");
     expect(layout).toContain("<SidebarGroup");
     expect(layout).toContain("<SidebarGroupLabel");
   });
