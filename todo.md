@@ -288,3 +288,6 @@
 - [x] Documentar dados, migração MDB, autenticação, permissões, testes, publicação Azure e operação do ERP
 - [x] Incluir instruções de manutenção, implantação, recuperação e evolução segura da plataforma
 - [x] Atualizar o pacote ZIP de entrega com a documentação técnica consolidada e os artefatos atuais
+
+## Correção do bloco de conta
+- [x] Remover a duplicação do e-mail exibido no rodapé do perfil da barra lateral e cobrir a regressão
