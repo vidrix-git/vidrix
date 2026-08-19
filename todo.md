@@ -291,6 +291,7 @@
 
 ## Correção do bloco de conta
 - [x] Remover a duplicação do e-mail exibido no rodapé do perfil da barra lateral e cobrir a regressão
+- [x] Investigar e eliminar a duplicação residual do e-mail no rodapé da versão em uso, ampliando a prova de renderização
 
 ## Gestão de vendas, funcionários e cadastros
 - [x] Renomear o item de navegação "Pedidos de Venda" para "Status das Vendas"

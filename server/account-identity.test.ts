@@ -8,6 +8,12 @@ describe("identidade da conta no rodapé", () => {
     ).toEqual({ primary: "ADMIN@vidrix.local" });
   });
 
+  it("não repete visualmente o e-mail quando dados legados contêm caracteres invisíveis", () => {
+    expect(
+      getAccountIdentity({ name: "vendedor@vidrix.local\u200B", email: "vendedor@vidrix.local" }),
+    ).toEqual({ primary: "vendedor@vidrix.local" });
+  });
+
   it("mantém nome e e-mail em linhas separadas quando são informações distintas", () => {
     expect(
       getAccountIdentity({ name: "Admin", email: "admin@vidrix.local" }),
