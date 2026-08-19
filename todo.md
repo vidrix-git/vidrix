@@ -310,3 +310,10 @@
 - [x] Aprimorar a tela de Tipos de Produto para operações explícitas de adicionar, editar e remover categorias
 - [x] Exibir na lista de Funcionários um indicador visual acessível do nível de acesso de cada conta
 - [x] Cobrir os novos tratamentos visuais e operações administrativas com regressão automatizada
+
+## Busca e exclusão segura em cadastros administrativos
+- [x] Adicionar filtro de Funcionários por nome, e-mail e nível de acesso, mantendo a operação por teclado
+- [x] Exibir resultado vazio claro para filtros de Funcionários sem correspondência
+- [x] Exigir confirmação visual antes de excluir um Tipo de Produto e preservar o cancelamento seguro por teclado
+- [x] Cobrir o filtro e a confirmação de exclusão com testes de regressão
+- [ ] Publicar no Azure as melhorias administrativas e confirmar a versão atualizada

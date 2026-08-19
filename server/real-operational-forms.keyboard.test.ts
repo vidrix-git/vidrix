@@ -306,11 +306,35 @@ describe("formulários operacionais reais — teclado", () => {
     expect(view.getByText("Acesso exclusivo ao atendimento de Balcão")).toBeTruthy();
   });
 
+  it("filtra funcionários por nome e mantém o filtro acessível na sequência de teclado", async () => {
+    const user = userEvent.setup();
+    const view = page(Employees);
+    const search = view.getByRole("textbox", { name: "Buscar funcionários" });
+    const access = view.getByRole("combobox", { name: "Filtrar por nível de acesso" });
+    search.focus();
+    fireEvent.keyDown(search, { key: "Enter" });
+    expect(document.activeElement).toBe(access);
+    await user.clear(search);
+    await user.type(search, "inexistente");
+    expect(view.getByText("Nenhum funcionário encontrado")).toBeTruthy();
+    expect(view.getAllByRole("button", { name: "Limpar filtros" }).length).toBeGreaterThan(0);
+  });
+
   it("expõe ações de editar e remover na gestão dedicada de categorias", () => {
     const view = page(ProductTypes);
     expect(view.getByRole("button", { name: /adicionar categoria/i })).toBeTruthy();
     expect(view.getByRole("button", { name: "Editar Vidro Incolor" })).toBeTruthy();
     expect(view.getByRole("button", { name: "Remover Vidro Incolor" })).toBeTruthy();
+  });
+
+  it("pede confirmação nomeada antes de excluir uma categoria", async () => {
+    const user = userEvent.setup();
+    const view = page(ProductTypes);
+    await user.click(view.getByRole("button", { name: "Remover Vidro Incolor" }));
+    expect(view.getByRole("heading", { name: "Confirmar exclusão da categoria" })).toBeTruthy();
+    expect(view.getByText(/Você está prestes a remover/i).textContent).toContain("Vidro Incolor");
+    expect(view.getByRole("button", { name: "Cancelar e manter categoria" })).toBeTruthy();
+    expect(view.getByRole("button", { name: "Excluir categoria" })).toBeTruthy();
   });
 });
 
