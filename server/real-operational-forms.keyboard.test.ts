@@ -13,6 +13,8 @@ import Reports from "../client/src/pages/Reports";
 import Orders from "../client/src/pages/Orders";
 import Quotes from "../client/src/pages/Quotes";
 import Stock from "../client/src/pages/Stock";
+import Employees from "../client/src/pages/Employees";
+import ProductTypes from "../client/src/pages/ProductTypes";
 
 const h = createElement;
 (globalThis as unknown as { React: typeof React }).React = React;
@@ -25,7 +27,8 @@ vi.mock("@/lib/trpc", () => ({
     useUtils: () => ({
       clients: { list: { invalidate: vi.fn() } },
       products: { list: { invalidate: vi.fn() } },
-      productTypes: { list: { invalidate: vi.fn() } },
+      productTypes: { list: { invalidate: vi.fn() }, products: { invalidate: vi.fn() } },
+      employees: { list: { invalidate: vi.fn() } },
       suppliers: { list: { invalidate: vi.fn() } },
       purchaseOrders: { list: { invalidate: vi.fn() }, getItems: { invalidate: vi.fn() } },
       quotes: { list: { invalidate: vi.fn() }, getItems: { invalidate: vi.fn(), fetch: vi.fn() } },
@@ -37,7 +40,18 @@ vi.mock("@/lib/trpc", () => ({
     products: {
       list: { useQuery: () => ({ data: [{ id: 1, name: "Produto Teclado", pricePerM2: "10", stockQuantity: 0, minStock: 0 }], isLoading: false }) }, create: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) }, update: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) }, delete: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) },
     },
-    productTypes: { list: { useQuery: () => ({ data: [{ id: 1, name: "Vidro Incolor" }], isLoading: false }) } },
+    productTypes: {
+      list: { useQuery: () => ({ data: [{ id: 1, name: "Vidro Incolor" }], isLoading: false }) },
+      create: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) },
+      update: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) },
+      delete: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) },
+    },
+    employees: {
+      list: { useQuery: () => ({ data: [], isLoading: false }) },
+      create: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) },
+      update: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) },
+      delete: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) },
+    },
     suppliers: {
       list: { useQuery: () => ({ data: [{ id: 2, name: "Fornecedor Teclado" }], isLoading: false }) }, create: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) }, update: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) }, delete: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) },
     },
@@ -255,5 +269,48 @@ describe("formulários operacionais reais — teclado", () => {
     expect(view.queryByRole("button")).toBeNull();
     expect(scrollContainer).toBeTruthy();
     expect(view.getByText("Recebimento de Compra")).toBeTruthy();
+  });
+
+  it("leva o cadastro real de Funcionários de nome a salvar somente com Enter", async () => {
+    const user = userEvent.setup();
+    const view = page(Employees);
+    await user.click(view.getByRole("button", { name: /novo funcionário/i }));
+    const name = view.getByPlaceholderText("Nome completo");
+    const email = view.getByPlaceholderText("vendedor@empresa.com");
+    const password = view.getByPlaceholderText("Mínimo de 6 caracteres");
+    const save = view.getByRole("button", { name: "Salvar" });
+    name.focus();
+    fireEvent.keyDown(name, { key: "Enter" });
+    expect(document.activeElement).toBe(email);
+    fireEvent.keyDown(email, { key: "Enter" });
+    expect(document.activeElement).toBe(password);
+    fireEvent.keyDown(password, { key: "Enter" });
+    expect(document.activeElement).toBe(save);
+  });
+
+  it("leva o cadastro real de Tipo de Produto do nome até salvar por Enter", async () => {
+    const user = userEvent.setup();
+    const view = page(ProductTypes);
+    await user.click(view.getByRole("button", { name: /novo tipo/i }));
+    const name = view.getByPlaceholderText("Ex.: Vidro temperado");
+    const save = view.getByRole("button", { name: "Salvar" });
+    name.focus();
+    fireEvent.keyDown(name, { key: "Enter" });
+    expect(document.activeElement).toBe(save);
+  });
+});
+
+describe("confirmação final por teclado", () => {
+  it("preserva o Enter nativo no botão de confirmação após o avanço de foco", async () => {
+    const user = userEvent.setup();
+    const onConfirm = vi.fn();
+    const view = render(h(KeyboardNavigator, null, h("input", { "aria-label": "Campo final" }), h("button", { "data-enter-target": true, onClick: onConfirm }, "Confirmar")));
+    const field = view.getByRole("textbox", { name: "Campo final" });
+    const confirm = view.getByRole("button", { name: "Confirmar" });
+    field.focus();
+    fireEvent.keyDown(field, { key: "Enter" });
+    expect(document.activeElement).toBe(confirm);
+    await user.keyboard("{Enter}");
+    expect(onConfirm).toHaveBeenCalledTimes(1);
   });
 });

@@ -38,10 +38,10 @@ export default function Employees() {
         <DialogTrigger asChild><Button><Plus className="mr-2 h-4 w-4" />Novo funcionário</Button></DialogTrigger>
         <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-md"><DialogHeader><DialogTitle>{editId ? "Editar funcionário" : "Novo funcionário"}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-3"><div className="rounded-md border border-primary/20 bg-primary/5 p-3 text-sm text-muted-foreground">Funcionários cadastrados aqui são <strong className="text-foreground">vendedores de frente de caixa</strong> e acessam somente o Balcão.</div>
-            <div className="space-y-2"><label className="text-sm font-medium">Nome *</label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Nome completo" /></div>
+            <div className="space-y-2"><label className="text-sm font-medium">Nome *</label><Input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Nome completo" /></div>
             <div className="space-y-2"><label className="text-sm font-medium">E-mail de acesso *</label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="vendedor@empresa.com" /></div>
             <div className="space-y-2"><label className="text-sm font-medium">{editId ? "Nova senha (opcional)" : "Senha *"}</label><Input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder={editId ? "Deixe em branco para manter" : "Mínimo de 6 caracteres"} /></div>
-          </div><div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"><Button className="w-full sm:w-auto" variant="outline" onClick={reset}>Cancelar</Button><Button className="w-full sm:w-auto" onClick={save} disabled={create.isPending || update.isPending}>{create.isPending || update.isPending ? "Salvando..." : "Salvar"}</Button></div>
+          </div><div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"><Button className="w-full sm:w-auto" variant="outline" onClick={reset}>Cancelar</Button><Button data-enter-target className="w-full sm:w-auto" onClick={save} disabled={create.isPending || update.isPending}>{create.isPending || update.isPending ? "Salvando..." : "Salvar"}</Button></div>
         </DialogContent>
       </Dialog>
     </div>

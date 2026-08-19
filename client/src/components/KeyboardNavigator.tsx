@@ -9,6 +9,9 @@ const FIELD_SELECTOR = [
 
 function canMoveWithEnter(target: HTMLElement) {
   if (target instanceof HTMLTextAreaElement) return false;
+  // Um botão marcado entra na sequência de foco, mas o Enter nele deve acionar
+  // sua ação nativa, e não ser convertido em mais um avanço.
+  if (target instanceof HTMLButtonElement) return false;
   if (target instanceof HTMLInputElement) return true;
   return target.matches("[data-enter-target]");
 }

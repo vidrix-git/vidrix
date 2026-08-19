@@ -68,6 +68,8 @@
 - [x] Adicionar cenário de Compras no qual Enter avança de Observações para o item criado e de Quantidade para Custo Unitário, com foco exato
 - [x] Cobrir em DOM a infraestrutura global de Enter, Shift+Enter, textarea, select nativo e escopo de diálogo
 - [x] Preservar a escolha por Enter em seletores nativos e avançar somente após a confirmação da opção
+- [x] Auditar e garantir Enter e Shift+Enter nos novos formulários de Funcionários, Tipos de Produto, Clientes e Produtos
+- [x] Cobrir os novos fluxos de administração e cadastro com testes DOM de foco e sequência de teclado
 
 ## Backend
 - [x] Corrigir erros de TypeScript em todos os routers
@@ -292,6 +294,7 @@
 ## Correção do bloco de conta
 - [x] Remover a duplicação do e-mail exibido no rodapé do perfil da barra lateral e cobrir a regressão
 - [x] Investigar e eliminar a duplicação residual do e-mail no rodapé da versão em uso, ampliando a prova de renderização
+- [ ] Atualizar a ramificação de implantação do Azure com a correção do rodapé e confirmar a versão publicada
 
 ## Gestão de vendas, funcionários e cadastros
 - [x] Renomear o item de navegação "Pedidos de Venda" para "Status das Vendas"
