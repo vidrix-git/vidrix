@@ -123,10 +123,15 @@
     @apply bg-background text-foreground;
     font-family: var(--font-sans);
   }
+  /* O foco permanece evidente após Enter mover o cursor para o próximo controle. */
   :where(a, button, input, select, textarea, [role="button"]):focus-visible {
-    outline: 3px solid var(--ring);
-    outline-offset: 2px;
-    box-shadow: 0 0 0 5px color-mix(in oklch, var(--ring) 18%, transparent);
+    outline: 3px solid var(--ring) !important;
+    outline-offset: 3px !important;
+    box-shadow: 0 0 0 3px color-mix(in oklch, var(--background) 96%, transparent), 0 0 0 6px color-mix(in oklch, var(--ring) 38%, transparent) !important;
+  }
+  :where(input, select, textarea, [role="combobox"]):focus-visible {
+    border-color: var(--ring) !important;
+    background-color: color-mix(in oklch, var(--ring) 7%, var(--background)) !important;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),

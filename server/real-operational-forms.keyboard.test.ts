@@ -47,7 +47,7 @@ vi.mock("@/lib/trpc", () => ({
       delete: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) },
     },
     employees: {
-      list: { useQuery: () => ({ data: [], isLoading: false }) },
+      list: { useQuery: () => ({ data: [{ id: 31, name: "Vendedor Teclado", email: "caixa@vidrix.local" }], isLoading: false }) },
       create: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) },
       update: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) },
       delete: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) },
@@ -278,7 +278,7 @@ describe("formulários operacionais reais — teclado", () => {
     const name = view.getByPlaceholderText("Nome completo");
     const email = view.getByPlaceholderText("vendedor@empresa.com");
     const password = view.getByPlaceholderText("Mínimo de 6 caracteres");
-    const save = view.getByRole("button", { name: "Salvar" });
+    const save = view.getByRole("button", { name: "Salvar funcionário" });
     name.focus();
     fireEvent.keyDown(name, { key: "Enter" });
     expect(document.activeElement).toBe(email);
@@ -291,12 +291,26 @@ describe("formulários operacionais reais — teclado", () => {
   it("leva o cadastro real de Tipo de Produto do nome até salvar por Enter", async () => {
     const user = userEvent.setup();
     const view = page(ProductTypes);
-    await user.click(view.getByRole("button", { name: /novo tipo/i }));
+    await user.click(view.getByRole("button", { name: /adicionar categoria/i }));
     const name = view.getByPlaceholderText("Ex.: Vidro temperado");
-    const save = view.getByRole("button", { name: "Salvar" });
+    const save = view.getByRole("button", { name: "Salvar categoria" });
     name.focus();
     fireEvent.keyDown(name, { key: "Enter" });
     expect(document.activeElement).toBe(save);
+  });
+
+  it("mostra o nível de acesso de caixa de forma legível na lista de funcionários", () => {
+    const view = page(Employees);
+    expect(view.getByText("Vendedor Teclado")).toBeTruthy();
+    expect(view.getByText("CAIXA · BALCÃO")).toBeTruthy();
+    expect(view.getByText("Acesso exclusivo ao atendimento de Balcão")).toBeTruthy();
+  });
+
+  it("expõe ações de editar e remover na gestão dedicada de categorias", () => {
+    const view = page(ProductTypes);
+    expect(view.getByRole("button", { name: /adicionar categoria/i })).toBeTruthy();
+    expect(view.getByRole("button", { name: "Editar Vidro Incolor" })).toBeTruthy();
+    expect(view.getByRole("button", { name: "Remover Vidro Incolor" })).toBeTruthy();
   });
 });
 

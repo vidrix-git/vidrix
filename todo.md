@@ -304,3 +304,9 @@
 - [x] Acrescentar número e complemento ao endereço de clientes, com persistência, validação e edição
 - [x] Criar cadastro administrativo de tipos de produto e popular o seletor de tipo do formulário de Produtos com esses registros
 - [x] Cobrir novos modelos, permissões, rotas e formulários com testes de regressão
+
+## Clareza operacional e gestão administrativa
+- [x] Destacar visualmente o campo com foco de teclado em todos os formulários, inclusive quando o avanço ocorrer por Enter
+- [x] Aprimorar a tela de Tipos de Produto para operações explícitas de adicionar, editar e remover categorias
+- [x] Exibir na lista de Funcionários um indicador visual acessível do nível de acesso de cada conta
+- [x] Cobrir os novos tratamentos visuais e operações administrativas com regressão automatizada
