@@ -316,4 +316,4 @@
 - [x] Exibir resultado vazio claro para filtros de Funcionários sem correspondência
 - [x] Exigir confirmação visual antes de excluir um Tipo de Produto e preservar o cancelamento seguro por teclado
 - [x] Cobrir o filtro e a confirmação de exclusão com testes de regressão
-- [ ] Publicar no Azure as melhorias administrativas e confirmar a versão atualizada
+- [x] Publicar no Azure as melhorias administrativas e confirmar a versão atualizada
