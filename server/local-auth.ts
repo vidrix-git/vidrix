@@ -18,7 +18,7 @@ function getSecretKey() {
 // Token expiration: 7 days
 const TOKEN_EXPIRATION_MS = 7 * 24 * 60 * 60 * 1000;
 
-export type LocalUserRole = "admin" | "superadmin" | "user" | "cashier";
+export type LocalUserRole = "admin" | "superadmin" | "seller";
 
 /** Both administrator roles are authorized for protected ERP administration. */
 export function isPrivilegedRole(role: string): role is "admin" | "superadmin" {
@@ -136,7 +136,7 @@ async function verifyToken(token: string): Promise<{ userId: number; name: strin
     return {
       userId: parseInt(sub, 10),
       name: (payload.name as string) || "",
-      role: (payload.role as string) || "user",
+      role: (payload.role as string) || "seller",
     };
   } catch {
     return null;
@@ -200,7 +200,7 @@ export async function localRegister(
   name: string,
   email: string,
   password: string,
-  role: LocalUserRole = "user"
+  role: LocalUserRole = "seller"
 ): Promise<{ user: User; token: string } | null> {
   const db = await getDb();
   if (!db) return null;

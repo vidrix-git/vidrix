@@ -153,6 +153,15 @@ async function finalizeCounterTransaction(ctx: any, input: CounterTransactionInp
   });
 }
 
+async function requireVisibleCounterOrder(db: any, orderId: number, user: { id: number; role: string } | null | undefined) {
+  const criteria = user?.role === "seller"
+    ? and(eq(orders.id, orderId), eq(orders.userId, user.id))
+    : eq(orders.id, orderId);
+  const result = await db.select().from(orders).where(criteria).limit(1);
+  if (!result[0]) throw new Error("Venda não encontrada");
+  return result[0];
+}
+
 /** Finaliza venda presencial ou orçamento a partir do mesmo atendimento de balcão. */
 export const counterSalesRouter = router({
   create: protectedProcedure.input(createCounterSaleSchema).mutation(async ({ ctx, input }) => {
@@ -161,11 +170,9 @@ export const counterSalesRouter = router({
     return legacyResult;
   }),
   finalize: protectedProcedure.input(finalizeCounterTransactionSchema).mutation(async ({ ctx, input }) => finalizeCounterTransaction(ctx, input)),
-  getOrder: protectedProcedure.input(z.object({ id: z.number().int().positive() })).query(async ({ input }) => {
+  getOrder: protectedProcedure.input(z.object({ id: z.number().int().positive() })).query(async ({ ctx, input }) => {
     const db = await getDb();
     if (!db) throw new Error("Banco de dados indisponível");
-    const result = await db.select().from(orders).where(eq(orders.id, input.id)).limit(1);
-    if (!result[0]) throw new Error("Venda não encontrada");
-    return result[0];
+    return requireVisibleCounterOrder(db, input.id, ctx.user);
   }),
 });

@@ -1,7 +1,7 @@
 # Documentação Técnica Integral — Plataforma Vidrix
 
-**Sistema:** Vidrix ERP — Gestão Comercial para Vidraçaria  
-**Versão documentada:** versão final consolidada em 16 de agosto de 2026  
+**Sistema:** Vidrix ERP — plataforma white label de gestão comercial para vidraçaria  
+**Versão documentada:** versão consolidada em 20 de agosto de 2026  
 **Ambiente produtivo:** [vidrix-erp-final.azurewebsites.net](https://vidrix-erp-final.azurewebsites.net)  
 **Finalidade deste documento:** apresentar, de forma rastreável, como a plataforma foi construída, quais regras de negócio implementa, como é operada e como deve ser mantida com segurança.
 **Autor da consolidação:** Manus AI.
@@ -10,7 +10,7 @@
 
 ## 1. Visão geral
 
-O **Vidrix** é um ERP comercial orientado à operação de uma vidraçaria. A plataforma substitui o trabalho diário centralizado no banco legado Microsoft Access (`Vidracaria2026pdv.mdb`) por uma aplicação web com persistência relacional, autenticação local, histórico operacional e publicação no Azure.
+O **Vidrix** é o nome técnico da plataforma ERP orientada à operação de uma vidraçaria. Em execução, a aplicação é **white label**: a empresa administradora define o seu próprio nome de exibição, identidade visual e dados institucionais. A plataforma substitui o trabalho diário centralizado no banco legado Microsoft Access (`Vidracaria2026pdv.mdb`) por uma aplicação web com persistência relacional, autenticação local, histórico operacional e publicação no Azure.
 
 O objetivo principal foi preservar os fluxos comerciais relevantes do legado e torná-los mais seguros e auditáveis: cadastro de entidades, orçamento, venda, pedido, estoque, compras, relatório e atendimento de balcão. A unidade comercial oficial para medidas é o **centímetro**, e o cálculo de área é uniforme em toda a aplicação.[1]
 
@@ -21,6 +21,7 @@ O objetivo principal foi preservar os fluxos comerciais relevantes do legado e t
 | Evitar duplicação e perda de rastreabilidade | Transações para movimentação de estoque, conversão idempotente de orçamento e cancelamento auditável. |
 | Permitir operação sem mouse | Convenção de foco, Enter, Shift+Enter, confirmações seguras e navegação por setas nos diálogos do Balcão. |
 | Proteger operações sensíveis | Sessão JWT local e autorizações aplicadas no servidor por papel. |
+| Permitir identidade própria da empresa | Configuração centralizada de nome, razão social, logotipo, cor, contatos e endereço, aplicada ao acesso, navegação e PDF de orçamento. |
 | Modernizar a hospedagem | Aplicação publicada no Azure App Service, com MySQL Azure Flexible Server e entrega automatizada pelo GitHub Actions. |
 
 ## 2. Escopo funcional entregue
@@ -75,7 +76,7 @@ flowchart LR
 | `client/src/pages/` | Páginas de cada módulo operacional. Destacam-se `CounterSale.tsx`, `Products.tsx`, Clientes, Pedidos, Compras, Estoque, Relatórios e Dashboard. |
 | `client/src/components/` | Componentes reutilizáveis, layout lateral, diálogos e `KeyboardNavigator.tsx`. |
 | `shared/` | Schemas, contratos de formulário, regras de teclado e funções compartilhadas para código de produto. |
-| `server/routers/` | Procedures tRPC organizadas por domínio: clientes, produtos, balcão, pedidos, compras, estoque, dashboard e relatórios. |
+| `server/routers/` | Procedures tRPC organizadas por domínio: clientes, produtos, balcão, pedidos, compras, estoque, dashboard, relatórios e configuração de marca. |
 | `server/_core/` | Infraestrutura de execução do Express, contexto, tRPC e integração de ambiente. |
 | `server/db.ts` | Bootstrap idempotente do esquema, operações de persistência e adaptação de dados. |
 | `drizzle/schema.ts` | Fonte declarativa do modelo de dados. |
@@ -93,21 +94,32 @@ Os componentes centrais desse mecanismo são `server/local-auth.ts`, `server/_co
 
 ### 4.2 Papéis e política aplicada no servidor
 
-O controlo não depende apenas de esconder botões. A procedure `adminProcedure` verifica, no servidor, se `ctx.user.role` é `admin` ou `superadmin`; um utilizador comum recebe `FORBIDDEN` antes da mutação de alto impacto. Consultas operacionais permanecem protegidas por autenticação, mas acessíveis aos papéis autorizados.[2]
+O controlo não depende apenas de esconder botões. As procedures protegidas conferem a sessão; `adminProcedure` aceita somente `admin` ou `superadmin`; e `superadminProcedure` é exclusiva para a identidade white label. O middleware ainda limita as procedures disponíveis ao papel `seller`, antes de qualquer leitura ou mutação. [2]
 
-| Operação | `user` | `admin` | `superadmin` |
+| Operação | `seller` — Vendedor | `admin` — Administrador | `superadmin` — Superadministrador |
 |---|---:|---:|---:|
-| Consultar cadastros, indicadores, estoque e relatórios | Sim | Sim | Sim |
-| Cadastrar e editar clientes | Sim | Sim | Sim |
-| Criar orçamento e concluir atendimento de balcão | Sim | Sim | Sim |
-| Criar, editar ou excluir produtos | Não | Sim | Sim |
-| Criar, editar ou excluir fornecedores | Não | Sim | Sim |
-| Criar, receber ou cancelar pedidos de compra | Não | Sim | Sim |
-| Ajustar estoque manualmente | Não | Sim | Sim |
-| Alterar status ou cancelar pedidos com efeito no estoque | Não | Sim | Sim |
-| Criar uma conta de superadmin | Não | Não | Sim |
+| Balcão, clientes e consulta de produtos | Sim | Sim | Sim |
+| Orçamentos e status das vendas | Somente registros próprios | Sim | Sim |
+| Consulta individual de venda de Balcão | Somente registro próprio | Sim | Sim |
+| Criar, editar ou excluir produtos e fornecedores | Não | Sim | Sim |
+| Compras, recebimento, ajustes de estoque e relatórios | Não | Sim | Sim |
+| Funcionários e tipos de produto | Não | Sim | Sim |
+| Configurar nome, identidade visual e dados da marca | Não | Não | Sim |
+
+O `userId` é gravado no orçamento e no pedido produzidos pelo atendimento comercial. As consultas de Vendedor aplicam esse identificador como filtro obrigatório, inclusive na consulta de venda de Balcão. Assim, uma tentativa de buscar um registro pertencente a outro vendedor não revela dados e retorna “não encontrado”.
 
 > Mesmo um administrador não ignora as regras comerciais: estoque, recebimento, conversão e cancelamento continuam obrigatoriamente transacionais e auditáveis.
+
+### 4.3 Operação white label
+
+A tabela singleton `brandSettings` armazena a identidade institucional configurável: nome de exibição, razão social, slogan, URL de logotipo, cor primária, telefone, e-mail e endereço. O router `brandSettings` disponibiliza leitura para renderização inicial e mantém a alteração exclusivamente no escopo do Superadministrador.
+
+| Superfície | Aplicação da marca |
+|---|---|
+| Tela de acesso | Nome, logotipo, slogan e cor primária da empresa configurada. |
+| Navegação e título do navegador | Cabeçalho lateral e título da página com o nome de exibição. |
+| Orçamentos em PDF | Cabeçalho institucional e contatos da marca configurada. |
+| Administração | Tela “Marca white label”, visível somente ao Superadministrador. |
 
 ## 5. Modelo de dados e integridade
 
@@ -115,7 +127,7 @@ O esquema Drizzle e o bootstrap de `server/db.ts` são a referência de estrutur
 
 | Grupo de dados | Entidades principais | Finalidade |
 |---|---|---|
-| Identidade | `users` | Utilizadores locais, hash de senha e papel. |
+| Identidade | `users`, `brandSettings` | Utilizadores locais, hash de senha e papel; configuração singleton da marca white label. |
 | Cadastros | `clients`, `products`, `suppliers` | Base comercial do ERP. Clientes incluem CPF/CNPJ, contatos, WhatsApp e endereço; produtos incluem `code` único. |
 | Comercial | `quotes`, `quoteItems`, `orders`, `orderItems` | Orçamento, itens, pedido, status, totais e referências de conversão. |
 | Balcão | `counterSaleItems`, `saleComplements` | Itens e complementos do atendimento unificado. |
@@ -241,7 +253,7 @@ Os relatórios de suporte são [`MIGRATION_MDB_ANALYSIS.md`](./MIGRATION_MDB_ANA
 
 ## 10. Testes e evidências de qualidade
 
-A base de regressão consolida **97 testes aprovados**, cobrindo regras comerciais, contratos, integrações, permissões, dashboard, relatórios, códigos de produto e comportamento de teclado. A compilação de produção é executada com `pnpm build` antes da publicação.[4]
+A base de regressão consolida **145 testes aprovados**, cobrindo regras comerciais, contratos, integrações, permissões, escopo de Vendedor, configuração white label, dashboard, relatórios, códigos de produto e comportamento de teclado. A compilação de produção é executada com `pnpm build` antes da publicação.[4]
 
 | Grupo de testes | Cobertura principal |
 |---|---|
@@ -250,7 +262,7 @@ A base de regressão consolida **97 testes aprovados**, cobrindo regras comercia
 | Compras | Recebimento transacional e idempotente. |
 | Balcão | Orçamento/venda, cliente no encerramento, complementos, código de produto e teclado. |
 | Catálogo | Geração, unicidade e preenchimento retroativo dos códigos. |
-| Segurança | Login local, superadmin e segregação `user`/`admin`/`superadmin`. |
+| Segurança | Login local, matriz `seller`/`admin`/`superadmin`, escopo dos registros comerciais e alteração de marca exclusiva de Superadministrador. |
 | Gestão | Contratos dos indicadores de dashboard e dos filtros/saídas de relatórios. |
 | Interface | Navegação por Enter, Shift+Enter, selects nativos, foco em diálogos e setas nos fluxos de decisão. |
 
@@ -339,6 +351,8 @@ As regras e contratos de teclado estão cobertos automaticamente. Para encerrar 
 | Estoque, Relatórios, Orçamentos e Pedidos | Filtros, diálogos, tabelas e Kanban permanecem utilizáveis por teclado. |
 | Máscaras e CEP | Máscaras de CPF/CNPJ, telefone, WhatsApp e CEP; consulta de CEP, erro e sucesso visíveis. |
 | Responsividade | Modais e formulários validados em desktop e largura móvel. |
+| Marca white label | Configurar a marca com Superadministrador e conferir tela de acesso, navegação, título do navegador e cabeçalho de um PDF de orçamento. |
+| Escopo de Vendedor | Autenticar como Vendedor e confirmar que orçamentos, status das vendas e venda de Balcão não expõem registros de outro utilizador. |
 
 > Durante a última sessão de validação, o Balcão publicado foi carregado com o diálogo de decisão aberto e os contratos automatizados de setas foram confirmados. A continuidade da inspeção visual no navegador do utilizador depende de a conexão dessa sessão do navegador responder novamente.
 

@@ -1,14 +1,13 @@
-# Política de permissões operacionais do Vidrix
+# Política de permissões operacionais — Vidrix ERP
 
-**Vigência técnica:** versão posterior ao commit de segregação por papel de 14/08/2026.  
-**Objetivo:** separar consulta e atendimento comercial das ações que alteram catálogo, suprimentos, saldo de estoque ou situação auditável de pedidos.
+**Vigência técnica:** versão white label e matriz de três perfis de 20/08/2026.  
+**Objetivo:** garantir que atendimento comercial, cadastros administrativos, suprimentos, estoque e identidade institucional sejam acessados somente pelos papéis aprovados, com validação também no servidor.
 
 | Papel | Atividades autorizadas | Restrições aplicadas no servidor |
 |---|---|---|
-| `cashier` | Consultar produtos e clientes, cadastrar rapidamente um cliente e conduzir o atendimento unificado de **Balcão** até seu encerramento como orçamento ou venda. | A interface redireciona para o Balcão e o servidor permite exclusivamente as procedures indispensáveis a esse fluxo; cadastros administrativos, relatórios, pedidos, estoque, compras e demais consultas são recusados. |
-| `user` | Consultar módulos, atender clientes, registrar e editar clientes, criar orçamentos e concluir atendimento de balcão como orçamento ou venda. | Não pode criar, editar ou excluir produtos/fornecedores; criar, alterar, excluir ou receber compras; lançar ajuste manual de estoque; nem alterar status, cancelar ou alterar itens de pedidos que movimentem estoque. |
-| `admin` | Todas as atividades de `user` e a gestão de catálogo, fornecedores, compras, recebimento, ajuste manual de estoque e ciclo de pedidos. | Não pode ignorar as transações, validações e trilhas de auditoria já existentes. |
-| `superadmin` | Mesmas permissões administrativas e criação de contas `superadmin`. | Continua sujeito às regras transacionais de estoque e cancelamento auditável. |
+| `seller` — **Vendedor** | Atender no **Balcão**, consultar produtos, consultar/criar/editar clientes e criar, consultar, editar ou excluir os seus próprios orçamentos. Pode consultar somente as próprias vendas e os seus itens. | Não acessa compras, estoque, relatórios, fornecedores, catálogo administrativo, tipos de produto, funcionários ou marca. Cada consulta de orçamento, pedido e venda de balcão recebe filtro obrigatório por `userId`; registros de outros vendedores retornam “não encontrado”. |
+| `admin` — **Administrador** | Executar toda a operação comercial e administrativa: clientes, catálogo, fornecedores, pedidos, compras, recebimento, estoque, relatórios, funcionários e tipos de produto. | Não pode alterar a identidade white label. As regras transacionais, validações comerciais e trilha de estoque continuam obrigatórias. |
+| `superadmin` — **Superadministrador** | Possui todas as permissões de Administrador e administra a configuração institucional da marca. | É o único perfil que pode modificar nome de exibição, razão social, logotipo, cor primária, contatos e endereço da marca. Continua sujeito às regras transacionais de estoque e cancelamento auditável. |
 
 > A regra é aplicada nas procedures do servidor, não apenas na interface. Uma chamada direta autenticada por um utilizador comum recebe `FORBIDDEN` antes de qualquer leitura ou escrita operacional de alto impacto.
 
@@ -20,8 +19,15 @@
 | Suprimentos | Criar, alterar, excluir itens/pedidos de compra e receber mercadoria. |
 | Estoque | Ajuste manual de entrada ou saída. |
 | Pedidos | Alteração de status, cancelamento e inclusão, edição ou remoção de itens com reflexo de estoque. |
-| Administração | Cadastro de funcionários, criação de superadministrador e manutenção de tipos de produto. |
+| Administração | Cadastro de funcionários e manutenção de tipos de produto. |
+| Identidade institucional | Exclusiva de `superadmin`: manutenção da configuração white label da marca. |
+
+## Escopo comercial do Vendedor
+
+O papel **Vendedor** substitui o perfil independente Caixa · Balcão. Ele pode usar o atendimento comercial completo, sem receber acesso às áreas administrativas. O servidor registra o `userId` de quem cria o orçamento, pedido ou resultado do Balcão e o utiliza como critério de visibilidade em consultas posteriores.
+
+> Não basta ocultar um item do menu: uma chamada tRPC direta é recusada pelo middleware de Vendedor quando a procedure não estiver na lista permitida. Nas procedures comerciais autorizadas, a leitura individual também confere a propriedade do registro.
 
 ## Evidência automatizada
 
-Os arquivos [`server/role-segregation.test.ts`](./server/role-segregation.test.ts) e [`server/cashier-address-product-types.contract.test.ts`](./server/cashier-address-product-types.contract.test.ts) comprovam o bloqueio de ações administrativas para perfis não administrativos, o perímetro exclusivo de Balcão para `cashier`, e os contratos de endereço e tipos cadastráveis. A regressão consolidada totalizou **131 testes aprovados**.
+Os arquivos [`server/role-segregation.test.ts`](./server/role-segregation.test.ts), [`server/counter-sales.visibility.test.ts`](./server/counter-sales.visibility.test.ts) e [`server/brand-settings.router.test.ts`](./server/brand-settings.router.test.ts) comprovam, respectivamente, o bloqueio de ações administrativas, o filtro de propriedade da venda de Balcão e a atualização exclusiva da marca por Superadministrador. A regressão consolidada desta versão totaliza **145 testes aprovados**.

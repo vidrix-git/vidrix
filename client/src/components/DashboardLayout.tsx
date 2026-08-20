@@ -37,13 +37,15 @@ import {
   Building2,
   ContactRound,
   Tags,
+  Palette,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 import { getAccountIdentity } from "@/lib/account-identity";
-import { isCashierOnlyRoute } from "../../../shared/cashier-access";
+import { isSellerRoute } from "../../../shared/seller-access";
+import { trpc } from "@/lib/trpc";
 
 const menuGroups = [
   {
@@ -79,6 +81,7 @@ const menuGroups = [
     items: [
       { icon: BarChart3, label: "Relatórios", path: "/reports" },
       { icon: ContactRound, label: "Funcionários", path: "/employees" },
+      { icon: Palette, label: "Marca white label", path: "/brand-settings", superadminOnly: true },
     ],
   },
 ];
@@ -98,10 +101,15 @@ export default function DashboardLayout({
     return saved ? parseInt(saved, 10) : DEFAULT_WIDTH;
   });
   const { loading, user } = useAuth();
+  const { data: brand } = trpc.brandSettings.get.useQuery();
 
   useEffect(() => {
     localStorage.setItem(SIDEBAR_WIDTH_KEY, sidebarWidth.toString());
   }, [sidebarWidth]);
+
+  useEffect(() => {
+    document.title = brand?.displayName ? `${brand.displayName} | Gestão` : "Gestão comercial";
+  }, [brand?.displayName]);
 
   if (loading) {
     return <DashboardLayoutSkeleton />;
@@ -112,14 +120,14 @@ export default function DashboardLayout({
       <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="flex flex-col items-center gap-8 p-8 max-w-md w-full">
           <div className="flex flex-col items-center gap-6">
-            <div className="h-16 w-16 rounded-xl bg-primary/10 flex items-center justify-center">
-              <LayoutDashboard className="h-8 w-8 text-primary" />
+            <div className="h-16 w-16 rounded-xl overflow-hidden flex items-center justify-center" style={{ backgroundColor: brand?.primaryColor || "#0f766e" }}>
+              {brand?.logoUrl ? <img src={brand.logoUrl} alt="Logotipo" className="h-full w-full object-cover" /> : <LayoutDashboard className="h-8 w-8 text-white" />}
             </div>
             <h1 className="text-2xl font-bold tracking-tight text-center text-foreground">
-              Vidrix ERP
+              {brand?.displayName || "Sua Empresa"}
             </h1>
             <p className="text-sm text-muted-foreground text-center max-w-sm">
-              Sistema de gestão para vidraçaria. Faça login para acessar o painel.
+              {brand?.tagline || "Sistema de gestão comercial"}. Faça login para acessar o painel.
             </p>
           </div>
           <Button
@@ -166,19 +174,23 @@ function DashboardLayoutContent({
   const sidebarRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const accountIdentity = getAccountIdentity(user);
-  const isCashier = user?.role === "cashier";
-  const visibleMenuGroups = isCashier
+  const isSeller = user?.role === "seller";
+  const isSuperadmin = user?.role === "superadmin";
+  const { data: brand } = trpc.brandSettings.get.useQuery();
+  const visibleMenuGroups = isSeller
     ? menuGroups
-        .map((group) => ({ ...group, items: group.items.filter((item) => item.path === "/counter-sale") }))
+        .map((group) => ({ ...group, items: group.items.filter((item) => isSellerRoute(item.path)) }))
         .filter((group) => group.items.length > 0)
-    : menuGroups;
+    : menuGroups
+        .map((group) => ({ ...group, items: group.items.filter((item) => !item.superadminOnly || isSuperadmin) }))
+        .filter((group) => group.items.length > 0);
   const activeMenuItem = visibleMenuGroups.flatMap((group) => group.items).find((item) => item.path === location);
 
   useEffect(() => {
-    if (isCashier && !isCashierOnlyRoute(location)) {
+    if (isSeller && !isSellerRoute(location)) {
       setLocation("/counter-sale");
     }
-  }, [isCashier, location, setLocation]);
+  }, [isSeller, location, setLocation]);
 
   useEffect(() => {
     if (isCollapsed) {
@@ -231,15 +243,15 @@ function DashboardLayoutContent({
               </button>
               {!isCollapsed ? (
                 <div className="flex items-center gap-2 min-w-0">
-                  <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-                    <LayoutDashboard className="h-4 w-4 text-primary-foreground" />
+                  <div className="h-8 w-8 rounded-lg overflow-hidden flex items-center justify-center" style={{ backgroundColor: brand?.primaryColor || "#0f766e" }}>
+                    {brand?.logoUrl ? <img src={brand.logoUrl} alt="Logotipo" className="h-full w-full object-cover" /> : <LayoutDashboard className="h-4 w-4 text-white" />}
                   </div>
                   <div className="flex flex-col">
                     <span className="font-bold tracking-tight truncate text-sm">
-                      Vidrix ERP
+                      {brand?.displayName || "Sua Empresa"}
                     </span>
                     <span className="text-[10px] text-muted-foreground truncate">
-                      Gestão de Vidraçaria
+                      {brand?.tagline || "Gestão comercial"}
                     </span>
                   </div>
                 </div>
@@ -334,8 +346,8 @@ function DashboardLayoutContent({
           </div>
         )}
         <main className="flex-1 p-6">
-          {isCashier && !isCashierOnlyRoute(location) ? (
-            <div className="p-8 text-center text-muted-foreground">Redirecionando para o Balcão...</div>
+          {isSeller && !isSellerRoute(location) ? (
+            <div className="p-8 text-center text-muted-foreground">Redirecionando para o atendimento comercial...</div>
           ) : children}
         </main>
       </SidebarInset>

@@ -299,6 +299,20 @@ export const createStockMovementSchema = z.object({
   notes: z.string().optional().nullable(),
 });
 
+// ============================================================
+// WHITE LABEL BRAND SETTINGS
+// ============================================================
+export const updateBrandSettingsSchema = z.object({
+  displayName: z.string().trim().min(2, "Informe o nome exibido da empresa").max(120),
+  legalName: z.string().trim().max(255).optional().nullable(),
+  tagline: z.string().trim().max(255).optional().nullable(),
+  logoUrl: z.string().trim().url("Informe uma URL de logotipo válida").max(2048).optional().nullable().or(z.literal("")),
+  primaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Informe uma cor hexadecimal no formato #RRGGBB"),
+  phone: z.string().trim().max(64).optional().nullable(),
+  email: z.string().trim().email("Informe um e-mail válido").max(320).optional().nullable().or(z.literal("")),
+  address: z.string().trim().max(1000).optional().nullable(),
+});
+
 export type CreateClientInput = z.infer<typeof createClientSchema>;
 export type UpdateClientInput = z.infer<typeof updateClientSchema>;
 export type CreateProductInput = z.infer<typeof createProductSchema>;
@@ -318,3 +332,4 @@ export type UpdatePurchaseOrderInput = z.infer<typeof updatePurchaseOrderSchema>
 export type CreatePurchaseOrderItemInput = z.infer<typeof createPurchaseOrderItemSchema>;
 export type UpdatePurchaseOrderItemInput = z.infer<typeof updatePurchaseOrderItemSchema>;
 export type CreateStockMovementInput = z.infer<typeof createStockMovementSchema>;
+export type UpdateBrandSettingsInput = z.infer<typeof updateBrandSettingsSchema>;

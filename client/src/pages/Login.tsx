@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { ShieldCheck, UserPlus, LogIn } from "lucide-react";
 import { LOCAL_TOKEN_STORAGE_KEY } from "@/lib/auth-session";
+import { trpc } from "@/lib/trpc";
 
 export default function LoginPage() {
   const [, setLocation] = useLocation();
@@ -18,6 +19,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isPending, setIsPending] = useState(false);
+  const { data: brand } = trpc.brandSettings.get.useQuery();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,11 +79,11 @@ export default function LoginPage() {
 
       <div className="relative w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-500 to-blue-600 mb-4">
-            <ShieldCheck className="w-8 h-8 text-white" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl overflow-hidden mb-4" style={{ backgroundColor: brand?.primaryColor || "#0f766e" }}>
+            {brand?.logoUrl ? <img src={brand.logoUrl} alt={`Logotipo ${brand.displayName}`} className="h-full w-full object-cover" /> : <ShieldCheck className="w-8 h-8 text-white" />}
           </div>
-          <h1 className="text-3xl font-bold text-white">Vidrix</h1>
-          <p className="text-slate-400 mt-1">Sistema de Gestão para Vidraçaria</p>
+          <h1 className="text-3xl font-bold text-white">{brand?.displayName || "Sua Empresa"}</h1>
+          <p className="text-slate-400 mt-1">{brand?.tagline || "Sistema de gestão comercial"}</p>
         </div>
 
         <Card className="border-slate-700 bg-slate-800">
@@ -152,7 +154,8 @@ export default function LoginPage() {
               )}
               <Button
                 type="submit"
-                className="w-full bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-500 hover:to-blue-500"
+                className="w-full text-white hover:opacity-90"
+                style={{ backgroundColor: brand?.primaryColor || "#0f766e" }}
                 disabled={isPending || login.isPending || register.isPending}
               >
                 {(login.isPending || register.isPending) ? "Processando..." : mode === "login" ? "Entrar" : "Criar Conta"}

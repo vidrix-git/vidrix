@@ -2,7 +2,7 @@ import { NOT_ADMIN_ERR_MSG, UNAUTHED_ERR_MSG } from '@shared/const';
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import type { TrpcContext } from "./context";
-import { canCashierCall } from "../../shared/cashier-access";
+import { canSellerCall } from "../../shared/seller-access";
 
 const t = initTRPC.context<TrpcContext>().create({
   transformer: superjson,
@@ -18,10 +18,10 @@ const requireUser = t.middleware(async opts => {
     throw new TRPCError({ code: "UNAUTHORIZED", message: UNAUTHED_ERR_MSG });
   }
 
-  if (ctx.user.role === "cashier" && !canCashierCall(opts.path)) {
+  if (ctx.user.role === "seller" && !canSellerCall(opts.path)) {
     throw new TRPCError({
       code: "FORBIDDEN",
-      message: "O vendedor de frente de caixa tem acesso apenas ao Balcão.",
+      message: "O vendedor tem acesso apenas ao atendimento comercial, clientes e suas vendas.",
     });
   }
 
@@ -49,5 +49,17 @@ export const adminProcedure = t.procedure.use(
         user: ctx.user,
       },
     });
+  }),
+);
+
+export const superadminProcedure = t.procedure.use(
+  t.middleware(async opts => {
+    const { ctx, next } = opts;
+
+    if (!ctx.user || ctx.user.role !== "superadmin") {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Apenas o Superadministrador pode alterar a marca da operação." });
+    }
+
+    return next({ ctx: { ...ctx, user: ctx.user } });
   }),
 );

@@ -77,7 +77,7 @@ export const ERP_SCHEMA_STATEMENTS = [
     \`name\` text,
     \`email\` varchar(320),
     \`loginMethod\` varchar(64),
-    \`role\` enum('user','cashier','admin','superadmin') NOT NULL DEFAULT 'user',
+    \`role\` enum('seller','admin','superadmin') NOT NULL DEFAULT 'seller',
     \`createdAt\` timestamp NOT NULL DEFAULT (now()),
     \`updatedAt\` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
     \`lastSignedIn\` timestamp NOT NULL DEFAULT (now()),
@@ -85,7 +85,22 @@ export const ERP_SCHEMA_STATEMENTS = [
     PRIMARY KEY(\`id\`),
     UNIQUE KEY \`users_openId_unique\` (\`openId\`)
   )`,
-  `ALTER TABLE \`users\` MODIFY COLUMN \`role\` enum('user','cashier','admin','superadmin') NOT NULL DEFAULT 'user'`,
+  `ALTER TABLE \`users\` MODIFY COLUMN \`role\` enum('user','cashier','seller','admin','superadmin') NOT NULL DEFAULT 'seller'`,
+  `UPDATE \`users\` SET \`role\` = 'seller' WHERE \`role\` IN ('user', 'cashier')`,
+  `ALTER TABLE \`users\` MODIFY COLUMN \`role\` enum('seller','admin','superadmin') NOT NULL DEFAULT 'seller'`,
+  `CREATE TABLE IF NOT EXISTS \`brandSettings\` (
+    \`id\` int NOT NULL,
+    \`displayName\` varchar(120) NOT NULL,
+    \`legalName\` varchar(255),
+    \`tagline\` varchar(255),
+    \`logoUrl\` varchar(2048),
+    \`primaryColor\` varchar(7) NOT NULL DEFAULT '#0f766e',
+    \`phone\` varchar(64),
+    \`email\` varchar(320),
+    \`address\` text,
+    \`updatedAt\` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY(\`id\`)
+  )`,
   `CREATE TABLE IF NOT EXISTS \`quotes\` (
     \`id\` int AUTO_INCREMENT NOT NULL,
     \`clientId\` int NOT NULL,
@@ -252,6 +267,9 @@ export const ERP_SCHEMA_STATEMENTS = [
   `INSERT IGNORE INTO \`productTypes\` (\`name\`)
     SELECT DISTINCT TRIM(\`type\`) FROM \`products\`
     WHERE \`type\` IS NOT NULL AND TRIM(\`type\`) <> ''`,
+  `INSERT IGNORE INTO \`brandSettings\` (
+    \`id\`, \`displayName\`, \`legalName\`, \`tagline\`, \`primaryColor\`
+  ) VALUES (1, 'Sua Empresa', 'Sua Empresa', 'Sistema de gestão comercial', '#0f766e')`,
 ] as const;
 
 // Lazily create the drizzle instance so local tooling can run without a DB.

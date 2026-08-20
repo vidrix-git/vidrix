@@ -338,10 +338,11 @@ function buildCronUser(
     name: userInfo.name || "Manus Scheduled Task",
     email: null,
     loginMethod: null,
-    role: "user",
+    role: "superadmin",
     createdAt: now,
     updatedAt: now,
     lastSignedIn: now,
+    password: null,
     taskUid: userInfo.taskUid ?? undefined,
     isCron: true,
   } as AuthenticatedUser;

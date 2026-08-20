@@ -37,24 +37,35 @@ async function changeStock(
   });
 }
 
+async function requireVisibleOrder(db: any, orderId: number, user: { id: number; role: string } | null | undefined) {
+  const criteria = user?.role === "seller"
+    ? and(eq(orders.id, orderId), eq(orders.userId, user.id))
+    : eq(orders.id, orderId);
+  const result = await db.select().from(orders).where(criteria).limit(1);
+  if (result.length === 0) throw new Error("Pedido não encontrado");
+  return result[0] as any;
+}
+
 export const ordersRouter = router({
-  list: protectedProcedure.query(async () => {
+  list: protectedProcedure.query(async (opts) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
+    if (opts.ctx.user?.role === "seller") {
+      return db.select().from(orders).where(eq(orders.userId, opts.ctx.user.id)).orderBy(orders.createdAt);
+    }
     return db.select().from(orders).orderBy(orders.createdAt);
   }),
 
   get: protectedProcedure.input(z.object({ id: z.number().int().positive() })).query(async (opts) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
-    const result = await db.select().from(orders).where(eq(orders.id, opts.input.id)).limit(1);
-    if (result.length === 0) throw new Error("Pedido não encontrado");
-    return result[0];
+    return requireVisibleOrder(db, opts.input.id, opts.ctx.user);
   }),
 
   getItems: protectedProcedure.input(z.object({ id: z.number().int().positive() })).query(async (opts) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
+    await requireVisibleOrder(db, opts.input.id, opts.ctx.user);
     return db.select().from(orderItems).where(eq(orderItems.orderId, opts.input.id));
   }),
 

@@ -17,24 +17,35 @@ async function refreshQuoteTotal(tx: any, quoteId: number) {
   await tx.update(quotes).set({ totalAmount: roundMoney(total) }).where(eq(quotes.id, quoteId));
 }
 
+async function requireVisibleQuote(db: any, quoteId: number, user: { id: number; role: string } | null | undefined) {
+  const criteria = user?.role === "seller"
+    ? and(eq(quotes.id, quoteId), eq(quotes.userId, user.id))
+    : eq(quotes.id, quoteId);
+  const result = await db.select().from(quotes).where(criteria).limit(1);
+  if (result.length === 0) throw new Error("Orçamento não encontrado");
+  return result[0] as any;
+}
+
 export const quotesRouter = router({
-  list: protectedProcedure.query(async () => {
+  list: protectedProcedure.query(async (opts) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
+    if (opts.ctx.user?.role === "seller") {
+      return db.select().from(quotes).where(eq(quotes.userId, opts.ctx.user.id)).orderBy(quotes.createdAt);
+    }
     return db.select().from(quotes).orderBy(quotes.createdAt);
   }),
 
   get: protectedProcedure.input(z.object({ id: z.number().int().positive() })).query(async (opts) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
-    const result = await db.select().from(quotes).where(eq(quotes.id, opts.input.id)).limit(1);
-    if (result.length === 0) throw new Error("Orçamento não encontrado");
-    return result[0];
+    return requireVisibleQuote(db, opts.input.id, opts.ctx.user);
   }),
 
   getItems: protectedProcedure.input(z.object({ id: z.number().int().positive() })).query(async (opts) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
+    await requireVisibleQuote(db, opts.input.id, opts.ctx.user);
     return db.select().from(quoteItems).where(eq(quoteItems.quoteId, opts.input.id));
   }),
 
@@ -57,6 +68,7 @@ export const quotesRouter = router({
     const db = await getDb();
     if (!db) throw new Error("Database not available");
     const { id, ...data } = opts.input;
+    await requireVisibleQuote(db, id, opts.ctx.user);
     const updateData = data as any;
     if (updateData.validUntil) {
       updateData.validUntil = new Date(updateData.validUntil);
@@ -68,9 +80,8 @@ export const quotesRouter = router({
   delete: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async (opts) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
-    const quote = await db.select().from(quotes).where(eq(quotes.id, opts.input.id)).limit(1);
-    if (quote.length === 0) throw new Error("Orçamento não encontrado");
-    if (quote[0].status === "convertido") throw new Error("Orçamento convertido não pode ser excluído");
+    const quote = await requireVisibleQuote(db, opts.input.id, opts.ctx.user);
+    if (quote.status === "convertido") throw new Error("Orçamento convertido não pode ser excluído");
     await db.delete(quoteItems).where(eq(quoteItems.quoteId, opts.input.id));
     await db.delete(quotes).where(eq(quotes.id, opts.input.id));
     return { success: true };
@@ -79,6 +90,7 @@ export const quotesRouter = router({
   addItem: protectedProcedure.input(createQuoteItemSchema).mutation(async (opts) => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
+    await requireVisibleQuote(db, opts.input.quoteId, opts.ctx.user);
     const { width, height, quantity, unitPrice, ...rest } = opts.input;
     const item = calculateCommercialItem({ width, height, quantity, unitPrice });
     const result = await db.insert(quoteItems).values({
@@ -101,6 +113,7 @@ export const quotesRouter = router({
     const item = await db.select().from(quoteItems).where(eq(quoteItems.id, id)).limit(1);
     if (item.length === 0) throw new Error("Item não encontrado");
     const currentItem = item[0] as any;
+    await requireVisibleQuote(db, currentItem.quoteId, opts.ctx.user);
     const calculated = calculateCommercialItem({
       width: width ?? String(currentItem.width),
       height: height ?? String(currentItem.height),
@@ -125,6 +138,7 @@ export const quotesRouter = router({
     const item = await db.select().from(quoteItems).where(eq(quoteItems.id, opts.input.id)).limit(1);
     if (item.length === 0) throw new Error("Item não encontrado");
     const quoteId = (item[0] as any).quoteId;
+    await requireVisibleQuote(db, quoteId, opts.ctx.user);
     await db.delete(quoteItems).where(eq(quoteItems.id, opts.input.id));
     await refreshQuoteTotal(db, quoteId);
     return { success: true };

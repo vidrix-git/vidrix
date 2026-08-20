@@ -19,6 +19,7 @@ import Suppliers from "./pages/Suppliers";
 import CounterSale from "./pages/CounterSale";
 import Employees from "./pages/Employees";
 import ProductTypes from "./pages/ProductTypes";
+import BrandSettings from "./pages/BrandSettings";
 
 function Router() {
   return (
@@ -41,6 +42,7 @@ function Router() {
             <Route path={"/suppliers"} component={Suppliers} />
             <Route path={"/employees"} component={Employees} />
             <Route path={"/product-types"} component={ProductTypes} />
+            <Route path={"/brand-settings"} component={BrandSettings} />
             <Route path={"/404"} component={NotFound} />
             <Route component={NotFound} />
           </Switch>

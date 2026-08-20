@@ -10,7 +10,7 @@ export const users = mysqlTable("users", {
   name: text("name"),
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
-  role: mysqlEnum("role", ["user", "cashier", "admin", "superadmin"]).default("user").notNull(),
+  role: mysqlEnum("role", ["seller", "admin", "superadmin"]).default("seller").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -19,6 +19,24 @@ export const users = mysqlTable("users", {
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
+
+// ============================================================
+// WHITE LABEL BRAND SETTINGS
+// ============================================================
+export const brandSettings = mysqlTable("brandSettings", {
+  id: int("id").primaryKey(),
+  displayName: varchar("displayName", { length: 120 }).notNull(),
+  legalName: varchar("legalName", { length: 255 }),
+  tagline: varchar("tagline", { length: 255 }),
+  logoUrl: varchar("logoUrl", { length: 2048 }),
+  primaryColor: varchar("primaryColor", { length: 7 }).notNull().default("#0f766e"),
+  phone: varchar("phone", { length: 64 }),
+  email: varchar("email", { length: 320 }),
+  address: text("address"),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type BrandSettings = typeof brandSettings.$inferSelect;
 
 // ============================================================
 // CLIENTS

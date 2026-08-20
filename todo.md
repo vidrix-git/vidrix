@@ -317,3 +317,17 @@
 - [x] Exigir confirmação visual antes de excluir um Tipo de Produto e preservar o cancelamento seguro por teclado
 - [x] Cobrir o filtro e a confirmação de exclusão com testes de regressão
 - [x] Publicar no Azure as melhorias administrativas e confirmar a versão atualizada
+
+## Validação publicada de cadastros administrativos
+- [x] Inspecionar no Azure o filtro de Funcionários e a confirmação de exclusão de Tipos de Produto sem persistir alterações
+
+## Revisão conjunta de permissões
+- [x] Confirmar com o responsável os cargos, os módulos permitidos e as restrições de cada perfil de funcionário antes de alterar acessos
+- [x] Remover o perfil independente Caixa · Balcão e consolidar sua regra no perfil aprovado para vendas
+- [x] Restringir a consulta de venda de Balcão do Vendedor aos seus próprios registros e cobrir a regra com teste de regressão
+
+## Operação white label
+- [x] Remover referências de plataforma e identidade fixa da interface, autenticação e documentos comerciais
+- [x] Criar configurações administrativas de marca para razão social, nome de exibição, logotipo, cores, contatos e endereço
+- [x] Aplicar a marca configurada na navegação, tela de acesso, cabeçalhos e PDF de orçamento
+- [x] Restringir a gestão da marca ao perfil Superadministrador e cobrir a solução com testes

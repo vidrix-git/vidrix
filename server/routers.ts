@@ -19,9 +19,11 @@ import { legacyMigrationRouter } from "./routers/legacyMigration";
 import { counterSalesRouter } from "./routers/counterSales";
 import { employeesRouter } from "./routers/employees";
 import { productTypesRouter } from "./routers/productTypes";
+import { brandSettingsRouter } from "./routers/brandSettings";
 
 export const appRouter = router({
   system: systemRouter,
+  brandSettings: brandSettingsRouter,
   auth: router({
     me: publicProcedure.query((opts) => opts.ctx.user),
 
@@ -76,7 +78,7 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ input }) => {
-        let finalRole: "admin" | "user" = "user";
+        let finalRole: "admin" | "seller" = "seller";
         const db = await getDb();
         if (db) {
           const existing = await db.select().from(users).limit(1);

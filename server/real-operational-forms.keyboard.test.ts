@@ -71,6 +71,9 @@ vi.mock("@/lib/trpc", () => ({
       create: { useMutation: (options: any) => ({ mutate: () => options?.onSuccess?.({ insertId: 11 }), isPending: false }) }, addItem: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) },
       deleteItem: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) }, convertToOrder: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) }, delete: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) },
     },
+    brandSettings: {
+      get: { useQuery: () => ({ data: { displayName: "Empresa Teste", primaryColor: "#0f766e" }, isLoading: false }) },
+    },
     stockMovements: {
       list: { useQuery: () => ({ data: [{ id: 1, type: "entrada", productId: 1, quantity: 2, createdAt: "2026-08-18T10:00:00.000Z", referenceType: "purchase_order", referenceId: 3 }], isLoading: false }) },
     },
@@ -271,14 +274,14 @@ describe("formulários operacionais reais — teclado", () => {
     expect(view.getByText("Recebimento de Compra")).toBeTruthy();
   });
 
-  it("leva o cadastro real de Funcionários de nome a salvar somente com Enter", async () => {
+  it("leva o cadastro real de Vendedores de nome a salvar somente com Enter", async () => {
     const user = userEvent.setup();
     const view = page(Employees);
-    await user.click(view.getByRole("button", { name: /novo funcionário/i }));
+    await user.click(view.getByRole("button", { name: /novo vendedor/i }));
     const name = view.getByPlaceholderText("Nome completo");
     const email = view.getByPlaceholderText("vendedor@empresa.com");
     const password = view.getByPlaceholderText("Mínimo de 6 caracteres");
-    const save = view.getByRole("button", { name: "Salvar funcionário" });
+    const save = view.getByRole("button", { name: "Salvar vendedor" });
     name.focus();
     fireEvent.keyDown(name, { key: "Enter" });
     expect(document.activeElement).toBe(email);
@@ -299,24 +302,24 @@ describe("formulários operacionais reais — teclado", () => {
     expect(document.activeElement).toBe(save);
   });
 
-  it("mostra o nível de acesso de caixa de forma legível na lista de funcionários", () => {
+  it("mostra o nível de acesso de Vendedor de forma legível na lista de funcionários", () => {
     const view = page(Employees);
     expect(view.getByText("Vendedor Teclado")).toBeTruthy();
-    expect(view.getByText("CAIXA · BALCÃO")).toBeTruthy();
-    expect(view.getByText("Acesso exclusivo ao atendimento de Balcão")).toBeTruthy();
+    expect(view.getByText("VENDEDOR")).toBeTruthy();
+    expect(view.getByText("Balcão, clientes, orçamentos e próprias vendas")).toBeTruthy();
   });
 
   it("filtra funcionários por nome e mantém o filtro acessível na sequência de teclado", async () => {
     const user = userEvent.setup();
     const view = page(Employees);
-    const search = view.getByRole("textbox", { name: "Buscar funcionários" });
+    const search = view.getByRole("textbox", { name: "Buscar vendedores" });
     const access = view.getByRole("combobox", { name: "Filtrar por nível de acesso" });
     search.focus();
     fireEvent.keyDown(search, { key: "Enter" });
     expect(document.activeElement).toBe(access);
     await user.clear(search);
     await user.type(search, "inexistente");
-    expect(view.getByText("Nenhum funcionário encontrado")).toBeTruthy();
+    expect(view.getByText("Nenhum vendedor encontrado")).toBeTruthy();
     expect(view.getAllByRole("button", { name: "Limpar filtros" }).length).toBeGreaterThan(0);
   });
 

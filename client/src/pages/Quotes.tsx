@@ -79,6 +79,7 @@ export default function Quotes() {
   const { data: quotes, isLoading } = trpc.quotes.list.useQuery();
   const { data: clients } = trpc.clients.list.useQuery();
   const { data: products } = trpc.products.list.useQuery();
+  const { data: brand } = trpc.brandSettings.get.useQuery();
   const { data: itemsData } = trpc.quotes.getItems.useQuery(
     { id: detailId || 0 },
     { enabled: detailId !== null }
@@ -217,13 +218,20 @@ export default function Quotes() {
     const items = await utils.quotes.getItems.fetch({ id: quoteId });
 
     const doc = new jsPDF();
+    const hexColor = (brand?.primaryColor || "#0f766e").replace("#", "");
+    const accentColor = /^[0-9a-fA-F]{6}$/.test(hexColor)
+      ? [parseInt(hexColor.slice(0, 2), 16), parseInt(hexColor.slice(2, 4), 16), parseInt(hexColor.slice(4, 6), 16)]
+      : [15, 118, 110];
+    const brandName = brand?.displayName || "Sua Empresa";
+    doc.setProperties({ title: `Orçamento #${quoteId}`, author: brand?.legalName || brandName });
 
     // Header
     doc.setFontSize(20);
-    doc.setTextColor(37, 99, 235);
-    doc.text("Vidrix ERP", 20, 25);
+    doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
+    doc.text(brandName, 20, 25);
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
+    if (brand?.tagline) doc.text(brand.tagline, 20, 31);
     doc.text("Orçamento #" + quoteId, 20, 35);
 
     // Client info
@@ -251,7 +259,7 @@ export default function Quotes() {
       head: [["Produto", "Larg.", "Alt.", "Qtd", "m²", "Preço/m²", "Subtotal"]],
       body: tableData,
       styles: { fontSize: 8 },
-      headStyles: { fillColor: [37, 99, 235] },
+      headStyles: { fillColor: accentColor as [number, number, number] },
     });
 
     // Total
@@ -259,6 +267,9 @@ export default function Quotes() {
     doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
     doc.text("Total: R$ " + parseFloat(String(quote.totalAmount)).toFixed(2), 20, finalY + 15);
+    doc.setFont("helvetica", "normal");
+    const contactLine = [brand?.phone, brand?.email].filter(Boolean).join(" · ");
+    if (contactLine) doc.text(contactLine, 20, finalY + 22);
 
     doc.save(`orcamento_${quoteId}.pdf`);
     toast.success("PDF gerado com sucesso");
